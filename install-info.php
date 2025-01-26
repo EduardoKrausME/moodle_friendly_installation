@@ -120,7 +120,9 @@ echoColor($strings["install_moodle"], "green");
 system("php {$local}/admin/cli/install_database.php --lang={$selectedLang} --adminuser={$selectedEmail} --adminpass=Password@123# --adminemail={$selectedEmail} --fullname=Moodle --shortname=Moodle --agree-license");
 
 
-system("php {$local}/admin/cli/cfg.php --name=texteditors --set=tiny,textarea");
+system("php {$local}/admin/cli/cfg.php --name=texteditors        --set=tiny,textarea");
+system("php {$local}/admin/cli/cfg.php --name=enablegravatar     --set=1");
+system("php {$local}/admin/cli/cfg.php --name=gravatardefaulturl --set=robohash");
 
 // Force changue Password
 try {
