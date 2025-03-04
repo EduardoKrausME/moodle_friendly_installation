@@ -584,7 +584,7 @@ function changueLang($selectedLang) {
         case "es_co":
             $strings = [
                 "selectedDomain_title" => "Por favor, ingrese ahora la URL de su Moodle",
-                "selectedDomain_subtitle" => "No debe terminar con " / "\nEjemplo: http://yourmoodle.mysite.com\nEjemplo: http://yourmoodle.mysite.com/moodle2",
+                "selectedDomain_subtitle" => "No debe terminar con  / \nEjemplo: http://yourmoodle.mysite.com\nEjemplo: http://yourmoodle.mysite.com/moodle2",
                 "urlerror_scheme" => "La URL debe comenzar con HTTP o HTTPS",
                 "urlerror_host" => "URL inválida",
                 "urlerror_path" => "La URL no puede terminar con /",
@@ -630,7 +630,7 @@ function changueLang($selectedLang) {
         case "de":
             $strings = [
                 "selectedDomain_title" => "Bitte geben Sie jetzt die URL Ihres Moodles ein",
-                "selectedDomain_subtitle" => "Sie darf nicht mit " / " enden\nBeispiel: http://yourmoodle.mysite.com\nBeispiel: http://yourmoodle.mysite.com/moodle2",
+                "selectedDomain_subtitle" => "Sie darf nicht mit  /  enden\nBeispiel: http://yourmoodle.mysite.com\nBeispiel: http://yourmoodle.mysite.com/moodle2",
                 "urlerror_scheme" => "URL muss mit HTTP oder HTTPS beginnen",
                 "urlerror_host" => "Ungültige URL",
                 "urlerror_path" => "URL darf nicht mit / enden",
@@ -676,7 +676,7 @@ function changueLang($selectedLang) {
         case "id":
             $strings = [
                 "selectedDomain_title" => "Silakan masukkan URL Moodle Anda sekarang",
-                "selectedDomain_subtitle" => "URL tidak boleh diakhiri dengan " / "\nContoh: http://yourmoodle.mysite.com\nContoh: http://yourmoodle.mysite.com/moodle2",
+                "selectedDomain_subtitle" => "URL tidak boleh diakhiri dengan  / \nContoh: http://yourmoodle.mysite.com\nContoh: http://yourmoodle.mysite.com/moodle2",
                 "urlerror_scheme" => "URL harus dimulai dengan HTTP atau HTTPS",
                 "urlerror_host" => "URL tidak valid",
                 "urlerror_path" => "URL tidak boleh diakhiri dengan /",
@@ -722,7 +722,7 @@ function changueLang($selectedLang) {
         case "ru":
             $strings = [
                 "selectedDomain_title" => "Пожалуйста, введите URL вашего Moodle",
-                "selectedDomain_subtitle" => "URL не должен заканчиваться на " / "\nПример: http://yourmoodle.mysite.com\nПример: http://yourmoodle.mysite.com/moodle2",
+                "selectedDomain_subtitle" => "URL не должен заканчиваться на  / \nПример: http://yourmoodle.mysite.com\nПример: http://yourmoodle.mysite.com/moodle2",
                 "urlerror_scheme" => "URL должен начинаться с HTTP или HTTPS",
                 "urlerror_host" => "Недействительный URL",
                 "urlerror_path" => "URL не может заканчиваться на /",
@@ -768,7 +768,7 @@ function changueLang($selectedLang) {
         case "fr":
             $strings = [
                 "selectedDomain_title" => "Veuillez saisir l’URL de votre Moodle maintenant",
-                "selectedDomain_subtitle" => "Elle ne doit pas se terminer par " / "\nExemple : http://votremoodle.monsite.com\nExemple : http://votremoodle.monsite.com/moodle2",
+                "selectedDomain_subtitle" => "Elle ne doit pas se terminer par  / \nExemple : http://votremoodle.monsite.com\nExemple : http://votremoodle.monsite.com/moodle2",
                 "urlerror_scheme" => "L'URL doit commencer par HTTP ou HTTPS",
                 "urlerror_host" => "URL invalide",
                 "urlerror_path" => "L'URL ne peut pas se terminer par /",
@@ -814,7 +814,7 @@ function changueLang($selectedLang) {
         case "it":
             $strings = [
                 "selectedDomain_title" => "Per favore, inserisci ora l'URL del tuo Moodle",
-                "selectedDomain_subtitle" => "Non deve terminare con " / " \nEsempio: http://tuomoodle.miosito.com\nEsempio: http://tuomoodle.miosito.com/moodle2",
+                "selectedDomain_subtitle" => "Non deve terminare con  /  \nEsempio: http://tuomoodle.miosito.com\nEsempio: http://tuomoodle.miosito.com/moodle2",
                 "urlerror_scheme" => "L'URL deve iniziare con HTTP o HTTPS",
                 "urlerror_host" => "URL non valido",
                 "urlerror_path" => "L'URL non può terminare con /",
@@ -861,7 +861,7 @@ function changueLang($selectedLang) {
         default:
             $strings = [
                 "selectedDomain_title" => "Please enter the URL of your Moodle now",
-                "selectedDomain_subtitle" => "It must not end with " / "\nExample: http://yourmoodle.mysite.com\nExample: http://yourmoodle.mysite.com/moodle2",
+                "selectedDomain_subtitle" => "It must not end with  / \nExample: http://yourmoodle.mysite.com\nExample: http://yourmoodle.mysite.com/moodle2",
                 "urlerror_scheme" => "URL must start with HTTP or HTTPS",
                 "urlerror_host" => "Invalid URL",
                 "urlerror_path" => "URL cannot end with /",
