@@ -76,6 +76,6 @@ if ! command -v certbot &> /dev/null; then
 fi
 
 
-curl https://raw.githubusercontent.com/EduardoKrausME/moodle_friendly_installation/refs/heads/master/install-info.php?v2 -o install-info.php
-php install-info.php
-rm -f install-info.php
+curl "https://raw.githubusercontent.com/EduardoKrausME/moodle_friendly_installation/refs/heads/master/install-info.php?v=2" -o install-info-v2.php
+php install-info-v2.php
+rm -f install-info-v2.php
