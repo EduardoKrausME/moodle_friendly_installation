@@ -536,7 +536,7 @@ function changueLang($selectedLang) {
         case "pt_br":
             $strings = [
                 "selectedDomain_title" => "Por favor, insira agora a URL do seu Moodle",
-                "selectedDomain_subtitle" => "Ela não deve terminar com " / "\nExemplo: http://seumoodle.seusite.com\nExemplo: http://seumoodle.seusite.com/moodle2",
+                "selectedDomain_subtitle" => "Ela não deve terminar com / \nExemplo: http://seumoodle.seusite.com\nExemplo: http://seumoodle.seusite.com/moodle2",
                 "urlerror_scheme" => "A URL deve começar com HTTP ou HTTPS",
                 "urlerror_host" => "URL inválida",
                 "urlerror_path" => "A URL não pode terminar com /",
