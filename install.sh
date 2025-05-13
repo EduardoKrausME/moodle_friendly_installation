@@ -19,6 +19,11 @@ apt update -y -qq -o=Dpkg::Use-Pty=0
 if ! command -v mysql &> /dev/null; then
     echo "MySql is not installed. Installing now..."
 
+    wget https://dev.mysql.com/get/mysql-apt-config_0.8.34-1_all.deb
+    dpkg -i mysql-apt-config_0.8.34-1_all.deb
+    apt update
+    apt-cache policy mysql-server
+
     apt install -y -qq -o=Dpkg::Use-Pty=0 mysql-server
 
     # Start Service
