@@ -563,7 +563,7 @@ function changueLang($selectedLang) {
                 "apacheConfiguration_continue" => "Pressione Enter para continuar!",
                 "apacheConfiguration_menu_title" => "Como você deseja realizar a instalação?",
                 "apacheConfiguration_aborted" => "A pasta {local} já existe, e a instalação foi abortada.",
-                "apacheConfiguration_enable_ssl" => "Como habilitar o HTTPS?",
+                "apacheConfiguration_enable_ssl" => "Deseja habilitar o HTTPS?",
 
                 "database_error" => "Não foi possível criar um usuário no banco de dados, abortando",
                 "createMySqlPassword_error_connect" => "Erro ao tentar conectar ao banco de dados MySQL. Se o problema persistir, consulte o administrador do sistema para garantir que o servidor MySQL está ativo e acessível.",
@@ -611,7 +611,7 @@ function changueLang($selectedLang) {
                 "apacheConfiguration_continue" => "¡Presiona enter para continuar!",
                 "apacheConfiguration_menu_title" => "¿Cómo quieres la instalación?",
                 "apacheConfiguration_aborted" => "La carpeta {local} ya existe y la instalación se ha abortado.",
-                "apacheConfiguration_enable_ssl" => "¿Cómo habilitas HTTPS?",
+                "apacheConfiguration_enable_ssl" => "¿Quieres habilitar HTTPS?",
 
                 "database_error" => "No se pudo crear un usuario en la base de datos, abortando",
                 "createMySqlPassword_error_connect" => "Error al intentar conectarse a la base de datos MySQL. Si el problema persiste, consulta al administrador del sistema para asegurarte de que el servidor MySQL esté activo y accesible.",
@@ -657,7 +657,7 @@ function changueLang($selectedLang) {
                 "apacheConfiguration_continue" => "Drücken Sie die Eingabetaste, um fortzufahren!",
                 "apacheConfiguration_menu_title" => "Wie möchten Sie die Installation durchführen?",
                 "apacheConfiguration_aborted" => "Der Ordner {local} existiert bereits, und die Installation wurde abgebrochen.",
-                "apacheConfiguration_enable_ssl" => "Wie aktivieren Sie HTTPS?",
+                "apacheConfiguration_enable_ssl" => "Möchten Sie HTTPS aktivieren?",
 
                 "database_error" => "Es war nicht möglich, einen Benutzer in der Datenbank zu erstellen, Abbruch",
                 "createMySqlPassword_error_connect" => "Fehler beim Versuch, eine Verbindung zur MySQL-Datenbank herzustellen. Wenn das Problem weiterhin besteht, wenden Sie sich bitte an den Systemadministrator, um sicherzustellen, dass der MySQL-Server aktiv und zugänglich ist.",
@@ -703,7 +703,7 @@ function changueLang($selectedLang) {
                 "apacheConfiguration_continue" => "Tekan enter untuk melanjutkan!",
                 "apacheConfiguration_menu_title" => "Bagaimana Anda ingin instalasinya?",
                 "apacheConfiguration_aborted" => "Folder {local} sudah ada, dan instalasi telah dibatalkan.",
-                "apacheConfiguration_enable_ssl" => "Bagaimana Anda mengaktifkan HTTPS?",
+                "apacheConfiguration_enable_ssl" => "Apakah Anda ingin mengaktifkan HTTPS?",
 
                 "database_error" => "Tidak dapat membuat pengguna di basis data, membatalkan",
                 "createMySqlPassword_error_connect" => "Kesalahan saat mencoba menghubungkan ke basis data MySQL. Jika masalah terus berlanjut, silakan konsultasikan dengan administrator sistem untuk memastikan bahwa server MySQL aktif dan dapat diakses.",
@@ -749,7 +749,7 @@ function changueLang($selectedLang) {
                 "apacheConfiguration_continue" => "Нажмите Enter, чтобы продолжить!",
                 "apacheConfiguration_menu_title" => "Как вы хотите выполнить установку?",
                 "apacheConfiguration_aborted" => "Папка {local} уже существует, установка прервана.",
-                "apacheConfiguration_enable_ssl" => "Как включить HTTPS?",
+                "apacheConfiguration_enable_ssl" => "Хотите включить HTTPS?",
 
                 "database_error" => "Не удалось создать пользователя в базе данных, прерывание",
                 "createMySqlPassword_error_connect" => "Ошибка подключения к базе данных MySQL. Если проблема сохраняется, обратитесь к системному администратору, чтобы убедиться, что сервер MySQL активен и доступен.",
@@ -795,7 +795,7 @@ function changueLang($selectedLang) {
                 "apacheConfiguration_continue" => "Appuyez sur Entrée pour continuer!",
                 "apacheConfiguration_menu_title" => "Comment voulez-vous procéder à l'installation?",
                 "apacheConfiguration_aborted" => "Le dossier {local} existe déjà et l'installation a été annulée.",
-                "apacheConfiguration_enable_ssl" => "Comment activer HTTPS?",
+                "apacheConfiguration_enable_ssl" => "Voulez-vous activer HTTPS ?",
 
                 "database_error" => "Impossible de créer un utilisateur dans la base de données, abandon.",
                 "createMySqlPassword_error_connect" => "Erreur lors de la tentative de connexion à la base de données MySQL. Si le problème persiste, veuillez consulter l'administrateur système pour vérifier que le serveur MySQL est actif et accessible.",
@@ -841,7 +841,7 @@ function changueLang($selectedLang) {
                 "apacheConfiguration_continue" => "Premi invio per continuare!",
                 "apacheConfiguration_menu_title" => "Come desideri effettuare l'installazione?",
                 "apacheConfiguration_aborted" => "La cartella {local} esiste già e l'installazione è stata annullata.",
-                "apacheConfiguration_enable_ssl" => "Come desideri abilitare HTTPS?",
+                "apacheConfiguration_enable_ssl" => "Vuoi abilitare HTTPS?",
 
                 "database_error" => "Impossibile creare un utente nel database, interruzione in corso",
                 "createMySqlPassword_error_connect" => "Errore durante il tentativo di connessione al database MySQL. Se il problema persiste, contatta l'amministratore di sistema per assicurarti che il server MySQL sia attivo e accessibile.",
@@ -888,7 +888,7 @@ function changueLang($selectedLang) {
                 "apacheConfiguration_continue" => "Press enter to continue!",
                 "apacheConfiguration_menu_title" => "How do you want the installation?",
                 "apacheConfiguration_aborted" => "The folder {local} already exists, and the installation has been aborted.",
-                "apacheConfiguration_enable_ssl" => "How do you enable HTTPS?",
+                "apacheConfiguration_enable_ssl" => "Do you want to enable HTTPS?",
 
                 "database_error" => "Unable to create a user in the database, aborting",
                 "createMySqlPassword_error_connect" => "Error trying to connect to the MySQL database. If the problem persists, please consult the system administrator to ensure that the MySQL server is active and accessible.",
