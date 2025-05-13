@@ -80,7 +80,7 @@ $local = apacheConfiguration();
 
 // Moodle Version
 $command = "dialog --menu '{$strings["selectedVersion_title"]}' 15 50 5 \
-                           MOODLE_505_STABLE 'Moodle 5.0' \
+                           MOODLE_500_STABLE 'Moodle 5.0' \
                            MOODLE_405_STABLE 'Moodle 4.5' \
                            MOODLE_404_STABLE 'Moodle 4.4' \
                            MOODLE_403_STABLE 'Moodle 4.3' \
