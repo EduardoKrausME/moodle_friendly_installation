@@ -2,11 +2,24 @@
 
 test__max_input_vars();
 
-// Check the connection with MySQL
-$conn = new mysqli("localhost", "root", "");
-if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
-}
+$senha = "";
+do {
+    // Check the connection with MySQL
+    try {
+        $conn = new mysqli("localhost", "root", $senha);
+    } catch (Exception $e) {
+        Echo "Erro a conectar ao MySql. Erro foi: {$e->getMessage()}";
+        echo "\n\n\nPrecione qualquer tecla para prosseguir...\n";
+        fgets(STDIN);
+    }
+    if (!$conn || $conn->connect_error) {
+        $title = "Senha do MySql";
+        $subtitle = "Infelizmente não consegui conectar no MySql com a senha de ROOT. Digite a senha para fazer login.";
+        $senha = dialogGetData($title, $subtitle);
+    } else {
+        break;
+    }
+} while (true);
 
 shell_exec("clear");
 echoColor("Welcome to the Moodle installer and configurator. Press Enter to start:", "blue");
@@ -151,7 +164,8 @@ $conn->close();
  * Function test__max_input_vars
  *
  */
-function test__max_input_vars() {
+function test__max_input_vars()
+{
     global $strings;
     // Locate the php.ini file
     $phpIniFile = php_ini_loaded_file();
@@ -187,7 +201,8 @@ function test__max_input_vars() {
  *
  * @return bool|string
  */
-function apacheConfiguration() {
+function apacheConfiguration()
+{
     global $host, $path, $selectedDomain, $selectedEmail, $strings;
 
     $vhostFile = "/etc/apache2/sites-available/{$host}.conf";
@@ -280,7 +295,8 @@ function apacheConfiguration() {
  *
  * @return array|bool
  */
-function createMySqlPassword($dbName) {
+function createMySqlPassword($dbName)
+{
     global $conn, $strings;
 
     // Generate a random password for the user
@@ -392,7 +408,8 @@ function createMySqlPassword($dbName) {
  *
  * @return string
  */
-function echoColor($text, $color) {
+function echoColor($text, $color)
+{
     switch (strtolower($color)) {
         case "black":
             echo "\033[30m";
@@ -438,7 +455,8 @@ function echoColor($text, $color) {
  *
  * @return string
  */
-function dialogGetData($title, $subtitle = "", $default = "") {
+function dialogGetData($title, $subtitle = "", $default = "")
+{
     $command = "dialog --title '{$title}' --inputbox '{$subtitle}' 11 80 '{$default}' 3>&1 1>&2 2>&3";
     $data = shell_exec($command);
     return $data;
@@ -449,7 +467,8 @@ function dialogGetData($title, $subtitle = "", $default = "") {
  *
  * @return string
  */
-function getConfigPhp() {
+function getConfigPhp()
+{
     global $mysql_info, $selectedDomain, $host, $path;
 
     $config = "<?php // Moodle configuration file
@@ -491,7 +510,8 @@ require_once( __DIR__ . '/lib/setup.php' );";
     return $config;
 }
 
-function changueTheme() {
+function changueTheme()
+{
     global $local, $strings;
 
     // Theme
@@ -506,7 +526,8 @@ function changueTheme() {
     }
 }
 
-function installKrausPlugins() {
+function installKrausPlugins()
+{
     global $local, $strings;
 
     // Theme
@@ -530,7 +551,8 @@ function installKrausPlugins() {
  *
  * @param $selectedLang
  */
-function changueLang($selectedLang) {
+function changueLang($selectedLang)
+{
     global $strings;
 
     switch ($selectedLang) {
