@@ -95,10 +95,7 @@ $local = apacheConfiguration();
 $command = "dialog --menu '{$strings["selectedVersion_title"]}' 15 50 5 \
                            MOODLE_500_STABLE 'Moodle 5.0' \
                            MOODLE_405_STABLE 'Moodle 4.5' \
-                           MOODLE_404_STABLE 'Moodle 4.4' \
-                           MOODLE_403_STABLE 'Moodle 4.3' \
-                           MOODLE_402_STABLE 'Moodle 4.2' \
-                           main              'Moodle 5.1 Beta' 3>&1 1>&2 2>&3";
+                           main              'Moodle 5.1dev' 3>&1 1>&2 2>&3";
 $selectedVersion = shell_exec($command);
 
 echoColor($strings["moodle_install"], "green");
