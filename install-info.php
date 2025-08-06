@@ -497,7 +497,7 @@ global \$CFG;
 
 \$CFG->showcampaigncontent           = false;
 \$CFG->showservicesandsupportcontent = false;
-\$CFG->enableuserfeedback            = true;
+\$CFG->enableuserfeedback            = \" \";
 // \$CFG->registrationpending           = false;
 // \$CFG->site_is_public                = false;
 // \$CFG->disableupdatenotifications    = true;
