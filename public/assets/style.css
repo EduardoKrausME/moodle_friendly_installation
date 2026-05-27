@@ -846,8 +846,7 @@ small {
   flex-wrap: wrap;
   gap: 6px;
 }
-
-.language-option {
+.language-options .language-option {
   align-items: center;
   border: 1px solid rgba(148, 163, 184, 0.45);
   border-radius: 999px;
@@ -858,22 +857,18 @@ small {
   padding: 6px 8px;
   text-decoration: none;
 }
-.language-option img {
+.language-options .language-option img {
   border-radius: 2px;
   display: block;
   height: 14px;
   object-fit: cover;
   width: 20px;
 }
-.language-option span {
-  color: #ffffff;
-}
-.language-option.is-active {
+.language-options .language-option.is-active {
   font-weight: 700;
 }
-
-.login-language-selector {
-  margin-bottom: 18px;
+.language-options.language-options-loged .language-option span {
+  color: #ffffff;
 }
 
 .sidebar-language-selector {
