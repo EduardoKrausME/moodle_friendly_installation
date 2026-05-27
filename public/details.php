@@ -69,6 +69,7 @@ function details_page_context(
         'moodle_branch' => (string) ($site['moodle_branch'] ?? ''),
         'url' => (string) ($site['url'] ?? ''),
         'sso_url' => (string) ($site['sso_url'] ?? ''),
+        'app_exist' => file_exists("../app-MoodleMobile-V2/config.xml"),
         'app_manage_url' => '/app_manager.php?domain=' . urlencode($domain),
         'app_package_uid' => (string) ($appsettings['package_uid'] ?? ''),
         'app_package_name' => (string) ($appsettings['package_name'] ?? ''),

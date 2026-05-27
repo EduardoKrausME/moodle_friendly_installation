@@ -22,20 +22,22 @@
     </div>
 </div>
 
-<div class="card hero-card">
-    <div>
-        <h2>{{i18n.details.app_heading}}</h2>
-        <p>{{i18n.details.app_intro}}</p>
+{{#app_exist}}
+    <div class="card hero-card">
+        <div>
+            <h2>{{i18n.details.app_heading}}</h2>
+            <p>{{i18n.details.app_intro}}</p>
+        </div>
+        <div class="hero-actions">
+            <a class="button" href="{{app_manage_url}}">{{i18n.actions.manage_app}}</a>
+            {{#app_has_files}}
+                {{#app_files}}
+                    <a class="button secondary" href="{{download_url}}">{{i18n.actions.download}} {{label}}</a>
+                {{/app_files}}
+            {{/app_has_files}}
+        </div>
     </div>
-    <div class="hero-actions">
-        <a class="button" href="{{app_manage_url}}">{{i18n.actions.manage_app}}</a>
-        {{#app_has_files}}
-            {{#app_files}}
-                <a class="button secondary" href="{{download_url}}">{{i18n.actions.download}} {{label}}</a>
-            {{/app_files}}
-        {{/app_has_files}}
-    </div>
-</div>
+{{/app_exist}}
 
 <div class="details-grid">
     <div class="card">
