@@ -1,0 +1,2 @@
+# Copy this line to /etc/cron.d/mylearn-admin-runner
+* * * * * root /usr/bin/php /home/admin.mylearn.space/bin/cron-root-runner.php >/var/log/mylearn-admin-runner.log 2>&1

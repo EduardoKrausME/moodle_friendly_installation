@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="{{html_lang}}">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{page_title}}</title>
+    <link rel="stylesheet" href="/assets/style.css">
+</head>
+<body class="{{body_class}}">
+{{#has_user}}
+<div class="app-shell">
+    <aside class="sidebar">
+        <a class="brand" href="/" aria-label="Abrir página inicial">
+            <span class="brand-copy">
+                <strong>{{app_name}}</strong>
+            </span>
+        </a>
+
+        <nav class="side-nav" aria-label="Menu principal">
+            {{#navigation}}
+                <a class="{{class}}" href="{{url}}">
+                    <span class="nav-icon">{{icon}}</span>
+                    <span>{{label}}</span>
+                </a>
+            {{/navigation}}
+        </nav>
+
+        <div class="sidebar-footer">
+            <small>Usuário conectado</small>
+            <strong>{{user_name}}</strong>
+        </div>
+    </aside>
+
+    <main class="main-content">
+{{/has_user}}
+{{^has_user}}
+<main class="auth-container">
+{{/has_user}}

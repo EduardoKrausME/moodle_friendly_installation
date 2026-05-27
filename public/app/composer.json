@@ -1,0 +1,5 @@
+{
+    "require": {
+        "mustache/mustache": "^3.2"
+    }
+}

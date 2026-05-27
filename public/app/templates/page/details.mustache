@@ -1,0 +1,170 @@
+<section class="page-title">
+    <div>
+        <span class="eyebrow">Detalhes do Moodle</span>
+        <h1>{{domain}}</h1>
+        <p>{{moodle_branch}}</p>
+    </div>
+    <a class="button secondary" href="/">Voltar para sites</a>
+</section>
+
+{{#has_flash}}
+    <div class="alert ok">{{flash}}</div>
+{{/has_flash}}
+
+<div class="card hero-card">
+    <div>
+        <h2>Atalhos do Moodle</h2>
+        <p>Use estes links para abrir o ambiente ou entrar pelo acesso administrativo configurado no Moodle.</p>
+    </div>
+    <div class="hero-actions">
+        <a class="button" href="{{url}}" target="_blank" rel="noopener">Abrir Moodle</a>
+        <a class="button secondary" href="{{sso_url}}" target="_blank" rel="noopener">Acessar como Administrador</a>
+    </div>
+</div>
+
+<div class="card hero-card">
+    <div>
+        <h2>APP deste Moodle</h2>
+        <p>Configure e gere APK/AAB.</p>
+    </div>
+    <div class="hero-actions">
+        <a class="button" href="{{app_manage_url}}">Gerenciar APP</a>
+        {{#app_has_files}}
+            {{#app_files}}
+                <a class="button secondary" href="{{download_url}}">Baixar {{label}}</a>
+            {{/app_files}}
+        {{/app_has_files}}
+    </div>
+</div>
+
+<div class="details-grid">
+    <div class="card">
+        <h2>Dados do Moodle</h2>
+        <div class="stat-grid">
+            {{#stat_boxes}}
+                <div class="stat-box">
+                    <h3>{{label}}</h3>
+                    <strong>{{value}}</strong>
+                    <small>{{description}}</small>
+                </div>
+            {{/stat_boxes}}
+        </div>
+        {{#stats_warning}}
+            <div class="alert warning compact-alert">Não foi possível conectar ao MySQL: {{stats_error}}</div>
+        {{/stats_warning}}
+    </div>
+
+    <div class="card">
+        <h2>Diagnóstico rápido</h2>
+        <div class="details-table">
+            {{#diagnostic_rows}}
+                <h2 style="display: flex;justify-content: space-between;">{{label}} {{{badge_html}}}</h2>
+                <div style="margin-bottom:16px;">
+                    <div class="diagnostic-message">{{message}}</div>
+                    {{#has_path}}
+                        <small><code>{{path}}</code></small>
+                    {{/has_path}}
+                    {{#has_resolved_ips}}
+                        <small>DNS: {{resolved_ips}}</small>
+                    {{/has_resolved_ips}}
+                    {{#has_server_ips}}
+                        <small>Servidor: {{server_ips}}</small>
+                    {{/has_server_ips}}
+                    {{#has_valid_to}}
+                        <small>Válido até: {{valid_to}}</small>
+                    {{/has_valid_to}}
+                    {{#has_issuer}}
+                        <small>Emissor: {{issuer}}</small>
+                    {{/has_issuer}}
+                </div>
+            {{/diagnostic_rows}}
+        </div>
+    </div>
+
+    <div class="card full-card">
+        <h2>Flags e controles rápidos</h2>
+        <p class="card-subtitle">Cria ou remove arquivos em <code>/home/[DOMINIO]</code>. As flags abaixo são lidas pelo
+            <code>config.php</code> gerado pelo painel.</p>
+        <div class="flag-grid">
+            {{#feature_flags}}
+                <div class="{{control_class}}">
+                    <div class="flag-header">
+                        <strong>{{label}}</strong>
+                        {{{status_badge_html}}}
+                    </div>
+                    <p>{{description}}</p>
+                    {{#has_path}}
+                        <small><code>{{path}}</code></small>
+                    {{/has_path}}
+
+                    {{#needs_value}}
+                        <div class="flag-actions split-actions">
+                            <form method="post" class="inline-form flag-value-form">
+                                <input type="hidden" name="csrf_token" value="{{csrf_token}}">
+                                <input type="hidden" name="action" value="toggle_flag">
+                                <input type="hidden" name="flag" value="{{flag}}">
+                                <input type="hidden" name="enabled" value="1">
+                                <input type="email" name="value" value="{{value}}" placeholder="email@dominio.com"
+                                       required>
+                                <button type="submit" class="{{button_class}}">{{button_label}}</button>
+                            </form>
+                            {{#show_disable_when_value_enabled}}
+                                <form method="post" class="inline-form">
+                                    <input type="hidden" name="csrf_token" value="{{csrf_token}}">
+                                    <input type="hidden" name="action" value="toggle_flag">
+                                    <input type="hidden" name="flag" value="{{flag}}">
+                                    <input type="hidden" name="enabled" value="0">
+                                    <button type="submit" class="button danger">Desabilitar</button>
+                                </form>
+                            {{/show_disable_when_value_enabled}}
+                        </div>
+                    {{/needs_value}}
+
+                    {{#no_value}}
+                        <form method="post" class="inline-form flag-actions">
+                            <input type="hidden" name="csrf_token" value="{{csrf_token}}">
+                            <input type="hidden" name="action" value="toggle_flag">
+                            <input type="hidden" name="flag" value="{{flag}}">
+                            <input type="hidden" name="enabled" value="{{enabled_value}}">
+                            <button type="submit" class="{{button_class}}">{{button_label}}</button>
+                        </form>
+                    {{/no_value}}
+                </div>
+            {{/feature_flags}}
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>Arquivos e diretórios</h2>
+        <table class="details-table">
+            <tbody>
+            {{#file_rows}}
+                <tr>
+                    <th>{{label}}</th>
+                    <td>
+                        {{#is_code}}<code>{{value}}</code>{{/is_code}}
+                        {{#is_plain}}{{value}}{{/is_plain}}
+                    </td>
+                </tr>
+            {{/file_rows}}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="card">
+        <h2>Configuração lida do config.php</h2>
+        <table class="details-table">
+            <tbody>
+            {{#config_rows}}
+                <tr>
+                    <th>{{label}}</th>
+                    <td>
+                        {{#is_code}}<code>{{value}}</code>{{/is_code}}
+                        {{#is_plain}}{{value}}{{/is_plain}}
+                    </td>
+                </tr>
+            {{/config_rows}}
+            </tbody>
+        </table>
+    </div>
+</div>

@@ -1,0 +1,108 @@
+<section class="page-title">
+    <div>
+        <span class="eyebrow">APP Mobile</span>
+        <h1>Gerenciar APP de {{domain}}</h1>
+        <h3 style="margin-top:0;">Versão do APP: <strong>{{app_version}}</strong></h3>
+        <p>Configure o pacote Android, envie o ícone e gere APK/AAB pela fila do servidor.</p>
+    </div>
+    <a class="button secondary" href="{{back_url}}">Voltar aos detalhes</a>
+</section>
+
+{{#has_flash}}
+    <div class="alert ok">{{flash}}</div>
+{{/has_flash}}
+
+{{#has_errors}}
+    <div class="alert danger">Confira os campos destacados antes de continuar.</div>
+{{/has_errors}}
+
+<div class="details-grid">
+    <form method="post" enctype="multipart/form-data" class="card form full-card">
+        <input type="hidden" name="csrf_token" value="{{csrf_token}}">
+
+        <h2>Configuração do APP</h2>
+
+        <label>
+            Package UID
+            <input type="text" name="package_uid" placeholder="{{domain}}" value="{{values.package_uid}}">
+            {{#errors.package_uid}}<small class="error">{{.}}</small>{{/errors.package_uid}}
+        </label>
+
+        <label>
+            Package name
+            <input type="text" name="package_name" value="{{values.package_name}}" required>
+            {{#errors.package_name}}<small class="error">{{.}}</small>{{/errors.package_name}}
+        </label>
+
+        <label>
+            Cor
+            <input type="text" name="statusbarbackgroundcolor" value="{{values.statusbarbackgroundcolor}}"
+                   placeholder="#08422a" required>
+            {{#errors.statusbarbackgroundcolor}}<small class="error">{{.}}</small>{{/errors.statusbarbackgroundcolor}}
+        </label>
+
+        <label>
+            Ícone PNG 1024x1024
+            <input type="file" name="icon" accept="image/png" {{^values.has_icon}}required{{/values.has_icon}}>
+            {{#values.has_icon}}
+                <small>Ícone atual salvo em <code>{{values.icon_path}}</code>. Envie outro arquivo apenas se quiser
+                    substituir.</small>{{/values.has_icon}}
+            {{^values.has_icon}}<small>Obrigatório para gerar os ícones Android e splash.</small>{{/values.has_icon}}
+            {{#errors.icon}}<small class="error">{{.}}</small>{{/errors.icon}}
+        </label>
+
+        <div class="form-actions split-actions">
+            <button type="submit" name="action" value="save_app" class="button secondary">Salvar configuração</button>
+            <button type="submit" name="action" value="build_app" class="button">Gerar APK/AAB</button>
+        </div>
+    </form>
+
+    <div class="card">
+        <h2>Arquivos gerados</h2>
+        <p class="card-subtitle">Ao finalizar o job, o APK e o AAB ficam disponíveis para download.</p>
+        {{^has_build_files}}
+            <div class="alert warning compact-alert">Nenhum APK/AAB gerado para este Moodle ainda.</div>
+        {{/has_build_files}}
+        {{#has_build_files}}
+            <table class="details-table">
+                <tbody>
+                {{#build_files}}
+                    <tr>
+                        <th>{{label}}</th>
+                        <td>
+                            <a class="button secondary" href="{{download_url}}">Baixar {{label}}</a>
+                            <small><code>{{filename}}</code> — {{size}} — {{created_at}}</small>
+                        </td>
+                    </tr>
+                {{/build_files}}
+                </tbody>
+            </table>
+        {{/has_build_files}}
+    </div>
+
+    <div class="card">
+        <h2>Último job do APP</h2>
+        {{^has_latest_job}}
+            <p>Nenhum build foi enfileirado ainda.</p>
+        {{/has_latest_job}}
+        {{#has_latest_job}}
+            <div><strong>Job</strong>: <code>{{latest_job.id}}</code></div>
+            <div><strong>Status</strong>: {{{latest_job.status_badge}}}</div>
+            <div><strong>Criado</strong>: {{latest_job.created_at}}</div>
+            {{#latest_job.has_error}}
+                <div class="alert danger compact-alert">{{latest_job.error}}</div>
+            {{/latest_job.has_error}}
+            <p><a href="/jobs.php">Ver log completo na fila</a></p>
+        {{/has_latest_job}}
+    </div>
+</div>
+
+{{#should_refresh}}
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            setTimeout(function () {
+                window.location.reload();
+            }, 30000);
+        });
+    </script>
+{{/should_refresh}}

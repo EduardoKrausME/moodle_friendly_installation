@@ -1,0 +1,9 @@
+[
+    {
+        "username": "admin",
+        "name": "Administrador",
+        "password": "Aa123123#",
+        "created_at": "2026-05-23T00:00:00-03:00",
+        "password_upgraded_at": "2026-05-23T15:13:07-03:00"
+    }
+]

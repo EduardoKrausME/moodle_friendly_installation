@@ -1,0 +1,72 @@
+<section class="page-title">
+    <div>
+        <span class="eyebrow">Nova instalação</span>
+        <h1>Instalar novo Moodle</h1>
+        <p>O painel cria o job e o CRON root executa a instalação com segurança.</p>
+    </div>
+</section>
+
+{{#warnings}}
+    <div class="alert warning">{{.}}</div>
+{{/warnings}}
+
+{{#moodle_branch_load_failed}}
+    <div class="alert warning">
+        Não foi possível carregar os branches do Moodle no GitHub agora. Verifique a conexão do servidor com o GitHub.
+    </div>
+{{/moodle_branch_load_failed}}
+
+<form method="post" class="card form grid-form">
+    <input type="hidden" name="csrf_token" value="{{csrf_token}}">
+
+    <label>
+        Domínio do Moodle
+        <input type="text" name="domain" placeholder="cliente.mylearn.space" value="{{values.domain}}" required>
+        {{#errors.domain}}<small class="error">{{.}}</small>{{/errors.domain}}
+    </label>
+
+    <label>
+        Nome completo do site
+        <input type="text" name="site_fullname" placeholder="MyLearn - Cliente" value="{{values.site_fullname}}">
+    </label>
+
+    <label>
+        Branch Moodle
+        <select name="moodle_branch" required {{^has_moodle_branches}}disabled{{/has_moodle_branches}}>
+            {{#moodle_branches}}
+                <option value="{{name}}" {{#selected}}selected{{/selected}}>{{label}}</option>
+            {{/moodle_branches}}
+            {{^has_moodle_branches}}
+                <option value="">Nenhum branch disponível</option>
+            {{/has_moodle_branches}}
+        </select>
+        {{#errors.moodle_branch}}<small class="error">{{.}}</small>{{/errors.moodle_branch}}
+    </label>
+
+    <label>
+        Usuário admin do Moodle
+        <input type="text" name="admin_user" value="{{values.admin_user}}" required>
+        {{#errors.admin_user}}<small class="error">{{.}}</small>{{/errors.admin_user}}
+    </label>
+
+    <label>
+        Senha admin do Moodle
+        <input type="password" name="admin_pass" required>
+        {{#errors.admin_pass}}<small class="error">{{.}}</small>{{/errors.admin_pass}}
+    </label>
+
+    <label>
+        E-mail admin do Moodle
+        <input type="email" name="admin_email" value="{{values.admin_email}}" required>
+        {{#errors.admin_email}}<small class="error">{{.}}</small>{{/errors.admin_email}}
+    </label>
+
+    <label class="checkbox">
+        <input type="checkbox" name="issue_cert" value="1" {{#values.issue_cert}}checked{{/values.issue_cert}}>
+        Emitir Let’s Encrypt via NGINX depois da instalação
+    </label>
+
+    <div class="form-actions">
+        <button type="submit" {{^has_moodle_branches}}disabled{{/has_moodle_branches}}>Criar job de instalação</button>
+    </div>
+</form>
