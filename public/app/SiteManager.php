@@ -135,12 +135,12 @@ class SiteManager {
 
     private static function readMoodleConfig(string $configfile): array {
         if ($configfile === '' || !is_readable($configfile)) {
-            return ['_error' => 'Arquivo config.php não encontrado ou sem permissão de leitura.'];
+            return ['_error' => I18n::get('diagnostic.config_not_found')];
         }
 
         $content = file_get_contents($configfile);
         if ($content === false) {
-            return ['_error' => 'Não foi possível ler o arquivo config.php.'];
+            return ['_error' => I18n::get('diagnostic.config_not_readable')];
         }
 
         $keys = [
@@ -232,7 +232,7 @@ class SiteManager {
         }
 
         if ($result['release'] === '' && $result['branch'] === '') {
-            $result['release'] = 'version.php não encontrado';
+            $result['release'] = I18n::get('diagnostic.version_not_found');
         }
 
         return $result;
@@ -248,8 +248,8 @@ class SiteManager {
         if (!is_file($file)) {
             return [
                 'status' => 'danger',
-                'label' => 'Não encontrado',
-                'message' => "Arquivo {$label} não encontrado para este domínio.",
+                'label' => I18n::get('status.not_found'),
+                'message' => I18n::get('diagnostic.webserver_not_found', ['label' => $label]),
                 'path' => $file,
             ];
         }
@@ -257,8 +257,8 @@ class SiteManager {
         if (!is_readable($file)) {
             return [
                 'status' => 'warning',
-                'label' => 'Sem leitura',
-                'message' => "Arquivo {$label} existe, mas o painel não tem permissão para ler.",
+                'label' => I18n::get('status.not_readable'),
+                'message' => I18n::get('diagnostic.webserver_not_readable', ['label' => $label]),
                 'path' => $file,
             ];
         }
@@ -267,8 +267,8 @@ class SiteManager {
         if ($content === false) {
             return [
                 'status' => 'warning',
-                'label' => 'Sem leitura',
-                'message' => "Não foi possível ler o arquivo {$label}.",
+                'label' => I18n::get('status.not_readable'),
+                'message' => I18n::get('diagnostic.webserver_read_failed', ['label' => $label]),
                 'path' => $file,
             ];
         }
@@ -279,18 +279,18 @@ class SiteManager {
         if ($hasDomain) {
             return [
                 'status' => $hasRoot || $type === 'nginx' ? 'ok' : 'warning',
-                'label' => $hasRoot || $type === 'nginx' ? 'OK' : 'Conferir root',
+                'label' => $hasRoot || $type === 'nginx' ? I18n::get('status.ok') : I18n::get('status.check_root'),
                 'message' => $hasRoot || $type === 'nginx'
-                    ? "{$label} configurado para o domínio."
-                    : "{$label} contém o domínio, mas o DocumentRoot não foi confirmado no arquivo.",
+                    ? I18n::get('diagnostic.webserver_configured', ['label' => $label])
+                    : I18n::get('diagnostic.webserver_domain_no_root', ['label' => $label]),
                 'path' => $file,
             ];
         }
 
         return [
             'status' => 'warning',
-            'label' => 'Conferir',
-            'message' => "Arquivo {$label} existe, mas o domínio não foi localizado no conteúdo.",
+            'label' => I18n::get('status.check'),
+            'message' => I18n::get('diagnostic.webserver_domain_missing', ['label' => $label]),
             'path' => $file,
         ];
     }
@@ -304,8 +304,8 @@ class SiteManager {
         if (!$resolvedIps) {
             return [
                 'status' => 'danger',
-                'label' => 'Sem DNS',
-                'message' => 'Nenhum registro A ou AAAA foi encontrado.',
+                'label' => I18n::get('status.no_dns'),
+                'message' => I18n::get('diagnostic.dns_not_found'),
                 'resolved_ips' => [],
                 'server_ips' => $serverIps,
                 'matches' => [],
@@ -315,8 +315,8 @@ class SiteManager {
         if ($matches) {
             return [
                 'status' => 'ok',
-                'label' => 'OK',
-                'message' => 'DNS aponta para um IP conhecido deste servidor.',
+                'label' => I18n::get('status.ok'),
+                'message' => I18n::get('diagnostic.dns_ok'),
                 'resolved_ips' => $resolvedIps,
                 'server_ips' => $serverIps,
                 'matches' => $matches,
@@ -325,8 +325,8 @@ class SiteManager {
 
         return [
             'status' => 'warning',
-            'label' => 'Conferir IP',
-            'message' => 'DNS existe, mas não bateu com os IPs locais/configurados conhecidos pelo painel.',
+            'label' => I18n::get('status.check_ip'),
+            'message' => I18n::get('diagnostic.dns_ip_mismatch'),
             'resolved_ips' => $resolvedIps,
             'server_ips' => $serverIps,
             'matches' => [],
@@ -407,8 +407,8 @@ class SiteManager {
         if ($domain === '') {
             return [
                 'status' => 'danger',
-                'label' => 'Sem domínio',
-                'message' => 'Domínio vazio.',
+                'label' => I18n::get('status.no_domain'),
+                'message' => I18n::get('diagnostic.empty_domain'),
             ];
         }
 
@@ -424,8 +424,8 @@ class SiteManager {
         if (!$result['connected']) {
             return [
                 'status' => 'danger',
-                'label' => 'Erro SSL',
-                'message' => $result['error'] ?: 'Não foi possível conectar na porta 443 com SSL.',
+                'label' => I18n::get('status.ssl_error'),
+                'message' => $result['error'] ?: I18n::get('diagnostic.ssl_connect_error'),
             ];
         }
 
@@ -438,8 +438,8 @@ class SiteManager {
         if ($verified && $validFrom <= $now && $validTo > $now) {
             return [
                 'status' => $days !== null && $days < 15 ? 'warning' : 'ok',
-                'label' => $days !== null && $days < 15 ? 'Vence em breve' : 'OK',
-                'message' => $days !== null ? "Certificado válido. Vence em {$days} dias." : 'Certificado válido.',
+                'label' => $days !== null && $days < 15 ? I18n::get('status.expires_soon') : I18n::get('status.ok'),
+                'message' => $days !== null ? I18n::get('diagnostic.ssl_valid_days', ['days' => $days]) : I18n::get('diagnostic.ssl_valid'),
                 'issuer' => self::certName($cert['issuer'] ?? []),
                 'subject' => self::certName($cert['subject'] ?? []),
                 'valid_from' => $validFrom ? date('Y-m-d H:i:s', $validFrom) : '',
@@ -451,8 +451,8 @@ class SiteManager {
         if ($validTo > 0 && $validTo <= $now) {
             return [
                 'status' => 'danger',
-                'label' => 'Expirado',
-                'message' => 'Certificado expirado.',
+                'label' => I18n::get('status.expired'),
+                'message' => I18n::get('diagnostic.ssl_expired'),
                 'issuer' => self::certName($cert['issuer'] ?? []),
                 'subject' => self::certName($cert['subject'] ?? []),
                 'valid_to' => date('Y-m-d H:i:s', $validTo),
@@ -462,9 +462,9 @@ class SiteManager {
 
         return [
             'status' => 'warning',
-            'label' => 'Conferir',
-            'message' => $verified ? 'SSL respondeu, mas a validade do certificado não foi confirmada.' :
-                'Certificado encontrado, mas a validação do hostname/CA falhou.',
+            'label' => I18n::get('status.check'),
+            'message' => $verified ? I18n::get('diagnostic.ssl_not_confirmed') :
+                I18n::get('diagnostic.ssl_validation_failed'),
             'issuer' => self::certName($cert['issuer'] ?? []),
             'subject' => self::certName($cert['subject'] ?? []),
             'valid_from' => $validFrom ? date('Y-m-d H:i:s', $validFrom) : '',
@@ -499,7 +499,7 @@ class SiteManager {
         if (!$client) {
             return [
                 'connected' => false,
-                'error' => $errstr ?: ($errno ? 'Erro ' . $errno : ''),
+                'error' => $errstr ?: ($errno ? I18n::get('status.error') . ' ' . $errno : ''),
                 'certificate' => [],
             ];
         }
@@ -510,7 +510,7 @@ class SiteManager {
         if (!$cert) {
             return [
                 'connected' => true,
-                'error' => 'Conexão SSL sem certificado legível.',
+                'error' => I18n::get('diagnostic.ssl_read_error'),
                 'certificate' => [],
             ];
         }
@@ -599,7 +599,7 @@ class SiteManager {
         if (!isset($definitions[$flag])) {
             return [
                 'ok' => false,
-                'message' => 'Flag inválida ou não suportada.',
+                'message' => I18n::get('diagnostic.flag_invalid'),
             ];
         }
 
@@ -613,7 +613,7 @@ class SiteManager {
             if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
                 return [
                     'ok' => false,
-                    'message' => 'Informe um e-mail válido para o redirecionamento.',
+                    'message' => I18n::get('diagnostic.email_redirect_invalid'),
                 ];
             }
             return self::writeFeatureFlagFile($site, $definition, true, $email . PHP_EOL);
@@ -625,92 +625,92 @@ class SiteManager {
     private static function featureFlagDefinitions(): array {
         return [
             'debug' => [
-                'label' => 'Modo debug',
+                'label' => I18n::get('feature_flags.debug_label'),
                 'file' => 'debug.enable',
-                'description' => 'Ativa debug completo, exibição de erros e tempo de execução ilimitado.',
-                'enabled_label' => 'Habilitado',
-                'disabled_label' => 'Desabilitado',
+                'description' => I18n::get('feature_flags.debug_description'),
+                'enabled_label' => I18n::get('status.enabled'),
+                'disabled_label' => I18n::get('status.disabled'),
                 'enabled_status' => 'warning',
                 'dangerous' => true,
             ],
             'maintenance' => [
-                'label' => 'Modo manutenção',
+                'label' => I18n::get('feature_flags.maintenance_label'),
                 'file' => 'maintenance.enable',
-                'description' => 'Executa admin/cli/maintenance.php e mantém uma flag visual no painel.',
-                'enabled_label' => 'Em manutenção',
-                'disabled_label' => 'Desabilitado',
+                'description' => I18n::get('feature_flags.maintenance_description'),
+                'enabled_label' => I18n::get('status.maintenance'),
+                'disabled_label' => I18n::get('status.disabled'),
                 'enabled_status' => 'danger',
                 'handler' => 'maintenance',
                 'dangerous' => true,
             ],
             'cron_disable' => [
-                'label' => 'Cron pausado',
+                'label' => I18n::get('feature_flags.cron_disable_label'),
                 'file' => 'cron.disable',
-                'description' => 'Faz o cron instalado pelo painel ignorar este Moodle enquanto o arquivo existir.',
-                'enabled_label' => 'Pausado',
-                'disabled_label' => 'Ativo',
+                'description' => I18n::get('feature_flags.cron_disable_description'),
+                'enabled_label' => I18n::get('status.paused'),
+                'disabled_label' => I18n::get('status.active'),
                 'enabled_status' => 'warning',
                 'dangerous' => true,
             ],
             'email_disable' => [
-                'label' => 'Envio de e-mail desabilitado',
+                'label' => I18n::get('feature_flags.email_disable_label'),
                 'file' => 'email.disable',
-                'description' => 'Define $CFG->noemailever = true para bloquear envios reais.',
-                'enabled_label' => 'Bloqueado',
-                'disabled_label' => 'Liberado',
+                'description' => I18n::get('feature_flags.email_disable_description'),
+                'enabled_label' => I18n::get('status.blocked'),
+                'disabled_label' => I18n::get('status.released'),
                 'enabled_status' => 'warning',
                 'dangerous' => true,
             ],
             'email_redirect' => [
-                'label' => 'Redirecionar todos os e-mails',
+                'label' => I18n::get('feature_flags.email_redirect_label'),
                 'file' => 'email.redirect',
-                'description' => 'Grava um e-mail no arquivo e aplica $CFG->divertallemailsto.',
-                'enabled_label' => 'Redirecionando',
-                'disabled_label' => 'Desabilitado',
+                'description' => I18n::get('feature_flags.email_redirect_description'),
+                'enabled_label' => I18n::get('status.redirecting'),
+                'disabled_label' => I18n::get('status.disabled'),
                 'enabled_status' => 'warning',
                 'value_type' => 'email',
             ],
             'theme_designer' => [
-                'label' => 'Theme designer mode',
+                'label' => I18n::get('feature_flags.theme_designer_label'),
                 'file' => 'theme-designer.enable',
-                'description' => 'Define $CFG->themedesignermode = true. Use apenas para desenvolvimento de tema.',
-                'enabled_label' => 'Habilitado',
-                'disabled_label' => 'Desabilitado',
+                'description' => I18n::get('feature_flags.theme_designer_description'),
+                'enabled_label' => I18n::get('status.enabled'),
+                'disabled_label' => I18n::get('status.disabled'),
                 'enabled_status' => 'warning',
                 'dangerous' => true,
             ],
             'cache_dev' => [
-                'label' => 'Cache dev desabilitado',
+                'label' => I18n::get('feature_flags.cache_dev_label'),
                 'file' => 'cache-dev.enable',
-                'description' => 'Desabilita cache de JS, templates Mustache e strings de idioma.',
-                'enabled_label' => 'Sem cache dev',
-                'disabled_label' => 'Cache normal',
+                'description' => I18n::get('feature_flags.cache_dev_description'),
+                'enabled_label' => I18n::get('status.no_cache_dev'),
+                'disabled_label' => I18n::get('status.normal_cache'),
                 'enabled_status' => 'warning',
                 'dangerous' => true,
             ],
             'cron_debug' => [
-                'label' => 'Debug do cron',
+                'label' => I18n::get('feature_flags.cron_debug_label'),
                 'file' => 'cron-debug.enable',
-                'description' => 'Define $CFG->showcrondebugging = true para detalhar problemas no cron.',
-                'enabled_label' => 'Habilitado',
-                'disabled_label' => 'Desabilitado',
+                'description' => I18n::get('feature_flags.cron_debug_description'),
+                'enabled_label' => I18n::get('status.enabled'),
+                'disabled_label' => I18n::get('status.disabled'),
                 'enabled_status' => 'warning',
             ],
             'slow_sql' => [
-                'label' => 'Log de SQL lenta do Moodle',
+                'label' => I18n::get('feature_flags.slow_sql_label'),
                 'file' => 'slow-sql.enable',
-                'description' => 'Ativa dboptions logslow=3 e logerrors=true. Use por pouco tempo em produção.',
-                'enabled_label' => 'Habilitado',
-                'disabled_label' => 'Desabilitado',
+                'description' => I18n::get('feature_flags.slow_sql_description'),
+                'enabled_label' => I18n::get('status.enabled'),
+                'disabled_label' => I18n::get('status.disabled'),
                 'enabled_status' => 'warning',
                 'dangerous' => true,
             ],
             'perf' => [
-                'label' => 'Performance info',
+                'label' => I18n::get('feature_flags.perf_label'),
                 'file' => 'perf.enable',
-                'description' => 'Define MDL_PERF, MDL_PERFDB e MDL_PERFTOLOG para diagnóstico de lentidão.',
-                'enabled_label' => 'Habilitado',
-                'disabled_label' => 'Desabilitado',
+                'description' => I18n::get('feature_flags.perf_description'),
+                'enabled_label' => I18n::get('status.enabled'),
+                'disabled_label' => I18n::get('status.disabled'),
                 'enabled_status' => 'warning',
                 'dangerous' => true,
             ],
@@ -730,7 +730,7 @@ class SiteManager {
 
             $description = (string) ($definition['description'] ?? '');
             if ($key === 'email_redirect' && $enabled && $value !== '') {
-                $description .= ' E-mail atual: ' . $value . '.';
+                $description .= ' ' . I18n::get('diagnostic.email_current', ['email' => $value]);
             }
 
             $items[$key] = [
@@ -742,7 +742,7 @@ class SiteManager {
                 'value_type' => (string) ($definition['value_type'] ?? ''),
                 'dangerous' => !empty($definition['dangerous']),
                 'status' => $enabled ? (string) ($definition['enabled_status'] ?? 'warning') : 'ok',
-                'status_label' => $enabled ? (string) ($definition['enabled_label'] ?? 'Habilitado') : (string) ($definition['disabled_label'] ?? 'Desabilitado'),
+                'status_label' => $enabled ? (string) ($definition['enabled_label'] ?? I18n::get('status.enabled')) : (string) ($definition['disabled_label'] ?? I18n::get('status.disabled')),
             ];
         }
 
@@ -755,7 +755,7 @@ class SiteManager {
         if ($file === '') {
             return [
                 'ok' => false,
-                'message' => 'Caminho da flag não foi identificado.',
+                'message' => I18n::get('diagnostic.flag_path_missing'),
             ];
         }
 
@@ -764,26 +764,26 @@ class SiteManager {
             if (@file_put_contents($file, $content, LOCK_EX) === false) {
                 return [
                     'ok' => false,
-                    'message' => 'Não foi possível criar ' . $file . '. Verifique permissão de escrita em /home/[DOMINIO].',
+                    'message' => I18n::get('diagnostic.flag_create_failed', ['file' => $file]),
                 ];
             }
             @chmod($file, 0640);
             return [
                 'ok' => true,
-                'message' => $label . ' habilitado para ' . ($site['domain'] ?? 'este Moodle') . '.',
+                'message' => I18n::get('diagnostic.flag_enabled', ['label' => $label, 'domain' => ($site['domain'] ?? 'este Moodle')]),
             ];
         }
 
         if (is_file($file) && !@unlink($file)) {
             return [
                 'ok' => false,
-                'message' => 'Não foi possível apagar ' . $file . '. Verifique permissão de escrita em /home/[DOMINIO].',
+                'message' => I18n::get('diagnostic.flag_delete_failed', ['file' => $file]),
             ];
         }
 
         return [
             'ok' => true,
-            'message' => $label . ' desabilitado para ' . ($site['domain'] ?? 'este Moodle') . '.',
+            'message' => I18n::get('diagnostic.flag_disabled', ['label' => $label, 'domain' => ($site['domain'] ?? 'este Moodle')]),
         ];
     }
 
@@ -792,7 +792,7 @@ class SiteManager {
         if ($cli === '') {
             return [
                 'ok' => false,
-                'message' => 'Não foi possível localizar admin/cli/maintenance.php deste Moodle.',
+                'message' => I18n::get('diagnostic.maintenance_cli_missing'),
             ];
         }
 
@@ -806,7 +806,7 @@ class SiteManager {
             $message = trim(implode("\n", $output));
             return [
                 'ok' => false,
-                'message' => 'Falha ao executar maintenance.php: ' . ($message !== '' ? $message : 'exit code ' . $exitcode),
+                'message' => I18n::get('diagnostic.maintenance_failed', ['message' => ($message !== '' ? $message : 'exit code ' . $exitcode)]),
             ];
         }
 
@@ -816,7 +816,7 @@ class SiteManager {
             return $result;
         }
 
-        $result['message'] = 'Modo manutenção ' . ($enabled ? 'habilitado' : 'desabilitado') . ' via CLI para ' . ($site['domain'] ?? 'este Moodle') . '.';
+        $result['message'] = I18n::get('diagnostic.maintenance_done', ['state' => ($enabled ? I18n::get('diagnostic.maintenance_enabled') : I18n::get('diagnostic.maintenance_disabled')), 'domain' => ($site['domain'] ?? 'este Moodle')]);
         return $result;
     }
 

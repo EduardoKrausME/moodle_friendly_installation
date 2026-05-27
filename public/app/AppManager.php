@@ -3,6 +3,8 @@
 namespace app;
 
 class AppManager {
+    private const ICON_FILENAME = 'logo.png';
+
     public static function getSettings(array $site): array {
         $domain = self::siteDomain($site);
         $defaults = [
@@ -15,7 +17,8 @@ class AppManager {
             'updated_by' => '',
         ];
 
-        $stored = JsonStorage::read(self::settingsFile($domain), []);
+        $settingsfile = self::settingsFile($domain);
+        $stored = JsonStorage::read($settingsfile, []);
         if (!is_array($stored)) {
             $stored = [];
         }
@@ -31,34 +34,49 @@ class AppManager {
             $settings['statusbarbackgroundcolor'] = $defaults['statusbarbackgroundcolor'];
         }
 
-        $settings['has_icon'] = !empty($settings['icon_path']) && is_readable((string) $settings['icon_path']);
+        $packageuid = (string) $settings['package_uid'];
+        $settings['package_uid_locked'] = self::isPackageUidLocked($domain);
+        $settings['resource_dir'] = self::resourceDir($packageuid);
+        $settings['icon_path'] = self::iconPath($packageuid);
+        $settings['has_icon'] = self::hasIcon($packageuid);
+        $settings['has_keystore_password'] = self::hasAndroidKeystorePassword($packageuid);
+        $settings['has_android_key_files'] = self::hasAndroidKeyFiles($packageuid);
+
         return $settings;
     }
 
-    public static function validateSettings(array $input, string $domain): array {
+    public static function validateSettings(array $input, string $domain, ?array $current = null): array {
         $errors = [];
+        $locked = !empty($current['package_uid_locked']);
+        $currentpackageuid = (string) ($current['package_uid'] ?? '');
 
-        $packageuid = strtolower(trim((string) ($input['package_uid'] ?? '')));
-        if ($packageuid === '') {
-            $packageuid = self::defaultPackageUid($domain);
+        $postedpackageuid = strtolower(trim((string) ($input['package_uid'] ?? '')));
+        if ($postedpackageuid === '') {
+            $postedpackageuid = $currentpackageuid !== '' ? $currentpackageuid : self::defaultPackageUid($domain);
         }
-        $packageuid = preg_replace('/[^a-z0-9_.]+/', '_', $packageuid);
-        $packageuid = trim((string) $packageuid, '._');
+
+        $packageuid = self::normalizePackageUid($postedpackageuid);
+        if ($locked && $currentpackageuid !== '') {
+            if ($packageuid !== $currentpackageuid) {
+                $errors['package_uid'] = I18n::get('validation.package_uid_locked', ['value' => $currentpackageuid]);
+            }
+            $packageuid = $currentpackageuid;
+        }
 
         if (!preg_match('/^[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*)+$/', $packageuid)) {
-            $errors['package_uid'] = 'Package UID inválido. Use algo como com.empresa.app ou o domínio em formato válido.';
+            $errors['package_uid'] = I18n::get('validation.package_uid_invalid');
         }
 
         $packagename = trim((string) ($input['package_name'] ?? ''));
         if ($packagename === '') {
-            $errors['package_name'] = 'Informe o nome do APP.';
+            $errors['package_name'] = I18n::get('validation.package_name_required');
         } else if (mb_strlen($packagename) > 80) {
-            $errors['package_name'] = 'O nome do APP deve ter no máximo 80 caracteres.';
+            $errors['package_name'] = I18n::get('validation.package_name_too_long');
         }
 
         $color = strtoupper(trim((string) ($input['statusbarbackgroundcolor'] ?? '')));
         if (!preg_match('/^#[0-9A-F]{6}$/', $color)) {
-            $errors['statusbarbackgroundcolor'] = 'Informe uma cor hexadecimal no formato #RRGGBB.';
+            $errors['statusbarbackgroundcolor'] = I18n::get('validation.color_invalid');
         }
 
         return [
@@ -76,14 +94,14 @@ class AppManager {
         if (empty($file) || !isset($file['error']) || (int) $file['error'] === UPLOAD_ERR_NO_FILE) {
             return [
                 'valid' => !$required,
-                'error' => $required ? 'Envie um ícone PNG 1024x1024.' : '',
+                'error' => $required ? I18n::get('validation.icon_required') : '',
             ];
         }
 
         if ((int) $file['error'] !== UPLOAD_ERR_OK) {
             return [
                 'valid' => false,
-                'error' => 'Falha ao receber o arquivo enviado.',
+                'error' => I18n::get('validation.upload_failed'),
             ];
         }
 
@@ -91,7 +109,7 @@ class AppManager {
         if ($tmp === '' || !is_uploaded_file($tmp)) {
             return [
                 'valid' => false,
-                'error' => 'Upload inválido.',
+                'error' => I18n::get('validation.upload_invalid'),
             ];
         }
 
@@ -99,7 +117,7 @@ class AppManager {
         if (!$info || (int) ($info[0] ?? 0) !== 1024 || (int) ($info[1] ?? 0) !== 1024) {
             return [
                 'valid' => false,
-                'error' => 'O ícone precisa ser exatamente PNG 1024x1024.',
+                'error' => I18n::get('validation.icon_size'),
             ];
         }
 
@@ -107,11 +125,36 @@ class AppManager {
         if ($mime !== 'image/png') {
             return [
                 'valid' => false,
-                'error' => 'O arquivo precisa ser PNG.',
+                'error' => I18n::get('validation.icon_png'),
             ];
         }
 
         return ['valid' => true, 'error' => ''];
+    }
+
+    public static function validateKeystorePassword(?string $password, bool $required): array {
+        $password = trim((string) $password);
+        if (!$required && $password === '') {
+            return ['valid' => true, 'error' => '', 'password' => ''];
+        }
+
+        if ($password === '') {
+            return [
+                'valid' => false,
+                'error' => I18n::get('validation.keystore_password_required'),
+                'password' => '',
+            ];
+        }
+
+        if (strlen($password) < 6) {
+            return [
+                'valid' => false,
+                'error' => I18n::get('validation.keystore_password_short'),
+                'password' => '',
+            ];
+        }
+
+        return ['valid' => true, 'error' => '', 'password' => $password];
     }
 
     public static function saveSettings(string $domain, array $data, ?array $iconfile = null): array {
@@ -120,25 +163,138 @@ class AppManager {
             $current = [];
         }
 
-        $settings = array_merge($current, $data);
-
-        if (!empty($iconfile) && isset($iconfile['error']) && (int) $iconfile['error'] === UPLOAD_ERR_OK) {
-            $dest = self::storageDir($domain) . '/app-icon.png';
-            if (!is_dir(dirname($dest))) {
-                mkdir(dirname($dest), 0750, true);
-            }
-            if (!move_uploaded_file((string) $iconfile['tmp_name'], $dest)) {
-                throw new \RuntimeException('Não foi possível salvar o ícone enviado.');
-            }
-            chmod($dest, 0640);
-            $settings['icon_path'] = $dest;
+        if (!empty($current['package_uid'])) {
+            $data['package_uid'] = (string) $current['package_uid'];
         }
 
+        $settings = array_merge($current, $data);
+        $packageuid = (string) $settings['package_uid'];
+        self::ensureResourceRootWritable();
+        self::ensureDir(self::resourceDir($packageuid), 0750);
+
+        if (!empty($iconfile) && isset($iconfile['error']) && (int) $iconfile['error'] === UPLOAD_ERR_OK) {
+            $dest = self::iconPath($packageuid);
+            if (!move_uploaded_file((string) $iconfile['tmp_name'], $dest)) {
+                throw new \RuntimeException(I18n::get('app_errors.icon_save_failed'));
+            }
+            chmod($dest, 0640);
+        }
+
+        if (self::hasIcon($packageuid)) {
+            $settings['icon_path'] = self::iconPath($packageuid);
+        }
+
+        if (empty($settings['package_uid_locked_at'])) {
+            $settings['package_uid_locked_at'] = now_iso();
+        }
         $settings['updated_at'] = now_iso();
         $settings['updated_by'] = Auth::user()['username'] ?? 'system';
 
         JsonStorage::write(self::settingsFile($domain), $settings);
+
+        $settings['package_uid_locked'] = true;
+        $settings['resource_dir'] = self::resourceDir($packageuid);
+        $settings['has_icon'] = self::hasIcon($packageuid);
+        $settings['has_keystore_password'] = self::hasAndroidKeystorePassword($packageuid);
+        $settings['has_android_key_files'] = self::hasAndroidKeyFiles($packageuid);
         return $settings;
+    }
+
+    public static function ensureAndroidKeyFiles(string $packageuid, ?string $password = null): void {
+        self::ensureResourceRootWritable();
+        $resdir = self::resourceDir($packageuid);
+        $keydir = self::androidKeyDir($packageuid);
+        self::ensureDir($keydir, 0700);
+
+        $keystore = $keydir . '/keystore';
+        $passfile = $keydir . '/keystore.txt';
+        $buildjson = $keydir . '/build.json';
+
+        if ($password === null || $password === '') {
+            if (!is_file($passfile) || !is_readable($passfile)) {
+                throw new \RuntimeException(I18n::get('app_errors.keystore_password_missing'));
+            }
+            $password = trim((string) file_get_contents($passfile));
+        }
+
+        $validation = self::validateKeystorePassword($password, true);
+        if (!$validation['valid']) {
+            throw new \RuntimeException($validation['error']);
+        }
+        $password = (string) $validation['password'];
+
+        $mustgeneratekeystore = !is_file($keystore);
+        if (!is_file($passfile)) {
+            if (is_file($keystore)) {
+                @unlink($keystore);
+            }
+            $mustgeneratekeystore = true;
+            file_put_contents($passfile, $password . PHP_EOL, LOCK_EX);
+            chmod($passfile, 0600);
+        }
+
+        if ($mustgeneratekeystore) {
+            self::runKeytool($resdir, $password);
+            chmod($keystore, 0600);
+        }
+
+        file_put_contents(
+            $buildjson,
+            json_encode(self::androidBuildConfig('key-android/keystore', $password), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . PHP_EOL,
+            LOCK_EX
+        );
+        chmod($buildjson, 0600);
+    }
+
+    public static function androidBuildConfig(string $keystore, string $password): array {
+        return [
+            'android' => [
+                'release' => [
+                    'keystore' => $keystore,
+                    'storePassword' => $password,
+                    'alias' => 'app',
+                    'password' => $password,
+                    'keystoreType' => 'pkcs12',
+                ],
+            ],
+        ];
+    }
+
+    public static function buildReadiness(array $settings, string $domain): array {
+        $missing = [];
+        $packageuid = (string) ($settings['package_uid'] ?? '');
+
+        if (!self::isResourceRootWritable()) {
+            $missing[] = ['message' => I18n::get('app_errors.resource_root_missing')];
+        }
+        if (empty($settings['package_uid_locked'])) {
+            $missing[] = ['message' => I18n::get('app_errors.save_once_package_uid')];
+        }
+        if ($packageuid === '' || !preg_match('/^[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*)+$/', $packageuid)) {
+            $missing[] = ['message' => I18n::get('app_errors.package_uid_valid')];
+        }
+        if (trim((string) ($settings['package_name'] ?? '')) === '') {
+            $missing[] = ['message' => I18n::get('validation.package_name_required')];
+        }
+        if (!preg_match('/^#[0-9A-Fa-f]{6}$/', (string) ($settings['statusbarbackgroundcolor'] ?? ''))) {
+            $missing[] = ['message' => I18n::get('app_errors.color_required')];
+        }
+        if (empty($settings['has_icon'])) {
+            $missing[] = ['message' => I18n::get('app_errors.icon_missing')];
+        }
+        if (!self::hasAndroidKeystorePassword($packageuid)) {
+            $missing[] = ['message' => I18n::get('app_errors.keystore_missing')];
+        } else if (!self::hasAndroidKeyFiles($packageuid)) {
+            $missing[] = ['message' => I18n::get('app_errors.key_files_missing')];
+        }
+        if (self::hasActiveBuildJob($domain)) {
+            $missing[] = ['message' => I18n::get('app_errors.build_active')];
+        }
+
+        return [
+            'valid' => empty($missing),
+            'missing' => $missing,
+        ];
     }
 
     public static function appVersion(): string {
@@ -212,6 +368,38 @@ class AppManager {
         return self::storageDir($domain) . '/app-settings.json';
     }
 
+    public static function resourceDir(string $packageuid): string {
+        return app_config_path('/app-MoodleMobile-V2/res/' . self::normalizePackageUid($packageuid));
+    }
+
+    public static function iconPath(string $packageuid): string {
+        return self::resourceDir($packageuid) . '/' . self::ICON_FILENAME;
+    }
+
+    public static function hasIcon(string $packageuid): bool {
+        $path = self::iconPath($packageuid);
+        return is_file($path) && is_readable($path);
+    }
+
+    public static function androidKeyDir(string $packageuid): string {
+        return self::resourceDir($packageuid) . '/key-android';
+    }
+
+    public static function hasAndroidKeystorePassword(string $packageuid): bool {
+        $file = self::androidKeyDir($packageuid) . '/keystore.txt';
+        return is_file($file) && is_readable($file);
+    }
+
+    public static function hasAndroidKeyFiles(string $packageuid): bool {
+        $keydir = self::androidKeyDir($packageuid);
+        return is_file($keydir . '/keystore')
+            && is_readable($keydir . '/keystore')
+            && is_file($keydir . '/keystore.txt')
+            && is_readable($keydir . '/keystore.txt')
+            && is_file($keydir . '/build.json')
+            && is_readable($keydir . '/build.json');
+    }
+
     public static function defaultPackageUid(string $domain): string {
         $domain = strtolower(trim($domain));
         $parts = array_filter(explode('.', $domain), static fn(string $part): bool => $part !== '');
@@ -235,10 +423,69 @@ class AppManager {
         return implode('.', $clean);
     }
 
+    private static function isPackageUidLocked(string $domain): bool {
+        $stored = JsonStorage::read(self::settingsFile($domain), []);
+        return is_array($stored) && !empty($stored['package_uid']);
+    }
+
+    private static function ensureResourceRootWritable(): void {
+        $root = app_config_path('/app-MoodleMobile-V2/res');
+        if (!is_dir($root)) {
+            mkdir($root, 0750, true);
+        }
+        if (!is_writable($root)) {
+            throw new \RuntimeException(I18n::get('app_errors.resource_not_writable'));
+        }
+    }
+
+    private static function isResourceRootWritable(): bool {
+        $root = app_config_path('/app-MoodleMobile-V2/res');
+        return is_dir($root) && is_writable($root);
+    }
+
+    private static function normalizePackageUid(string $packageuid): string {
+        $packageuid = strtolower(trim($packageuid));
+        $packageuid = preg_replace('/[^a-z0-9_.]+/', '_', $packageuid);
+        return trim((string) $packageuid, '._');
+    }
+
+    private static function runKeytool(string $resdir, string $password): void {
+        if (!is_dir($resdir)) {
+            self::ensureDir($resdir, 0750);
+        }
+
+        $command = 'keytool -genkeypair ' .
+            '-v ' .
+            '-keystore ' . escapeshellarg('key-android/keystore') . ' ' .
+            '-alias ' . escapeshellarg('app') . ' ' .
+            '-keyalg RSA ' .
+            '-keysize 2048 ' .
+            '-validity 10000 ' .
+            '-storetype PKCS12 ' .
+            '-storepass ' . escapeshellarg($password) . ' ' .
+            '-keypass ' . escapeshellarg($password) . ' ' .
+            '-dname ' . escapeshellarg('CN=Android, OU=Dev, O=App, L=Sao Paulo, ST=SP, C=BR');
+
+        $script = 'cd ' . escapeshellarg($resdir) . ' && ' . $command . ' 2>&1';
+        exec('/usr/bin/env bash -lc ' . escapeshellarg($script), $output, $exitcode);
+        if ($exitcode !== 0) {
+            $message = trim(implode("\n", $output));
+            throw new \RuntimeException(I18n::get('app_errors.keytool_failed', [
+                'message' => $message !== '' ? I18n::get('app_errors.keytool_return', ['message' => $message]) : '',
+            ]));
+        }
+    }
+
+    private static function ensureDir(string $dir, int $mode): void {
+        if (!is_dir($dir)) {
+            mkdir($dir, $mode, true);
+        }
+    }
+
     private static function defaultPackageName(array $site): string {
         $config = $site['moodle_config'] ?? [];
         $domain = self::siteDomain($site);
-        return (string) ($config['fullname'] ?? "" ?? $domain);
+        return (string) ($config['fullname'] ?? $domain);
     }
 
     private static function siteDomain(array $site): string {

@@ -20,7 +20,7 @@ $sites = array_map(static function (array $site): array {
 
 $flash = flash_message();
 
-render_header('Sites');
+render_header(t('index.title'));
 echo render_app_template('page/index', [
     'flash' => $flash,
     'has_flash' => $flash !== null && $flash !== '',

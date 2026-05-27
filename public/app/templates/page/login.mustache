@@ -1,20 +1,32 @@
 <section class="login-card">
-    <span class="eyebrow">MyLearn Admin</span>
-    <h1>Entrar no painel</h1>
-    <p>Acesse para gerenciar seus Moodles.</p>
+    <div class="language-selector login-language-selector" aria-label="{{language.change}}">
+        <small>{{language.label}}</small>
+        <div class="language-options">
+            {{#language.items}}
+                <a class="{{class}}" href="{{url}}" aria-current="{{aria_current}}" title="{{name}}">
+                    <img src="{{flag}}" alt="{{native_name}}" loading="lazy">
+                    <span>{{native_name}}</span>
+                </a>
+            {{/language.items}}
+        </div>
+    </div>
+
+    <span class="eyebrow">{{i18n.login.eyebrow}}</span>
+    <h1>{{i18n.login.heading}}</h1>
+    <p>{{i18n.login.intro}}</p>
     {{#has_error}}
         <div class="alert danger">{{error}}</div>
     {{/has_error}}
 
     <form method="post" class="form">
         <label>
-            Usuário
+            {{i18n.login.username}}
             <input type="text" name="username" value="{{username}}" autocomplete="username" required>
         </label>
         <label>
-            Senha
+            {{i18n.login.password}}
             <input type="password" name="password" autocomplete="current-password" required>
         </label>
-        <button type="submit">Acessar painel</button>
+        <button type="submit">{{i18n.login.submit}}</button>
     </form>
 </section>

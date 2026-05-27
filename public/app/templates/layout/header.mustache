@@ -10,13 +10,13 @@
 {{#has_user}}
 <div class="app-shell">
     <aside class="sidebar">
-        <a class="brand" href="/" aria-label="Abrir página inicial">
+        <a class="brand" href="/" aria-label="{{i18n.navigation.home_aria}}">
             <span class="brand-copy">
                 <strong>{{app_name}}</strong>
             </span>
         </a>
 
-        <nav class="side-nav" aria-label="Menu principal">
+        <nav class="side-nav" aria-label="{{i18n.navigation.main_menu}}">
             {{#navigation}}
                 <a class="{{class}}" href="{{url}}">
                     <span class="nav-icon">{{icon}}</span>
@@ -26,8 +26,20 @@
         </nav>
 
         <div class="sidebar-footer">
-            <small>Usuário conectado</small>
+            <small>{{i18n.navigation.connected_user}}</small>
             <strong>{{user_name}}</strong>
+
+            <div class="language-selector sidebar-language-selector" aria-label="{{language.change}}">
+                <small>{{language.label}}</small>
+                <div class="language-options">
+                    {{#language.items}}
+                        <a class="{{class}}" href="{{url}}" aria-current="{{aria_current}}" title="{{name}}">
+                            <img src="{{flag}}" alt="{{native_name}}" loading="lazy">
+                            <span>{{native_name}}</span>
+                        </a>
+                    {{/language.items}}
+                </div>
+            </div>
         </div>
     </aside>
 

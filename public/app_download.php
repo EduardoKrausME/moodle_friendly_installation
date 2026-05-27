@@ -13,19 +13,19 @@ $site = SiteManager::get($domain);
 
 if ($site === null) {
     http_response_code(404);
-    exit('Moodle não encontrado.');
+    exit(t('download.moodle_not_found'));
 }
 
 $file = basename($file);
 if (!preg_match('/^[a-z0-9_.-]+\.(apk|aab)$/i', $file)) {
     http_response_code(400);
-    exit('Arquivo inválido.');
+    exit(t('download.invalid_file'));
 }
 
 $path = AppManager::storageDir((string) ($site['domain'] ?? $domain)) . '/' . $file;
 if (!is_file($path) || !is_readable($path)) {
     http_response_code(404);
-    exit('Arquivo não encontrado.');
+    exit(t('download.file_not_found'));
 }
 
 $ext = strtolower((string) pathinfo($path, PATHINFO_EXTENSION));

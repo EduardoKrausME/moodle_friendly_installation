@@ -1,8 +1,8 @@
 <section class="page-title">
     <div>
-        <span class="eyebrow">Automação</span>
-        <h1>Fila de instalação</h1>
-        <p>Jobs pendentes são executados por <code>root</code> via CRON.</p>
+        <span class="eyebrow">{{i18n.jobs.eyebrow}}</span>
+        <h1>{{i18n.jobs.heading}}</h1>
+        <p>{{i18n.jobs.intro}}</p>
     </div>
 </section>
 
@@ -10,18 +10,17 @@
     <div class="alert ok">{{flash}}</div>
 {{/has_flash}}
 
-
 {{^has_jobs}}
-    <p>Nenhum job criado.</p>
+    <p>{{i18n.jobs.empty}}</p>
 {{/has_jobs}}
 
 {{#has_jobs}}
     {{#jobs}}
         <div class="card" style="margin-bottom: 10px">
-            <h2><strong>Job</strong>: <code>{{id}}</code></h2>
-            <div><strong>Domínio</strong> {{domain}}</div>
-            <div class="status-{{status_class}}"><strong>Status</strong>: {{{status_badge}}}</div>
-            <div class="nowrap"><strong>Criado</strong>: {{created_at}}</div>
+            <h2><strong>{{i18n.jobs.job}}</strong>: <code>{{id}}</code></h2>
+            <div><strong>{{i18n.jobs.domain}}</strong> {{domain}}</div>
+            <div class="status-{{status_class}}"><strong>{{i18n.jobs.status}}</strong>: {{{status_badge}}}</div>
+            <div class="nowrap"><strong>{{i18n.jobs.created}}</strong>: {{created_at}}</div>
             <div>
                 {{#has_error}}
                     <span class="error">{{error}}</span><br>
@@ -34,7 +33,6 @@
         </div>
     {{/jobs}}
 {{/has_jobs}}
-
 
 {{#should_refresh}}
     <script>

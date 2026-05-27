@@ -1,6 +1,7 @@
 <?php
 // Small HTML rendering helpers rendered with php-mustache.
 use app\Auth;
+use app\I18n;
 
 /**
  * Function render_header
@@ -12,15 +13,17 @@ function render_header(string $title): void {
     $appname = (string) app_config('app_name');
     $user = Auth::user();
     $hasuser = (bool) $user;
+    $currentlanguage = I18n::currentMeta();
 
     echo render_app_template('layout/header', [
-        'html_lang' => 'pt-BR',
+        'html_lang' => I18n::htmlLang(),
         'page_title' => $title . ' - ' . $appname,
         'app_name' => $appname,
         'body_class' => $hasuser ? 'has-sidebar' : 'auth-page',
         'has_user' => $hasuser,
         'user_name' => (string) ($user['name'] ?? $user['username'] ?? 'Administrador'),
         'navigation' => render_navigation_items(),
+        'current_language_name' => (string) ($currentlanguage['native_name'] ?? $currentlanguage['name'] ?? I18n::current()),
     ]);
 }
 
@@ -35,25 +38,25 @@ function render_navigation_items(): array {
     $items = [
         [
             'url' => '/',
-            'label' => 'Sites',
+            'label' => t('navigation.sites'),
             'icon' => 'S',
             'active_on' => ['index.php', 'details.php'],
         ],
         [
             'url' => '/install.php',
-            'label' => 'Instalar Moodle',
+            'label' => t('navigation.install_moodle'),
             'icon' => '+',
             'active_on' => ['install.php'],
         ],
         [
             'url' => '/jobs.php',
-            'label' => 'Fila',
+            'label' => t('navigation.jobs'),
             'icon' => 'F',
             'active_on' => ['jobs.php'],
         ],
         [
             'url' => '/logout.php',
-            'label' => 'Sair',
+            'label' => t('navigation.logout'),
             'icon' => '×',
             'active_on' => [],
             'extra_class' => 'logout-link',
@@ -99,17 +102,17 @@ function render_footer(): void {
  */
 function status_badge(string $status, $label = null): string {
     if ($status == 'waiting_dns') {
-        $label = 'Aguardando configuração';
+        $label = t('status.waiting_dns');
     } else if ($status == 'running') {
-        $label = 'Executando agora';
+        $label = t('status.running');
     } else if ($status == 'failed') {
-        $label = 'Falhou';
+        $label = t('status.failed');
     } else if ($status == 'error') {
-        $label = 'Erro';
+        $label = t('status.error');
     } else if ($status == 'active') {
-        $label = 'Ativo';
+        $label = t('status.active');
     } else if ($status == 'done') {
-        $label = 'Finalizado';
+        $label = t('status.done');
     } else if (!$label) {
         $label = $status;
     }
@@ -150,11 +153,25 @@ function flash_message(): ?string {
  * @return string
  */
 function render_app_template(string $template, array $context = []): string {
-    return render_mustache_engine()->render($template, $context);
+    $language = I18n::currentMeta();
+    $basecontext = [
+        'i18n' => I18n::strings(),
+        'language' => [
+            'label' => t('language.label'),
+            'change' => t('language.change'),
+            'current_code' => I18n::current(),
+            'current_name' => (string) ($language['name'] ?? I18n::current()),
+            'current_native_name' => (string) ($language['native_name'] ?? $language['name'] ?? I18n::current()),
+            'current_flag' => (string) ($language['flag'] ?? ''),
+            'items' => I18n::languagesForSelector(),
+        ],
+    ];
+
+    return render_mustache_engine()->render($template, array_replace_recursive($basecontext, $context));
 }
 
 /**
- * Function render_mustache_engine
+ * Function render_app_template
  *
  * @return \Mustache_Engine
  */

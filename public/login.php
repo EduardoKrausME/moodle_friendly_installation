@@ -15,10 +15,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (Auth::attempt($username, $password)) {
         redirect_to('/');
     }
-    $error = 'Usuário ou senha inválidos.';
+    $error = t('login.invalid_credentials');
 }
 
-render_header('Login');
+render_header(t('login.title'));
 echo render_app_template('page/login', [
     'has_error' => $error !== null,
     'error' => $error,

@@ -7,6 +7,7 @@ ini_set("display_startup_errors", "1");
 require_once "vendor/autoload.php";
 $config = require __DIR__ . '/../config.php';
 
+require_once __DIR__ . '/I18n.php';
 require_once __DIR__ . '/JsonStorage.php';
 require_once __DIR__ . '/Auth.php';
 require_once __DIR__ . '/Validator.php';
@@ -24,6 +25,12 @@ if (PHP_SAPI !== 'cli') {
     ini_set('session.use_strict_mode', '1');
     session_name('MYLEARNADMINSESSID');
     session_start();
+}
+
+\app\I18n::init();
+
+function t(string $key, array $params = []): string {
+    return \app\I18n::get($key, $params);
 }
 
 function app_config(?string $key = null): mixed {

@@ -39,6 +39,33 @@ class JobManager {
         return $job;
     }
 
+
+    public static function createAppBuildJob(array $data): array {
+        $job = [
+            'id' => self::newId(),
+            'type' => 'app_build',
+            'status' => 'pending',
+            'domain' => $data['domain'],
+            'package_uid' => $data['package_uid'],
+            'package_name' => $data['package_name'],
+            'statusbarbackgroundcolor' => $data['statusbarbackgroundcolor'],
+            'icon_path' => $data['icon_path'],
+            'app_version' => $data['app_version'],
+            'created_at' => now_iso(),
+            'updated_at' => now_iso(),
+            'created_by' => Auth::user()['username'] ?? 'system',
+            'log_file' => app_config_path("/logs") . '/app-build-' . $data['domain'] . '-' . date('Ymd-His') . '.log',
+        ];
+
+        JsonStorage::update(app_config_path("/data/jobs.json"), static function(array $jobs) use ($job): array {
+            $jobs[] = $job;
+            return $jobs;
+        });
+
+        self::writeQueueFile($job);
+        return $job;
+    }
+
     public static function updateJob(string $id, callable $callback): ?array {
         $updated = null;
         JsonStorage::update(
@@ -67,6 +94,11 @@ class JobManager {
             $type = (string) ($job['type'] ?? '');
 
             if ($type === 'install_moodle' && in_array($status, ['pending', 'waiting_dns'], true)) {
+                $pendingjobs[] = $job;
+                continue;
+            }
+
+            if ($type === 'app_build' && $status === 'pending') {
                 $pendingjobs[] = $job;
             }
         }
@@ -100,8 +132,9 @@ class JobManager {
         });
     }
 
-    public static function markDone(string $id): ?array {
-        return self::updateJob($id, static function(array $job): array {
+    public static function markDone(string $id, array $extra = []): ?array {
+        return self::updateJob($id, static function(array $job) use ($extra): array {
+            $job = array_merge($job, $extra);
             $job['status'] = 'done';
             $job['finished_at'] = now_iso();
             $job['admin_pass'] = null;

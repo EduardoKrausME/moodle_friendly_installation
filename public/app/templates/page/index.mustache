@@ -1,10 +1,10 @@
 <section class="page-title">
     <div>
-        <span class="eyebrow">Painel MyLearn</span>
-        <h1>Sites Moodle</h1>
-        <p>Gerencie instalações, acompanhe status e abra rapidamente cada ambiente Moodle.</p>
+        <span class="eyebrow">{{i18n.index.eyebrow}}</span>
+        <h1>{{i18n.index.heading}}</h1>
+        <p>{{i18n.index.intro}}</p>
     </div>
-    <a class="button" href="/install.php">Instalar Moodle</a>
+    <a class="button" href="/install.php">{{i18n.actions.install_moodle}}</a>
 </section>
 
 {{#has_flash}}
@@ -14,9 +14,9 @@
 {{^has_sites}}
     <div class="card empty-state">
         <div class="empty-icon">+</div>
-        <h2>Nenhum Moodle cadastrado ainda</h2>
-        <p>Crie a primeira instalação para iniciar o acompanhamento pelo painel.</p>
-        <a class="button" href="/install.php">Instalar primeiro Moodle</a>
+        <h2>{{i18n.index.empty_heading}}</h2>
+        <p>{{i18n.index.empty_intro}}</p>
+        <a class="button" href="/install.php">{{i18n.actions.install_first_moodle}}</a>
     </div>
 {{/has_sites}}
 
@@ -26,18 +26,18 @@
             <article class="site-card">
                 <div class="site-card-header">
                     <div>
-                        <span class="eyebrow">Moodle</span>
+                        <span class="eyebrow">{{i18n.index.moodle_label}}</span>
                         <h2>{{domain}}</h2>
                     </div>
                     {{{status_badge}}}
                 </div>
                 <dl class="site-meta">
                     <div>
-                        <dt>Branch</dt>
+                        <dt>{{i18n.index.branch}}</dt>
                         <dd>{{moodle_branch}}</dd>
                     </div>
                 </dl>
-                <a class="button secondary" href="{{details_url}}">Ver detalhes</a>
+                <a class="button secondary" href="{{details_url}}">{{i18n.actions.view_details}}</a>
             </article>
         {{/sites}}
     </section>

@@ -45,7 +45,7 @@ foreach (JobManager::all() as $job) {
 
 $flash = flash_message();
 
-render_header('Fila');
+render_header(t('jobs.title'));
 echo render_app_template('page/jobs', [
     'has_flash' => !empty($flash),
     'flash' => (string) $flash,

@@ -12,7 +12,7 @@ $site = SiteManager::details($domain);
 
 if ($site === null) {
     http_response_code(404);
-    render_header('Moodle não encontrado');
+    render_header(t('details.not_found_title'));
     echo render_app_template('page/details-not-found');
     render_footer();
     exit;
@@ -27,14 +27,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $enabled = !empty($_POST['enabled']) && (string) $_POST['enabled'] === '1';
         $value = isset($_POST['value']) && is_string($_POST['value']) ? $_POST['value'] : null;
         $result = SiteManager::setFeatureFlag($site, $flag, $enabled, $value);
-        $_SESSION['flash'] = $result['message'] ?? 'Ação concluída.';
+        $_SESSION['flash'] = $result['message'] ?? t('details.action_done');
         redirect_to('/details.php?domain=' . urlencode($domain));
     }
 
     // Compatibility with the previous debug form/action names.
     if ($action === 'enable_debug' || $action === 'disable_debug') {
         $result = SiteManager::setDebugMode($site, $action === 'enable_debug');
-        $_SESSION['flash'] = $result['message'] ?? 'Ação concluída.';
+        $_SESSION['flash'] = $result['message'] ?? t('details.action_done');
         redirect_to('/details.php?domain=' . urlencode($domain));
     }
 }
@@ -45,7 +45,7 @@ $stats = $site['database_stats'] ?? ['connected' => false, 'items' => [], 'error
 $featureflags = $diagnostics['feature_flags'] ?? [];
 $flash = flash_message();
 
-render_header('Detalhes do Moodle');
+render_header(t('details.title'));
 echo render_app_template('page/details', details_page_context($site, $config, $diagnostics, $stats, $featureflags, $flash));
 render_footer();
 
@@ -77,27 +77,27 @@ function details_page_context(
         'has_flash' => $flash !== null && $flash !== '',
         'flash' => (string) $flash,
         'stats_warning' => !$statsconnected,
-        'stats_error' => (string) ($stats['error'] ?? 'erro desconhecido'),
+        'stats_error' => (string) ($stats['error'] ?? t('details.unknown_error')),
         'stat_boxes' => [
             [
-                'label' => 'Usuários',
+                'label' => t('details.users'),
                 'value' => $statsconnected ? details_format_count($statsitems['users'] ?? 0) : '-',
-                'description' => 'deleted = 0 e id > 1',
+                'description' => t('details.users_description'),
             ],
             [
-                'label' => 'Cursos',
+                'label' => t('details.courses'),
                 'value' => $statsconnected ? details_format_count($statsitems['courses'] ?? 0) : '-',
-                'description' => 'exceto site home',
+                'description' => t('details.courses_description'),
             ],
             [
-                'label' => 'Inscrições',
+                'label' => t('details.enrolments'),
                 'value' => $statsconnected ? details_format_count($statsitems['enrolments'] ?? 0) : '-',
-                'description' => 'total em cursos',
+                'description' => t('details.enrolments_description'),
             ],
             [
-                'label' => 'Inscrições ativas',
+                'label' => t('details.active_enrolments'),
                 'value' => $statsconnected ? details_format_count($statsitems['active_enrolments'] ?? 0) : '-',
-                'description' => 'user_enrolments e enrol ativos',
+                'description' => t('details.active_enrolments_description'),
             ],
         ],
         'diagnostic_rows' => [
@@ -173,11 +173,11 @@ function details_feature_flags(array $featureflags): array {
         $enabled = !empty($item['enabled']);
         $needsvalue = !empty($item['value_type']);
         $buttonclass = $enabled ? 'button secondary' : (!empty($item['dangerous']) ? 'button warning' : 'button');
-        $buttonlabel = $enabled ? 'Desabilitar' : 'Habilitar';
+        $buttonlabel = $enabled ? t('actions.disable') : t('actions.enable');
 
         if ($needsvalue && $enabled) {
             $buttonclass = 'button';
-            $buttonlabel = 'Salvar';
+            $buttonlabel = t('actions.save');
         }
 
         $items[] = [
@@ -204,7 +204,7 @@ function details_feature_flags(array $featureflags): array {
 
 function details_value(mixed $value): string {
     if (is_bool($value)) {
-        return $value ? 'Sim' : 'Não';
+        return $value ? t('details.yes') : t('details.no');
     }
     if ($value === null || $value === '') {
         return '-';

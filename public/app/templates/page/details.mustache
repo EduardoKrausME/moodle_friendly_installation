@@ -1,10 +1,10 @@
 <section class="page-title">
     <div>
-        <span class="eyebrow">Detalhes do Moodle</span>
+        <span class="eyebrow">{{i18n.details.title}}</span>
         <h1>{{domain}}</h1>
         <p>{{moodle_branch}}</p>
     </div>
-    <a class="button secondary" href="/">Voltar para sites</a>
+    <a class="button secondary" href="/">{{i18n.actions.back_to_sites}}</a>
 </section>
 
 {{#has_flash}}
@@ -13,25 +13,25 @@
 
 <div class="card hero-card">
     <div>
-        <h2>Atalhos do Moodle</h2>
-        <p>Use estes links para abrir o ambiente ou entrar pelo acesso administrativo configurado no Moodle.</p>
+        <h2>{{i18n.details.shortcuts_heading}}</h2>
+        <p>{{i18n.details.shortcuts_intro}}</p>
     </div>
     <div class="hero-actions">
-        <a class="button" href="{{url}}" target="_blank" rel="noopener">Abrir Moodle</a>
-        <a class="button secondary" href="{{sso_url}}" target="_blank" rel="noopener">Acessar como Administrador</a>
+        <a class="button" href="{{url}}" target="_blank" rel="noopener">{{i18n.actions.open_moodle}}</a>
+        <a class="button secondary" href="{{sso_url}}" target="_blank" rel="noopener">{{i18n.actions.access_admin}}</a>
     </div>
 </div>
 
 <div class="card hero-card">
     <div>
-        <h2>APP deste Moodle</h2>
-        <p>Configure e gere APK/AAB.</p>
+        <h2>{{i18n.details.app_heading}}</h2>
+        <p>{{i18n.details.app_intro}}</p>
     </div>
     <div class="hero-actions">
-        <a class="button" href="{{app_manage_url}}">Gerenciar APP</a>
+        <a class="button" href="{{app_manage_url}}">{{i18n.actions.manage_app}}</a>
         {{#app_has_files}}
             {{#app_files}}
-                <a class="button secondary" href="{{download_url}}">Baixar {{label}}</a>
+                <a class="button secondary" href="{{download_url}}">{{i18n.actions.download}} {{label}}</a>
             {{/app_files}}
         {{/app_has_files}}
     </div>
@@ -39,7 +39,7 @@
 
 <div class="details-grid">
     <div class="card">
-        <h2>Dados do Moodle</h2>
+        <h2>{{i18n.details.data_heading}}</h2>
         <div class="stat-grid">
             {{#stat_boxes}}
                 <div class="stat-box">
@@ -50,12 +50,12 @@
             {{/stat_boxes}}
         </div>
         {{#stats_warning}}
-            <div class="alert warning compact-alert">Não foi possível conectar ao MySQL: {{stats_error}}</div>
+            <div class="alert warning compact-alert">{{i18n.details.mysql_error}} {{stats_error}}</div>
         {{/stats_warning}}
     </div>
 
     <div class="card">
-        <h2>Diagnóstico rápido</h2>
+        <h2>{{i18n.details.diagnostics_heading}}</h2>
         <div class="details-table">
             {{#diagnostic_rows}}
                 <h2 style="display: flex;justify-content: space-between;">{{label}} {{{badge_html}}}</h2>
@@ -65,16 +65,16 @@
                         <small><code>{{path}}</code></small>
                     {{/has_path}}
                     {{#has_resolved_ips}}
-                        <small>DNS: {{resolved_ips}}</small>
+                        <small>{{i18n.details.dns}}: {{resolved_ips}}</small>
                     {{/has_resolved_ips}}
                     {{#has_server_ips}}
-                        <small>Servidor: {{server_ips}}</small>
+                        <small>{{i18n.details.server}}: {{server_ips}}</small>
                     {{/has_server_ips}}
                     {{#has_valid_to}}
-                        <small>Válido até: {{valid_to}}</small>
+                        <small>{{i18n.details.valid_to}}: {{valid_to}}</small>
                     {{/has_valid_to}}
                     {{#has_issuer}}
-                        <small>Emissor: {{issuer}}</small>
+                        <small>{{i18n.details.issuer}}: {{issuer}}</small>
                     {{/has_issuer}}
                 </div>
             {{/diagnostic_rows}}
@@ -82,9 +82,8 @@
     </div>
 
     <div class="card full-card">
-        <h2>Flags e controles rápidos</h2>
-        <p class="card-subtitle">Cria ou remove arquivos em <code>/home/[DOMINIO]</code>. As flags abaixo são lidas pelo
-            <code>config.php</code> gerado pelo painel.</p>
+        <h2>{{i18n.details.flags_heading}}</h2>
+        <p class="card-subtitle">{{i18n.details.flags_intro}} <code>/home/[DOMINIO]</code>. {{i18n.details.flags_intro_after}}</p>
         <div class="flag-grid">
             {{#feature_flags}}
                 <div class="{{control_class}}">
@@ -104,8 +103,7 @@
                                 <input type="hidden" name="action" value="toggle_flag">
                                 <input type="hidden" name="flag" value="{{flag}}">
                                 <input type="hidden" name="enabled" value="1">
-                                <input type="email" name="value" value="{{value}}" placeholder="email@dominio.com"
-                                       required>
+                                <input type="email" name="value" value="{{value}}" placeholder="email@dominio.com" required>
                                 <button type="submit" class="{{button_class}}">{{button_label}}</button>
                             </form>
                             {{#show_disable_when_value_enabled}}
@@ -114,7 +112,7 @@
                                     <input type="hidden" name="action" value="toggle_flag">
                                     <input type="hidden" name="flag" value="{{flag}}">
                                     <input type="hidden" name="enabled" value="0">
-                                    <button type="submit" class="button danger">Desabilitar</button>
+                                    <button type="submit" class="button danger">{{i18n.actions.disable}}</button>
                                 </form>
                             {{/show_disable_when_value_enabled}}
                         </div>
@@ -135,7 +133,7 @@
     </div>
 
     <div class="card">
-        <h2>Arquivos e diretórios</h2>
+        <h2>{{i18n.details.files_heading}}</h2>
         <table class="details-table">
             <tbody>
             {{#file_rows}}
@@ -152,7 +150,7 @@
     </div>
 
     <div class="card">
-        <h2>Configuração lida do config.php</h2>
+        <h2>{{i18n.details.config_heading}}</h2>
         <table class="details-table">
             <tbody>
             {{#config_rows}}

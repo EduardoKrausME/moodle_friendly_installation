@@ -46,17 +46,17 @@ function executeAppBuildJob(array $job): array {
     ensureDir($workroot, 0700);
     copyRecursive($source, $workdir, ['node_modules', 'platforms', 'plugins']);
 
-    $resdir = $workdir . '/res/' . $domain;
-    removeDir($resdir);
+    $resfolder = sanitizePackageUid($packageuid);
+    $resdir = $workdir . '/res/' . $resfolder;
     ensureDir($resdir, 0750);
     copy($iconpath, $resdir . '/logo.png');
     chmod($resdir . '/logo.png', 0640);
 
     try {
         generateAppImages($resdir, $color, $logfile);
-        updateCordovaConfig($workdir . '/config.xml', $domain, $packageuid, $packagename, $color, $version);
+        updateCordovaConfig($workdir . '/config.xml', $resfolder, $packageuid, $packagename, $color, $version);
         updateIndexHtml($workdir . '/www/index.html', $packageuid, $packagename, $version);
-        $buildconfig = createAndroidBuildConfig($domain, $workdir, $logfile);
+        $buildconfig = createAndroidBuildConfig($resfolder, $workdir, $logfile);
 
         runBuildCommand('npm install --no-audit --fund=false', $workdir, $logfile);
         runBuildCommand('npx cordova platform remove android || true', $workdir, $logfile);
@@ -115,7 +115,7 @@ function generateAppImages(string $resdir, string $color, string $logfile): void
     @unlink($resdir . '/splash-tmp.png');
 }
 
-function updateCordovaConfig(string $configfile, string $domain, string $packageuid, string $packagename, string $color, string $version): void {
+function updateCordovaConfig(string $configfile, string $resfolder, string $packageuid, string $packagename, string $color, string $version): void {
     $dom = new DOMDocument('1.0', 'UTF-8');
     $dom->preserveWhiteSpace = false;
     $dom->formatOutput = true;
@@ -145,19 +145,19 @@ function updateCordovaConfig(string $configfile, string $domain, string $package
     foreach ($dom->getElementsByTagName('icon') as $icon) {
         $density = $icon->getAttribute('density');
         if (isset($icons[$density])) {
-            $icon->setAttribute('src', 'res/' . $domain . '/android/' . $icons[$density]);
+            $icon->setAttribute('src', 'res/' . $resfolder . '/android/' . $icons[$density]);
         }
     }
 
     foreach ($dom->getElementsByTagName('splash') as $splash) {
-        $splash->setAttribute('src', 'res/' . $domain . '/splash.png');
+        $splash->setAttribute('src', 'res/' . $resfolder . '/splash.png');
     }
 
     foreach ($dom->getElementsByTagName('resource-file') as $resource) {
         $target = $resource->getAttribute('target');
         $src = $resource->getAttribute('src');
         if (preg_match('/ic_stat_onesignal_default\.png$/', $target) && preg_match('/(48|72|96|144|192)x\1\.png$/', $src, $matches)) {
-            $resource->setAttribute('src', 'res/' . $domain . '/android-notification/' . $matches[0]);
+            $resource->setAttribute('src', 'res/' . $resfolder . '/android-notification/' . $matches[0]);
             continue;
         }
         if (str_contains($target, 'ic_menu_share.png')) {
@@ -203,41 +203,31 @@ function updateIndexHtml(string $file, string $packageuid, string $packagename, 
     file_put_contents($file, $content);
 }
 
-function createAndroidBuildConfig(string $domain, string $workdir, string $logfile): string {
-    $keydir = AppManager::storageDir($domain) . '/key-android';
-    ensureDir($keydir, 0700);
+function createAndroidBuildConfig(string $resfolder, string $workdir, string $logfile): string {
+    $keydir = $workdir . '/res/' . $resfolder . '/key-android';
     $keystore = $keydir . '/keystore';
     $passfile = $keydir . '/keystore.txt';
+    $buildconfig = $keydir . '/build.json';
 
-    if (!is_file($keystore) || !is_file($passfile)) {
-        $password = bin2hex(random_bytes(12)) . 'A1#';
-        file_put_contents($passfile, $password . PHP_EOL);
-        chmod($passfile, 0600);
-        $command = 'keytool -genkeypair -v -keystore ' . escapeshellarg($keystore) .
-            ' -alias app -keyalg RSA -keysize 2048 -validity 10000 -storetype PKCS12' .
-            ' -storepass ' . escapeshellarg($password) .
-            ' -keypass ' . escapeshellarg($password) .
-            ' -dname ' . escapeshellarg('CN=' . $domain . ', OU=Mobile, O=MyLearn, L=Sao Paulo, ST=SP, C=BR');
-        runBuildCommand($command, $workdir, $logfile);
-        chmod($keystore, 0600);
+    if (!is_file($keystore) || !is_readable($keystore)) {
+        throw new RuntimeException('Keystore Android não encontrado em res/' . $resfolder . '/key-android/keystore.');
+    }
+    if (!is_file($passfile) || !is_readable($passfile)) {
+        throw new RuntimeException('Senha da keystore Android não encontrada em res/' . $resfolder . '/key-android/keystore.txt.');
     }
 
     $password = trim((string) file_get_contents($passfile));
-    $config = [
-        'android' => [
-            'release' => [
-                'keystore' => $keystore,
-                'storePassword' => $password,
-                'alias' => 'app',
-                'password' => $password,
-                'keystoreType' => 'pkcs12',
-            ],
-        ],
-    ];
+    if ($password === '') {
+        throw new RuntimeException('Arquivo keystore.txt está vazio.');
+    }
 
-    $buildconfig = $workdir . '/build.json';
-    file_put_contents($buildconfig, json_encode($config, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . PHP_EOL);
+    file_put_contents(
+        $buildconfig,
+        json_encode(AppManager::androidBuildConfig($keystore, $password), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . PHP_EOL
+    );
     chmod($buildconfig, 0600);
+    appendAppBuildLog($logfile, 'Build config Android preparado em ' . $buildconfig . '.');
+
     return $buildconfig;
 }
 
@@ -326,7 +316,7 @@ function copyRecursive(string $source, string $dest, array $skipnames = []): voi
     foreach ($iterator as $item) {
         $path = $item->getPathname();
         $relative = substr($path, strlen($source) + 1);
-        $parts = preg_split('#[/\\]+#', $relative) ?: [];
+        $parts = preg_split('#[/\\\\]+#', $relative) ?: [];
         if (array_intersect($parts, $skipnames)) {
             continue;
         }
@@ -365,6 +355,13 @@ function ensureDir(string $dir, int $mode): void {
     if (!is_dir($dir)) {
         mkdir($dir, $mode, true);
     }
+}
+
+
+function sanitizePackageUid(string $packageuid): string {
+    $packageuid = strtolower(trim($packageuid));
+    $packageuid = preg_replace('/[^a-z0-9_.]+/', '_', $packageuid);
+    return trim((string) $packageuid, '._');
 }
 
 function sanitizeDomain(string $domain): string {
