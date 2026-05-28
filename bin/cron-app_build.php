@@ -24,6 +24,11 @@ function executeAppBuildJob(array $job): array {
     $domain = sanitizeDomain((string) ($job['domain'] ?? ''));
     $packageuid = (string) ($job['package_uid'] ?? '');
     $packagename = (string) ($job['package_name'] ?? '');
+    $moodleurl = trim((string) ($job['moodle_url'] ?? ''));
+    if ($moodleurl === '') {
+        $moodleurl = 'https://' . $domain;
+    }
+    $moodleurl = rtrim($moodleurl, '/');
     $color = (string) ($job['statusbarbackgroundcolor'] ?? '#08422A');
     $version = (string) ($job['app_version'] ?? AppManager::appVersion());
     $iconpath = (string) ($job['icon_path'] ?? '');
@@ -55,7 +60,7 @@ function executeAppBuildJob(array $job): array {
     try {
         generateAppImages($resdir, $color, $logfile);
         updateCordovaConfig($workdir . '/config.xml', $resfolder, $packageuid, $packagename, $color, $version);
-        updateIndexHtml($workdir . '/www/index.html', $packageuid, $packagename, $version);
+        updateIndexHtml($workdir . '/www/index.html', $packageuid, $packagename, $version, $moodleurl);
         $buildconfig = createAndroidBuildConfig($resfolder, $workdir, $logfile);
 
         runBuildCommand('npm install --no-audit --fund=false', $workdir, $logfile);
@@ -189,18 +194,88 @@ function setPreference(DOMDocument $dom, string $name, string $value): void {
     $dom->documentElement->appendChild($pref);
 }
 
-function updateIndexHtml(string $file, string $packageuid, string $packagename, string $version): void {
+function updateIndexHtml(string $file, string $packageuid, string $packagename, string $version, string $moodleurl): void {
     $content = file_get_contents($file);
     if ($content === false) {
         throw new RuntimeException('Não foi possível ler www/index.html.');
     }
 
-    $content = preg_replace('/(<title>)(.*?)(<\/title>)/is', '$1' . htmlspecialchars($packagename, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') . '$3', $content);
-    $content = preg_replace('/(<span\s+id="package_version">)(.*?)(<\/span>)/is', '$1' . htmlspecialchars($version, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') . '$3', $content);
-    $content = preg_replace('/(<span\s+style="display:\s*none"\s+id="package_uid">)(.*?)(<\/span>)/is', '$1' . htmlspecialchars($packageuid, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') . '$3', $content);
-    $content = preg_replace('/(<span\s+style="display:\s*none"\s+id="package_name">)(.*?)(<\/span>)/is', '$1' . htmlspecialchars($packagename, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') . '$3', $content);
+    $content = preg_replace_callback(
+        '/(<title>)(.*?)(<\/title>)/is',
+        static fn(array $matches): string => $matches[1] . htmlSpecialCharsValue($packagename) . $matches[3],
+        $content,
+        1
+    );
+    $content = replaceDataAttribute($content, 'data-versao', 'data-package_uid', $packageuid);
+    $content = replaceDataAttribute($content, 'data-versao', 'data-package_name', $packagename);
+    $content = replaceDataAttribute($content, 'data-versao', 'data-wwwroot_web', $moodleurl);
+    $content = replaceElementTextById($content, 'config-package_version', $version);
 
-    file_put_contents($file, $content);
+    if (file_put_contents($file, $content) === false) {
+        throw new RuntimeException('Não foi possível salvar www/index.html.');
+    }
+}
+
+function replaceDataAttribute(string $content, string $elementid, string $attribute, string $value): string {
+    $escapedvalue = htmlSpecialCharsValue($value);
+    $elementidpattern = preg_quote($elementid, '/');
+    $attributepattern = preg_quote($attribute, '/');
+
+    $pattern = '/(<[^>]*\bid=["\']' . $elementidpattern . '["\'][^>]*\b' . $attributepattern . '\s*=\s*)(["\'])(.*?)(\2)/is';
+    $updated = preg_replace_callback(
+        $pattern,
+        static fn(array $matches): string => $matches[1] . $matches[2] . $escapedvalue . $matches[4],
+        $content,
+        1,
+        $count
+    );
+
+    if ($updated === null) {
+        throw new RuntimeException('Erro ao atualizar atributo ' . $attribute . ' em #' . $elementid . '.');
+    }
+    if ($count > 0) {
+        return $updated;
+    }
+
+    $insertpattern = '/(<[^>]*\bid=["\']' . $elementidpattern . '["\'][^>]*)(>)/is';
+    $updated = preg_replace_callback(
+        $insertpattern,
+        static fn(array $matches): string => rtrim($matches[1]) . ' ' . $attribute . '="' . $escapedvalue . '"' . $matches[2],
+        $content,
+        1,
+        $count
+    );
+
+    if ($updated === null || $count === 0) {
+        throw new RuntimeException('Elemento #' . $elementid . ' não encontrado em www/index.html.');
+    }
+
+    return $updated;
+}
+
+function replaceElementTextById(string $content, string $elementid, string $value): string {
+    $elementidpattern = preg_quote($elementid, '/');
+    $pattern = '/(<([a-z0-9:-]+)\b[^>]*\bid=["\']' . $elementidpattern . '["\'][^>]*>)(.*?)(<\/\2>)/is';
+    $updated = preg_replace_callback(
+        $pattern,
+        static fn(array $matches): string => $matches[1] . htmlSpecialCharsValue($value) . $matches[4],
+        $content,
+        1,
+        $count
+    );
+
+    if ($updated === null) {
+        throw new RuntimeException('Erro ao atualizar texto de #' . $elementid . '.');
+    }
+    if ($count === 0) {
+        throw new RuntimeException('Elemento #' . $elementid . ' não encontrado em www/index.html.');
+    }
+
+    return $updated;
+}
+
+function htmlSpecialCharsValue(string $value): string {
+    return htmlspecialchars($value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 }
 
 function createAndroidBuildConfig(string $resfolder, string $workdir, string $logfile): string {

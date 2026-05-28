@@ -74,6 +74,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 } else {
                     $job = JobManager::createAppBuildJob([
                         'domain' => $domain,
+                        'moodle_url' => (string) ($site['url'] ?? ('https://' . $domain)),
                         'package_uid' => $settings['package_uid'],
                         'package_name' => $settings['package_name'],
                         'statusbarbackgroundcolor' => $settings['statusbarbackgroundcolor'],

@@ -46,6 +46,7 @@ class JobManager {
             'type' => 'app_build',
             'status' => 'pending',
             'domain' => $data['domain'],
+            'moodle_url' => (string) ($data['moodle_url'] ?? ''),
             'package_uid' => $data['package_uid'],
             'package_name' => $data['package_name'],
             'statusbarbackgroundcolor' => $data['statusbarbackgroundcolor'],
