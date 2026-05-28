@@ -33,7 +33,7 @@
         {{#show_keystore_password}}
             <label class="alert danger">
                 {{i18n.app_manager.keystore_password}}
-                <input type="password" name="keystore_password" autocomplete="new-password" minlength="6" required>
+                <input type="text" name="keystore_password" autocomplete="new-password" minlength="6" required>
                 <small>{{i18n.app_manager.keystore_help}}</small>
                 {{#errors.keystore_password}}<small class="error">{{.}}</small>{{/errors.keystore_password}}
             </label>
