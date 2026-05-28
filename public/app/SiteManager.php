@@ -57,30 +57,10 @@ class SiteManager {
         $dirs = [];
         $homebase = rtrim((string) (app_config('home_base_dir') ?: '/home'), '/');
 
-        $patterns = [
-            $homebase . '/*/moodle/config.php',
-            $homebase . '/*/config.php',
-        ];
-
-        foreach ($patterns as $pattern) {
-            foreach (glob($pattern) ?: [] as $configfile) {
-                $moodledir = dirname($configfile);
-                if (is_file($configfile)) {
-                    $dirs[realpath($moodledir) ?: $moodledir] = true;
-                }
-            }
-        }
-
-        foreach (glob($homebase . '/*/moodle/public/admin/cli/cron.php') ?: [] as $cronfile) {
-            $moodledir = dirname($cronfile, 4);
-            if (is_file($moodledir . '/config.php')) {
-                $dirs[realpath($moodledir) ?: $moodledir] = true;
-            }
-        }
-
-        foreach (glob($homebase . '/*/moodle/admin/cli/cron.php') ?: [] as $cronfile) {
-            $moodledir = dirname($cronfile, 3);
-            if (is_file($moodledir . '/config.php')) {
+        $pattern = "{$homebase}/*/moodle/config.php";
+        foreach (glob($pattern) ?: [] as $configfile) {
+            $moodledir = dirname($configfile);
+            if (is_file($configfile)) {
                 $dirs[realpath($moodledir) ?: $moodledir] = true;
             }
         }
@@ -110,11 +90,7 @@ class SiteManager {
         $domain = strtolower(trim($domain));
         $release = self::readMoodleRelease($moodledir, $publicroot);
 
-        $time = time();
-        $signature = hash_hmac('sha256', (string) $time, $config["dbname"]);
-        $hash = "time={$time}&signature={$signature}&dbname={$config["dbname"]}";
-
-        return [
+        $return = [
             'id' => 'site_' . substr(sha1($moodledir), 0, 16),
             'domain' => $domain,
             'status' => 'active',
@@ -128,9 +104,18 @@ class SiteManager {
             'dataroot' => (string) ($config['dataroot'] ?? ''),
             'config_file' => $configfile,
             'url' => $wwwroot !== '' ? $wwwroot : 'https://' . $domain,
-            'sso_url' => ($wwwroot !== '' ? rtrim($wwwroot, '/') : 'https://' . $domain) . "/moodle-logar-admin.php?{$hash}",
             'created_at' => self::formatFileTime($configfile),
         ];
+
+        if (isset($config["dbname"])) {
+            $time = time();
+            $signature = hash_hmac('sha256', (string) $time, $config["dbname"]);
+            $hash = "time={$time}&signature={$signature}&dbname={$config["dbname"]}";
+            $return['sso_url'] =
+                ($wwwroot !== '' ? rtrim($wwwroot, '/') : 'https://' . $domain) . "/moodle-logar-admin.php?{$hash}";
+        }
+
+        return $return;
     }
 
     private static function readMoodleConfig(string $configfile): array {
@@ -439,7 +424,8 @@ class SiteManager {
             return [
                 'status' => $days !== null && $days < 15 ? 'warning' : 'ok',
                 'label' => $days !== null && $days < 15 ? I18n::get('status.expires_soon') : I18n::get('status.ok'),
-                'message' => $days !== null ? I18n::get('diagnostic.ssl_valid_days', ['days' => $days]) : I18n::get('diagnostic.ssl_valid'),
+                'message' => $days !== null ? I18n::get('diagnostic.ssl_valid_days', ['days' => $days]) :
+                    I18n::get('diagnostic.ssl_valid'),
                 'issuer' => self::certName($cert['issuer'] ?? []),
                 'subject' => self::certName($cert['subject'] ?? []),
                 'valid_from' => $validFrom ? date('Y-m-d H:i:s', $validFrom) : '',
@@ -539,45 +525,52 @@ class SiteManager {
         $user = app_config("mysql_admin_user", "root");
         $pass = app_config("mysql_admin_pass", "");
 
-        $dsn = "mysql:host={$host};port={$port};dbname={$config["dbname"]};charset=utf8mb4";
-        try {
-            $pdo = new PDO($dsn, $user, $pass, [
-                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-                PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-                PDO::ATTR_EMULATE_PREPARES => false,
-            ]);
+        if (isset($config["dbname"])) {
+            $dsn = "mysql:host={$host};port={$port};dbname={$config["dbname"]};charset=utf8mb4";
+            try {
+                $pdo = new PDO($dsn, $user, $pass, [
+                    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+                    PDO::ATTR_EMULATE_PREPARES => false,
+                ]);
 
-            $items = [
-                'users' => self::countQuery($pdo, "SELECT COUNT(*) FROM mdl_user WHERE deleted = 0 AND id > 1"),
-                'courses' => self::countQuery($pdo, "SELECT COUNT(*) FROM mdl_course WHERE id > 1"),
-                'enrolments' => self::countQuery(
-                    $pdo,
-                    "SELECT COUNT(*)
+                $items = [
+                    'users' => self::countQuery($pdo, "SELECT COUNT(*) FROM mdl_user WHERE deleted = 0 AND id > 1"),
+                    'courses' => self::countQuery($pdo, "SELECT COUNT(*) FROM mdl_course WHERE id > 1"),
+                    'enrolments' => self::countQuery(
+                        $pdo,
+                        "SELECT COUNT(*)
                        FROM mdl_user_enrolments ue
                        JOIN mdl_enrol e ON e.id = ue.enrolid
                       WHERE e.courseid > 1"
-                ),
-                'active_enrolments' => self::countQuery(
-                    $pdo,
-                    "SELECT COUNT(*)
+                    ),
+                    'active_enrolments' => self::countQuery(
+                        $pdo,
+                        "SELECT COUNT(*)
                        FROM mdl_user_enrolments ue
                        JOIN mdl_enrol e ON e.id = ue.enrolid
                       WHERE e.courseid > 1 AND ue.status = 0 AND e.status = 0"
-                ),
-            ];
+                    ),
+                ];
 
-            return [
-                'connected' => true,
-                'error' => '',
-                'items' => $items,
-            ];
-        } catch (Throwable $e) {
-            return [
-                'connected' => false,
-                'error' => $e->getMessage(),
-                'items' => [],
-            ];
+                return [
+                    'connected' => true,
+                    'error' => '',
+                    'items' => $items,
+                ];
+            } catch (Throwable $e) {
+                return [
+                    'connected' => false,
+                    'error' => $e->getMessage(),
+                    'items' => [],
+                ];
+            }
         }
+        return [
+            'connected' => false,
+            'error' => I18n::get('diagnostic.config_not_readable'),
+            'items' => [],
+        ];
     }
 
     private static function countQuery(PDO $pdo, string $sql): int {
@@ -742,7 +735,8 @@ class SiteManager {
                 'value_type' => (string) ($definition['value_type'] ?? ''),
                 'dangerous' => !empty($definition['dangerous']),
                 'status' => $enabled ? (string) ($definition['enabled_status'] ?? 'warning') : 'ok',
-                'status_label' => $enabled ? (string) ($definition['enabled_label'] ?? I18n::get('status.enabled')) : (string) ($definition['disabled_label'] ?? I18n::get('status.disabled')),
+                'status_label' => $enabled ? (string) ($definition['enabled_label'] ?? I18n::get('status.enabled')) :
+                    (string) ($definition['disabled_label'] ?? I18n::get('status.disabled')),
             ];
         }
 
@@ -770,7 +764,9 @@ class SiteManager {
             @chmod($file, 0640);
             return [
                 'ok' => true,
-                'message' => I18n::get('diagnostic.flag_enabled', ['label' => $label, 'domain' => ($site['domain'] ?? 'este Moodle')]),
+                'message' => I18n::get(
+                    'diagnostic.flag_enabled', ['label' => $label, 'domain' => ($site['domain'] ?? 'este Moodle')]
+                ),
             ];
         }
 
@@ -806,7 +802,9 @@ class SiteManager {
             $message = trim(implode("\n", $output));
             return [
                 'ok' => false,
-                'message' => I18n::get('diagnostic.maintenance_failed', ['message' => ($message !== '' ? $message : 'exit code ' . $exitcode)]),
+                'message' => I18n::get(
+                    'diagnostic.maintenance_failed', ['message' => ($message !== '' ? $message : 'exit code ' . $exitcode)]
+                ),
             ];
         }
 
@@ -816,7 +814,12 @@ class SiteManager {
             return $result;
         }
 
-        $result['message'] = I18n::get('diagnostic.maintenance_done', ['state' => ($enabled ? I18n::get('diagnostic.maintenance_enabled') : I18n::get('diagnostic.maintenance_disabled')), 'domain' => ($site['domain'] ?? 'este Moodle')]);
+        $result['message'] = I18n::get(
+            'diagnostic.maintenance_done', [
+                'state' => ($enabled ? I18n::get('diagnostic.maintenance_enabled') :
+                    I18n::get('diagnostic.maintenance_disabled')), 'domain' => ($site['domain'] ?? 'este Moodle'),
+            ]
+        );
         return $result;
     }
 
