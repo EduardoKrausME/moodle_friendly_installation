@@ -18,7 +18,10 @@
     </div>
     <div class="hero-actions">
         <a class="button" href="{{url}}" target="_blank" rel="noopener">{{i18n.actions.open_moodle}}</a>
-        <a class="button secondary" href="{{sso_url}}" target="_blank" rel="noopener">{{i18n.actions.access_admin}}</a>
+        {{#sso_url}}
+            <a class="button secondary" href="{{sso_url}}" target="_blank"
+               rel="noopener">{{i18n.actions.access_admin}}</a>
+        {{/sso_url}}
     </div>
 </div>
 
@@ -42,15 +45,17 @@
 <div class="details-grid">
     <div class="card">
         <h2>{{i18n.details.data_heading}}</h2>
-        <div class="stat-grid">
-            {{#stat_boxes}}
-                <div class="stat-box">
-                    <h3>{{label}}</h3>
-                    <strong>{{value}}</strong>
-                    <small>{{description}}</small>
-                </div>
-            {{/stat_boxes}}
-        </div>
+        {{^stats_warning}}
+            <div class="stat-grid">
+                {{#stat_boxes}}
+                    <div class="stat-box">
+                        <h3>{{label}}</h3>
+                        <strong>{{value}}</strong>
+                        <small>{{description}}</small>
+                    </div>
+                {{/stat_boxes}}
+            </div>
+        {{/stats_warning}}
         {{#stats_warning}}
             <div class="alert warning compact-alert">{{i18n.details.mysql_error}} {{stats_error}}</div>
         {{/stats_warning}}
@@ -83,88 +88,92 @@
         </div>
     </div>
 
-    <div class="card full-card">
-        <h2>{{i18n.details.flags_heading}}</h2>
-        <p class="card-subtitle">{{i18n.details.flags_intro}} <code>/home/[DOMINIO]</code>. {{i18n.details.flags_intro_after}}</p>
-        <div class="flag-grid">
-            {{#feature_flags}}
-                <div class="{{control_class}}">
-                    <div class="flag-header">
-                        <strong>{{label}}</strong>
-                        {{{status_badge_html}}}
-                    </div>
-                    <p>{{description}}</p>
-                    {{#has_path}}
-                        <small><code>{{path}}</code></small>
-                    {{/has_path}}
+    {{^stats_warning}}
+        <div class="card full-card">
+            <h2>{{i18n.details.flags_heading}}</h2>
+            <p class="card-subtitle">{{i18n.details.flags_intro}}
+                <code>/home/[DOMINIO]</code>. {{i18n.details.flags_intro_after}}</p>
+            <div class="flag-grid">
+                {{#feature_flags}}
+                    <div class="{{control_class}}">
+                        <div class="flag-header">
+                            <strong>{{label}}</strong>
+                            {{{status_badge_html}}}
+                        </div>
+                        <p>{{description}}</p>
+                        {{#has_path}}
+                            <small><code>{{path}}</code></small>
+                        {{/has_path}}
 
-                    {{#needs_value}}
-                        <div class="flag-actions split-actions">
-                            <form method="post" class="inline-form flag-value-form">
-                                <input type="hidden" name="csrf_token" value="{{csrf_token}}">
-                                <input type="hidden" name="action" value="toggle_flag">
-                                <input type="hidden" name="flag" value="{{flag}}">
-                                <input type="hidden" name="enabled" value="1">
-                                <input type="email" name="value" value="{{value}}" placeholder="email@dominio.com" required>
-                                <button type="submit" class="{{button_class}}">{{button_label}}</button>
-                            </form>
-                            {{#show_disable_when_value_enabled}}
-                                <form method="post" class="inline-form">
+                        {{#needs_value}}
+                            <div class="flag-actions split-actions">
+                                <form method="post" class="inline-form flag-value-form">
                                     <input type="hidden" name="csrf_token" value="{{csrf_token}}">
                                     <input type="hidden" name="action" value="toggle_flag">
                                     <input type="hidden" name="flag" value="{{flag}}">
-                                    <input type="hidden" name="enabled" value="0">
-                                    <button type="submit" class="button danger">{{i18n.actions.disable}}</button>
+                                    <input type="hidden" name="enabled" value="1">
+                                    <input type="email" name="value" value="{{value}}" placeholder="email@dominio.com"
+                                           required>
+                                    <button type="submit" class="{{button_class}}">{{button_label}}</button>
                                 </form>
-                            {{/show_disable_when_value_enabled}}
-                        </div>
-                    {{/needs_value}}
+                                {{#show_disable_when_value_enabled}}
+                                    <form method="post" class="inline-form">
+                                        <input type="hidden" name="csrf_token" value="{{csrf_token}}">
+                                        <input type="hidden" name="action" value="toggle_flag">
+                                        <input type="hidden" name="flag" value="{{flag}}">
+                                        <input type="hidden" name="enabled" value="0">
+                                        <button type="submit" class="button danger">{{i18n.actions.disable}}</button>
+                                    </form>
+                                {{/show_disable_when_value_enabled}}
+                            </div>
+                        {{/needs_value}}
 
-                    {{#no_value}}
-                        <form method="post" class="inline-form flag-actions">
-                            <input type="hidden" name="csrf_token" value="{{csrf_token}}">
-                            <input type="hidden" name="action" value="toggle_flag">
-                            <input type="hidden" name="flag" value="{{flag}}">
-                            <input type="hidden" name="enabled" value="{{enabled_value}}">
-                            <button type="submit" class="{{button_class}}">{{button_label}}</button>
-                        </form>
-                    {{/no_value}}
-                </div>
-            {{/feature_flags}}
+                        {{#no_value}}
+                            <form method="post" class="inline-form flag-actions">
+                                <input type="hidden" name="csrf_token" value="{{csrf_token}}">
+                                <input type="hidden" name="action" value="toggle_flag">
+                                <input type="hidden" name="flag" value="{{flag}}">
+                                <input type="hidden" name="enabled" value="{{enabled_value}}">
+                                <button type="submit" class="{{button_class}}">{{button_label}}</button>
+                            </form>
+                        {{/no_value}}
+                    </div>
+                {{/feature_flags}}
+            </div>
         </div>
-    </div>
 
-    <div class="card">
-        <h2>{{i18n.details.files_heading}}</h2>
-        <table class="details-table">
-            <tbody>
-            {{#file_rows}}
-                <tr>
-                    <th>{{label}}</th>
-                    <td>
-                        {{#is_code}}<code>{{value}}</code>{{/is_code}}
-                        {{#is_plain}}{{value}}{{/is_plain}}
-                    </td>
-                </tr>
-            {{/file_rows}}
-            </tbody>
-        </table>
-    </div>
+        <div class="card">
+            <h2>{{i18n.details.files_heading}}</h2>
+            <table class="details-table">
+                <tbody>
+                {{#file_rows}}
+                    <tr>
+                        <th>{{label}}</th>
+                        <td>
+                            {{#is_code}}<code>{{value}}</code>{{/is_code}}
+                            {{#is_plain}}{{value}}{{/is_plain}}
+                        </td>
+                    </tr>
+                {{/file_rows}}
+                </tbody>
+            </table>
+        </div>
 
-    <div class="card">
-        <h2>{{i18n.details.config_heading}}</h2>
-        <table class="details-table">
-            <tbody>
-            {{#config_rows}}
-                <tr>
-                    <th>{{label}}</th>
-                    <td>
-                        {{#is_code}}<code>{{value}}</code>{{/is_code}}
-                        {{#is_plain}}{{value}}{{/is_plain}}
-                    </td>
-                </tr>
-            {{/config_rows}}
-            </tbody>
-        </table>
-    </div>
+        <div class="card">
+            <h2>{{i18n.details.config_heading}}</h2>
+            <table class="details-table">
+                <tbody>
+                {{#config_rows}}
+                    <tr>
+                        <th>{{label}}</th>
+                        <td>
+                            {{#is_code}}<code>{{value}}</code>{{/is_code}}
+                            {{#is_plain}}{{value}}{{/is_plain}}
+                        </td>
+                    </tr>
+                {{/config_rows}}
+                </tbody>
+            </table>
+        </div>
+    {{/stats_warning}}
 </div>
