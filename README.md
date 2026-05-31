@@ -1,5 +1,15 @@
 # Install Moodle Admin
 
+## Installation
+
+Run the command below in the terminal as `root` or using `sudo`:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/EduardoKrausME/moodle_friendly_installation/refs/heads/master/install-moodle-friendly-installation.sh | sudo bash
+```
+
+## The panel
+
 Panel for managing Moodle installations on a private server. The idea is to have a central screen to create new Moodle instances, monitor the installation queue, open already installed environments, run a quick diagnosis, and generate the Android APP for each domain once everything is configured.
 
 The project was designed for a server where each Moodle is located inside `/home/[domain]`, and the panel does not install anything directly through the web interface. It only creates jobs, while the heavy actions are executed by CRON running as `root`, which avoids leaving dangerous permissions assigned to the Apache/PHP-FPM user.
