@@ -1303,7 +1303,7 @@ restart_services() {
 issue_lets_encrypt() {
     [[ -n "${PANEL_DOMAIN}" ]] || return 0
 
-    prompt_text LE_EMAIL "E-mail para Let's Encrypt" "admin@${PANEL_DOMAIN}"
+    prompt_text LE_EMAIL "\n\n\nE-mail para Let's Encrypt" "admin@${PANEL_DOMAIN}"
     [[ "${LE_EMAIL}" =~ ^[^@[:space:]]+@[^@[:space:]]+\.[^@[:space:]]+$ ]] || die "Invalid Let's Encrypt email."
 
     log "Issuing Let's Encrypt certificate for ${PANEL_DOMAIN}"

@@ -275,6 +275,10 @@ prompt_secret() {
     printf -v "${var_name}" '%s' "${value}"
 }
 
+ui_available() {
+    [[ "${NONINTERACTIVE}" != "1" ]] && [[ -e /dev/tty ]] && command_exists whiptail
+}
+
 draw_box_line() {
     local width="${1:-78}"
     printf '+%*s+\n' "$((width - 2))" '' | tr ' ' '-' >&4
@@ -315,6 +319,16 @@ prompt_database_select() {
     if [[ "${NONINTERACTIVE}" == "1" ]]; then
         DB_ENGINE="${DB_ENGINE:-mariadb}"
         DB_ENGINE="$(printf '%s' "${DB_ENGINE}" | tr '[:upper:]' '[:lower:]')"
+    elif ui_available; then
+        local choice=""
+        choice="$(whiptail \
+            --title "Moodle Friendly Installation" \
+            --menu "Selecione o banco de dados para instalar" \
+            14 78 2 \
+            "mariadb" "MariaDB ${MARIADB_REQUIRED:+>= ${MARIADB_REQUIRED}}" \
+            "mysql" "MySQL ${MYSQL_REQUIRED:+>= ${MYSQL_REQUIRED}}" \
+            3>&1 1>&2 2>&3 < /dev/tty)" || die "Database selection cancelled."
+        DB_ENGINE="${choice}"
     else
         [[ "${TTY_IN_FD_OPENED}" == "1" ]] || open_interactive_terminal
 
@@ -368,6 +382,14 @@ prompt_domain_box() {
 
     if [[ "${NONINTERACTIVE}" == "1" ]]; then
         PANEL_DOMAIN="${PANEL_DOMAIN:-}"
+    elif ui_available; then
+        local value=""
+        value="$(whiptail \
+            --title "Moodle Friendly Installation" \
+            --inputbox "Digite o domínio do painel, ou deixe vazio para usar o IP público." \
+            10 78 "${PANEL_DOMAIN:-}" \
+            3>&1 1>&2 2>&3 < /dev/tty)" || die "Domain input cancelled."
+        PANEL_DOMAIN="${value}"
     else
         [[ "${TTY_IN_FD_OPENED}" == "1" ]] || open_interactive_terminal
         local value=""
@@ -473,7 +495,7 @@ install_base_packages() {
     if [[ "${OS_FAMILY}" == "debian" ]]; then
         # Debian 13/Trixie no longer provides software-properties-common in stable.
         # It is only needed on Ubuntu for add-apt-repository/ondrej/php.
-        pkg_install ca-certificates curl wget gnupg lsb-release unzip tar git dnsutils cron openssl python3 sed grep gawk coreutils debconf-utils
+        pkg_install ca-certificates curl wget gnupg lsb-release unzip tar git dnsutils cron openssl python3 sed grep gawk coreutils debconf-utils whiptail
         if [[ "${OS_ID}" == "ubuntu" ]]; then
             pkg_install software-properties-common
         fi
@@ -1438,10 +1460,34 @@ restart_services() {
     systemctl restart nginx
 }
 
+prompt_lets_encrypt_email() {
+    local default_email="admin@${PANEL_DOMAIN}"
+    local value=""
+
+    if [[ "${NONINTERACTIVE}" == "1" ]]; then
+        LE_EMAIL="${LE_EMAIL:-${default_email}}"
+    elif ui_available; then
+        value="$(whiptail \
+            --title "Moodle Friendly Installation" \
+            --inputbox "Digite o e-mail para registrar o certificado Let's Encrypt." \
+            10 78 "${LE_EMAIL:-${default_email}}" \
+            3>&1 1>&2 2>&3 < /dev/tty)" || die "Let's Encrypt email input cancelled."
+        LE_EMAIL="${value:-${default_email}}"
+    else
+        box_message \
+            "Let's Encrypt" \
+            "Type the e-mail that will be used to issue the SSL certificate." \
+            "Default: ${default_email}"
+        prompt_text LE_EMAIL "E-mail para Let's Encrypt" "${LE_EMAIL:-${default_email}}"
+    fi
+
+    LE_EMAIL="$(printf '%s' "${LE_EMAIL}" | tr -d '[:space:]')"
+}
+
 issue_lets_encrypt() {
     [[ -n "${PANEL_DOMAIN}" ]] || return 0
 
-    prompt_text LE_EMAIL "E-mail para Let's Encrypt" "admin@${PANEL_DOMAIN}"
+    prompt_lets_encrypt_email
     [[ "${LE_EMAIL}" =~ ^[^@[:space:]]+@[^@[:space:]]+\.[^@[:space:]]+$ ]] || die "Invalid Let's Encrypt email."
 
     log "Issuing Let's Encrypt certificate for ${PANEL_DOMAIN}"
@@ -1472,7 +1518,7 @@ EOF
 
 
 base_packages_installed() {
-    local required_commands=(curl wget git unzip tar python3 sed grep awk openssl)
+    local required_commands=(curl wget git unzip tar python3 sed grep awk openssl whiptail)
     local command_name
 
     for command_name in "${required_commands[@]}"; do
