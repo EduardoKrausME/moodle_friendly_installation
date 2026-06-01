@@ -1147,6 +1147,7 @@ PHP
         "base_url=${base_url}" \
         "base_dir=realpath(__DIR__ . '/..')" \
         "default_moodle_branch='${MOODLE_STABLE_BRANCH}'" \
+        "db_engine='${DB_ENGINE}'" \
         "home_base_dir='/home'" \
         "apache_user=${apache_user}" \
         "apache_group=${apache_group}" \

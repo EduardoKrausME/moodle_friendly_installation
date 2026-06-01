@@ -82,7 +82,14 @@ function executeInstallJob(array $job): array {
         "BASE_DIR" => $base,
     ]);
 
-    $configTemplate = renderTemplateFile(app_config_path("/templates/config-template.php"), [
+    $dbengine = strtolower((string) (app_config("db_engine") ?: "mysql"));
+    $configtemplatefile = match ($dbengine) {
+        "mariadb" => "/templates/config-mariadb.php",
+        "mysql", "mysqli" => "/templates/config-mysqli.php",
+        default => throw new RuntimeException("Invalid database engine configured: {$dbengine}. Use mariadb or mysql."),
+    };
+
+    $configTemplate = renderTemplateFile(app_config_path($configtemplatefile), [
         "DB_NAME" => $dbname,
         "DB_USER" => $dbuser,
         "DB_PASS" => $dbpass,
