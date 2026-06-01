@@ -546,15 +546,27 @@ code {
 .alert.warning *, .alert.warning {
   color: var(--warning);
 }
+
+.error,
 .alert.alert-danger {
   border-color: #fecaca;
   background: #fef2f2;
 }
-.alert.alert-danger *, .alert.alert-danger {
+.error *, .error,
+.alert.alert-danger *,
+.alert.alert-danger {
   color: #991b1b;
 }
+.error code,
 .alert.alert-danger code {
   background: #fee2e2;
+}
+
+.error {
+  padding: 7px;
+  display: inline-block;
+  border-radius: 7px;
+  margin-bottom: 6px;
 }
 
 small {

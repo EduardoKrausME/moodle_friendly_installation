@@ -474,16 +474,23 @@ code {
             color: var(--warning);
         }
     }
-    &.alert-danger {
-        border-color: #fecaca;
-        background: #fef2f2;
-        *, & {
-            color: #991b1b;
-        }
-        code {
-            background: #fee2e2;
-        }
+}
+.error,
+.alert.alert-danger {
+    border-color: #fecaca;
+    background: #fef2f2;
+    *, & {
+        color: #991b1b;
     }
+    code {
+        background: #fee2e2;
+    }
+}
+.error {
+    padding: 7px;
+    display: inline-block;
+    border-radius: 7px;
+    margin-bottom: 6px;
 }
 small {
     color: var(--muted);
