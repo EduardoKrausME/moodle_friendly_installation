@@ -1244,24 +1244,48 @@ CRON
     chmod 0644 /etc/cron.d/moodle-friendly-installation-runner
 }
 
+restart_unit_with_retry() {
+    local unit="$1"
+    local attempt=1
+    local max_attempts=3
+
+    while (( attempt <= max_attempts )); do
+        if systemctl restart "${unit}"; then
+            return 0
+        fi
+
+        warn "Could not restart ${unit} on attempt ${attempt}/${max_attempts}. Retrying..."
+        systemctl status "${unit}" --no-pager -l || true
+        sleep 2
+        attempt=$((attempt + 1))
+    done
+
+    journalctl -u "${unit}" -n 80 --no-pager || true
+    die "Failed to restart ${unit}."
+}
+
 restart_services() {
     log "Validating and restarting services"
-    systemctl enable --now "${PHP_FPM_SERVICE}"
-    systemctl restart "${PHP_FPM_SERVICE}"
 
-    systemctl enable --now "${APACHE_SERVICE}"
-    systemctl restart "${APACHE_SERVICE}"
-
-    systemctl enable --now nginx
+    systemctl enable "${PHP_FPM_SERVICE}"
+    restart_unit_with_retry "${PHP_FPM_SERVICE}"
 
     if [[ "${OS_FAMILY}" == "debian" ]]; then
         apache2ctl configtest
     else
         httpd -t
     fi
+
+    systemctl enable "${APACHE_SERVICE}"
+    restart_unit_with_retry "${APACHE_SERVICE}"
+
     nginx -t
 
-    systemctl restart nginx
+    # Do not use `systemctl enable --now nginx` here. On Fedora/RHEL,
+    # `--now` can try to start NGINX before Apache has fully released port 80
+    # after being moved to 127.0.0.1:8080, causing a false installer failure.
+    systemctl enable nginx
+    restart_unit_with_retry nginx
 }
 
 issue_lets_encrypt() {
