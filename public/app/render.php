@@ -2,6 +2,8 @@
 // Small HTML rendering helpers rendered with php-mustache.
 use app\Auth;
 use app\I18n;
+use Mustache\Engine;
+use Mustache\Loader\FilesystemLoader;
 
 /**
  * Function render_header
@@ -173,17 +175,17 @@ function render_app_template(string $template, array $context = []): string {
 /**
  * Function render_app_template
  *
- * @return \Mustache_Engine
+ * @return \Mustache\Engine
  */
-function render_mustache_engine(): Mustache_Engine {
+function render_mustache_engine(): Engine {
     static $engine = null;
 
-    if ($engine instanceof Mustache_Engine) {
+    if ($engine instanceof Engine) {
         return $engine;
     }
 
-    $engine = new Mustache_Engine([
-        'loader' => new Mustache_Loader_FilesystemLoader(__DIR__ . '/templates'),
+    $engine = new Engine([
+        'loader' => new FilesystemLoader(__DIR__ . '/templates'),
         'escape' => static function($value): string {
             return htmlspecialchars($value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
         },
