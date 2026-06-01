@@ -1,5 +1,5 @@
 <?php
-// Provides the Moodle branches that can be used by the installer.
+// Provides the Software Moodle™ branches that can be used by the installer.
 namespace app;
 
 class MoodleBranchProvider {
@@ -73,7 +73,7 @@ class MoodleBranchProvider {
                 CURLOPT_TIMEOUT => 10,
                 CURLOPT_HTTPHEADER => [
                     'Accept: application/vnd.github+json',
-                    'User-Agent: MyLearn-Moodle-Admin',
+                    'User-Agent: Moodle-Admin',
                 ],
             ]);
 
@@ -94,7 +94,7 @@ class MoodleBranchProvider {
                 'timeout' => 10,
                 'header' => implode("\r\n", [
                     'Accept: application/vnd.github+json',
-                    'User-Agent: MyLearn-Moodle-Admin',
+                    'User-Agent: Moodle-Admin',
                 ]),
             ],
         ]);

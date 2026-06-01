@@ -1,4 +1,4 @@
-# Install Moodle Admin
+# Install Software Moodle™ Admin
 
 ## Installation
 

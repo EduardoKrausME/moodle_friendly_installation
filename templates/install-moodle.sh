@@ -21,7 +21,7 @@ if [ -e "{{BASE_DIR}}/moodle" ] && [ ! -d "{{BASE_DIR}}/moodle/.git" ]; then
 fi
 
 if [ ! -d "{{BASE_DIR}}/moodle/.git" ]; then
-    log "Cloning Moodle {{MOODLE_BRANCH}}"
+    log "Cloning Software Moodle™ {{MOODLE_BRANCH}}"
     git clone --quiet --depth 1 -b "{{MOODLE_BRANCH}}" https://github.com/moodle/moodle.git "{{BASE_DIR}}/moodle"
 else
     log "Moodle git checkout already exists. Fetching branch"

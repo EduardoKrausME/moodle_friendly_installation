@@ -1,6 +1,6 @@
 <?php
 
-// Site discovery and diagnostics for installed Moodle instances.
+// Site discovery and diagnostics for installed Software Moodle™ instances.
 namespace app;
 
 use PDO;
