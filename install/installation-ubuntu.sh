@@ -85,7 +85,7 @@ open_interactive_terminal() {
     fi
 
     if [[ ! -e /dev/tty ]]; then
-        die "Interactive installation requires a TTY. Run from SSH/terminal, or use NONINTERACTIVE=1 with DB_ENGINE, PANEL_DOMAIN and DB_ROOT_PASS."
+        die "Interactive installation requires a TTY. Run from SSH/terminal, or use NONINTERACTIVE=1 with DB_ENGINE and PANEL_DOMAIN."
     fi
 
     # Keep a stable terminal handle. This avoids prompts disappearing or read blocking
@@ -135,13 +135,105 @@ prompt_secret() {
         [[ "${TTY_IN_FD_OPENED}" == "1" ]] || open_interactive_terminal
         printf '%s: ' "${label}" >&4
         if ! IFS= read -r -s value <&3; then
-            printf '\n' >&4
+            printf '
+' >&4
             die "Could not read password from the terminal."
         fi
-        printf '\n' >&4
+        printf '
+' >&4
     fi
 
     printf -v "${var_name}" '%s' "${value}"
+}
+
+ui_available() {
+    [[ "${NONINTERACTIVE}" != "1" ]] && [[ -e /dev/tty ]] && command_exists whiptail
+}
+
+prompt_database_select() {
+    if [[ "${NONINTERACTIVE}" == "1" ]]; then
+        DB_ENGINE="${DB_ENGINE:-mariadb}"
+        DB_ENGINE="$(printf '%s' "${DB_ENGINE}" | tr '[:upper:]' '[:lower:]')"
+    elif ui_available; then
+        local choice=""
+        choice="$(whiptail             --title "Moodle Friendly Installation"             --menu "Database to install"             14 78 2             "mariadb" "MariaDB ${MARIADB_REQUIRED:+>= ${MARIADB_REQUIRED}}"             "mysql" "MySQL ${MYSQL_REQUIRED:+>= ${MYSQL_REQUIRED}}"             3>&1 1>&2 2>&3 < /dev/tty)" || die "Database selection cancelled."
+        DB_ENGINE="${choice}"
+    else
+        [[ "${TTY_IN_FD_OPENED}" == "1" ]] || open_interactive_terminal
+        local options=("mariadb" "mysql")
+        local choice=""
+        printf '
+Database to install:
+' >&4
+        PS3="Select an option [1-2]: "
+        select choice in "${options[@]}"; do
+            case "${choice}" in
+                mariadb|mysql)
+                    DB_ENGINE="${choice}"
+                    break
+                    ;;
+                *)
+                    printf 'Invalid option. Select 1 or 2.
+' >&4
+                    ;;
+            esac
+        done <&3 >&4 2>&4
+    fi
+
+    case "${DB_ENGINE}" in
+        mariadb|mysql) ;;
+        *) die "Invalid database option: ${DB_ENGINE}. Use mariadb or mysql." ;;
+    esac
+}
+
+prompt_domain_box() {
+    if [[ "${NONINTERACTIVE}" == "1" ]]; then
+        PANEL_DOMAIN="${PANEL_DOMAIN:-}"
+    elif ui_available; then
+        local value=""
+        value="$(whiptail             --title "Moodle Friendly Installation"             --inputbox "Panel domain, or leave blank to use the public IP."             10 78 "${PANEL_DOMAIN:-}"             3>&1 1>&2 2>&3 < /dev/tty)" || die "Domain input cancelled."
+        PANEL_DOMAIN="${value}"
+    else
+        prompt_text PANEL_DOMAIN "Panel domain, or press ENTER to use the public IP" ""
+    fi
+
+    PANEL_DOMAIN="$(printf '%s' "${PANEL_DOMAIN}" | tr '[:upper:]' '[:lower:]' | sed -E 's#^https?://##; s#/.*$##; s/:.*$//')"
+}
+
+generate_strong_password() {
+    python3 - <<'GENPASS'
+import random
+import secrets
+
+lower = "abcdefghijkmnopqrstuvwxyz"
+upper = "ABCDEFGHJKLMNPQRSTUVWXYZ"
+digits = "23456789"
+symbols = "@#%_-+="
+alphabet = lower + upper + digits + symbols
+password = [
+    secrets.choice(lower),
+    secrets.choice(upper),
+    secrets.choice(digits),
+    secrets.choice(symbols),
+]
+password.extend(secrets.choice(alphabet) for _ in range(28))
+random.SystemRandom().shuffle(password)
+print("".join(password))
+GENPASS
+}
+
+show_password_generated_message() {
+    local message="A strong database root password was generated automatically and will be saved in /public/config.php."
+
+    if [[ "${NONINTERACTIVE}" == "1" ]]; then
+        log "${message}"
+    elif ui_available; then
+        whiptail             --title "Moodle Friendly Installation"             --msgbox "${message}"             9 78 < /dev/tty || true
+    else
+        printf '
+%s
+' "${message}" >&4
+    fi
 }
 
 detect_os() {
@@ -187,9 +279,9 @@ install_base_packages() {
     log "Installing base packages"
     pkg_update
     if [[ "${OS_FAMILY}" == "debian" ]]; then
-        pkg_install ca-certificates curl wget gnupg lsb-release software-properties-common unzip tar git dnsutils cron openssl python3 sed grep gawk coreutils debconf-utils
+        pkg_install ca-certificates curl wget gnupg lsb-release software-properties-common unzip tar git dnsutils cron openssl python3 sed grep gawk coreutils debconf-utils whiptail
     else
-        pkg_install ca-certificates curl wget gnupg2 unzip tar git bind-utils cronie openssl python3 sed grep gawk coreutils policycoreutils-python-utils || pkg_install ca-certificates curl wget gnupg2 unzip tar git bind-utils cronie openssl python3 sed grep gawk coreutils
+        pkg_install ca-certificates curl wget gnupg2 unzip tar git bind-utils cronie openssl python3 sed grep gawk coreutils newt policycoreutils-python-utils || pkg_install ca-certificates curl wget gnupg2 unzip tar git bind-utils cronie openssl python3 sed grep gawk coreutils newt
         systemctl enable --now crond >/dev/null 2>&1 || true
     fi
 }
@@ -258,34 +350,23 @@ PY
 
 ask_install_options() {
     log "Starting interactive installer questions"
-    local db_default="mariadb"
-    local choice=""
 
-    while true; do
-        prompt_text choice "Database to install (mariadb|mysql)" "${db_default}"
-        choice="$(printf '%s' "${choice}" | tr '[:upper:]' '[:lower:]')"
-        case "${choice}" in
-            mariadb|mysql)
-                DB_ENGINE="${choice}"
-                break
-                ;;
-            *)
-                warn "Invalid option. Use mariadb or mysql."
-                ;;
-        esac
-    done
+    prompt_database_select
+    prompt_domain_box
 
-    prompt_text PANEL_DOMAIN "Panel domain, or press ENTER to use the public IP" ""
-    PANEL_DOMAIN="$(printf '%s' "${PANEL_DOMAIN}" | tr '[:upper:]' '[:lower:]' | sed -E 's#^https?://##; s#/.*$##; s/:.*$//')"
-
-    prompt_secret DB_ROOT_PASS "Database root password to save in config.php"
-    [[ ${#DB_ROOT_PASS} -ge 8 ]] || die "The database root password must have at least 8 characters."
-    if [[ "${DB_ENGINE}" == "mysql" ]]; then
-        [[ "${DB_ROOT_PASS}" =~ [[:upper:]] ]] || die "For MySQL, the root password must contain at least one uppercase letter."
-        [[ "${DB_ROOT_PASS}" =~ [[:lower:]] ]] || die "For MySQL, the root password must contain at least one lowercase letter."
-        [[ "${DB_ROOT_PASS}" =~ [[:digit:]] ]] || die "For MySQL, the root password must contain at least one number."
-        [[ "${DB_ROOT_PASS}" =~ [^[:alnum:]] ]] || die "For MySQL, the root password must contain at least one special character."
+    if [[ -n "${DB_ROOT_PASS:-}" ]]; then
+        warn "DB_ROOT_PASS was already defined; using the provided value instead of generating a new one."
+    else
+        DB_ROOT_PASS="$(generate_strong_password)"
     fi
+
+    [[ ${#DB_ROOT_PASS} -ge 16 ]] || die "The generated database root password is unexpectedly short."
+    [[ "${DB_ROOT_PASS}" =~ [[:upper:]] ]] || die "The generated database root password must contain at least one uppercase letter."
+    [[ "${DB_ROOT_PASS}" =~ [[:lower:]] ]] || die "The generated database root password must contain at least one lowercase letter."
+    [[ "${DB_ROOT_PASS}" =~ [[:digit:]] ]] || die "The generated database root password must contain at least one number."
+    [[ "${DB_ROOT_PASS}" =~ [^[:alnum:]] ]] || die "The generated database root password must contain at least one special character."
+
+    show_password_generated_message
 }
 
 detect_public_ip() {
