@@ -873,7 +873,7 @@ install_bundled_nginx_files() {
     [[ -d "${source_dir}" ]] || return 0
 
     log "Installing bundled NGINX files into /etc/nginx"
-    mkdir -p /etc/nginx/conf.d /etc/nginx/sites-enabled/util /etc/nginx/cache
+    mkdir -p /etc/nginx/conf.d /etc/nginx/util /etc/nginx/cache
 
     if [[ -f "${source_dir}/conf.d/00-sites-enabled.conf" ]]; then
         install -D -m 0644 "${source_dir}/conf.d/00-sites-enabled.conf" /etc/nginx/conf.d/00-sites-enabled.conf
@@ -881,10 +881,10 @@ install_bundled_nginx_files() {
         warn "Bundled NGINX file was not found: ${source_dir}/conf.d/00-sites-enabled.conf"
     fi
 
-    if [[ -f "${source_dir}/sites-enabled/util/cache.conf" ]]; then
-        install -D -m 0644 "${source_dir}/sites-enabled/util/cache.conf" /etc/nginx/sites-enabled/util/cache.conf
+    if [[ -f "${source_dir}/util/cache.conf" ]]; then
+        install -D -m 0644 "${source_dir}/util/cache.conf" /etc/nginx/util/cache.conf
     else
-        warn "Bundled NGINX file was not found: ${source_dir}/sites-enabled/util/cache.conf"
+        warn "Bundled NGINX file was not found: ${source_dir}/util/cache.conf"
     fi
 }
 
