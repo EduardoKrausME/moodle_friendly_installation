@@ -282,7 +282,12 @@ install_base_packages() {
     log "Installing base packages"
     pkg_update
     if [[ "${OS_FAMILY}" == "debian" ]]; then
-        pkg_install ca-certificates curl wget gnupg lsb-release software-properties-common unzip tar git dnsutils cron openssl python3 sed grep gawk coreutils debconf-utils whiptail
+        # Debian 13/Trixie no longer provides software-properties-common in stable.
+        # It is only needed on Ubuntu for add-apt-repository/ondrej/php.
+        pkg_install ca-certificates curl wget gnupg lsb-release unzip tar git dnsutils cron openssl python3 sed grep gawk coreutils debconf-utils whiptail
+        if [[ "${OS_ID}" == "ubuntu" ]]; then
+            pkg_install software-properties-common
+        fi
     else
         pkg_install ca-certificates curl wget gnupg2 unzip tar git bind-utils cronie openssl python3 sed grep gawk coreutils newt policycoreutils-python-utils || pkg_install ca-certificates curl wget gnupg2 unzip tar git bind-utils cronie openssl python3 sed grep gawk coreutils newt
         systemctl enable --now crond >/dev/null 2>&1 || true
@@ -407,46 +412,77 @@ check_dns_before_continue() {
     log "DNS verified: ${PANEL_DOMAIN} points to ${PUBLIC_IP}"
 }
 
-install_php() {
-    log "Installing PHP ${PHP_SERIES} and extensions used by Moodle/the panel"
+install_debian_php_default() {
+    log "Trying the distribution default PHP first"
+    pkg_install php php-cli php-fpm php-mysql php-curl php-xml php-mbstring php-zip php-gd php-intl php-soap php-opcache php-bcmath php-ldap
 
-    if [[ "${OS_FAMILY}" == "debian" ]]; then
-        if ! apt-cache show "php${PHP_SERIES}-fpm" >/dev/null 2>&1; then
-            if [[ "${OS_ID}" == "ubuntu" ]]; then
-                log "The default repository did not find php${PHP_SERIES}; adding ondrej/php PPA"
-                LC_ALL=C.UTF-8 add-apt-repository -y ppa:ondrej/php
-                apt-get update -y
-            else
-                log "The default repository did not find php${PHP_SERIES}; adding Sury PHP repository for Debian"
-                mkdir -p /usr/share/keyrings
-                curl -fsSL https://packages.sury.org/php/apt.gpg | gpg --dearmor -o /usr/share/keyrings/deb.sury.org-php.gpg
-                chmod 0644 /usr/share/keyrings/deb.sury.org-php.gpg
-                local codename=""
-                codename="$(lsb_release -sc 2>/dev/null || true)"
-                if [[ -z "${codename}" && -r /etc/os-release ]]; then
-                    # shellcheck source=/dev/null
-                    source /etc/os-release
-                    codename="${VERSION_CODENAME:-}"
-                fi
-                [[ -n "${codename}" ]] || die "Could not detect the Debian codename for the PHP repository."
-                cat > /etc/apt/sources.list.d/php-sury.list <<SURYPHP
+    PHP_BIN="$(command -v php || true)"
+    [[ -n "${PHP_BIN}" ]] || return 1
+
+    local php_current=""
+    php_current="$(${PHP_BIN} -r 'echo PHP_VERSION;' 2>/dev/null || true)"
+    [[ -n "${php_current}" ]] || return 1
+
+    if ! version_ge "${php_current}" "${PHP_REQUIRED}"; then
+        warn "Distribution PHP (${php_current}) is lower than Moodle requires (${PHP_REQUIRED}). A newer PHP repository will be configured."
+        return 1
+    fi
+
+    PHP_SERIES="$(${PHP_BIN} -r 'echo PHP_MAJOR_VERSION.".".PHP_MINOR_VERSION;' 2>/dev/null)"
+    PHP_FPM_SERVICE="php${PHP_SERIES}-fpm"
+    PHP_FPM_SOCKET="/run/php/php${PHP_SERIES}-fpm.sock"
+
+    if ! systemctl list-unit-files "${PHP_FPM_SERVICE}.service" >/dev/null 2>&1; then
+        warn "Could not find ${PHP_FPM_SERVICE}. The installer will continue and systemctl will report the exact error if PHP-FPM is unavailable."
+    fi
+
+    return 0
+}
+
+install_debian_php_versioned() {
+    if ! apt-cache show "php${PHP_SERIES}-fpm" >/dev/null 2>&1; then
+        if [[ "${OS_ID}" == "ubuntu" ]]; then
+            log "The default repository did not find php${PHP_SERIES}; adding ondrej/php PPA"
+            LC_ALL=C.UTF-8 add-apt-repository -y ppa:ondrej/php
+            apt-get update -y
+        else
+            log "The default repository did not provide a compatible PHP; adding Sury PHP repository for Debian"
+            mkdir -p /usr/share/keyrings
+            curl -fsSL https://packages.sury.org/php/apt.gpg | gpg --dearmor -o /usr/share/keyrings/deb.sury.org-php.gpg
+            chmod 0644 /usr/share/keyrings/deb.sury.org-php.gpg
+            local codename=""
+            codename="$(lsb_release -sc 2>/dev/null || true)"
+            if [[ -z "${codename}" && -r /etc/os-release ]]; then
+                # shellcheck source=/dev/null
+                source /etc/os-release
+                codename="${VERSION_CODENAME:-}"
+            fi
+            [[ -n "${codename}" ]] || die "Could not detect the Debian codename for the PHP repository."
+            cat > /etc/apt/sources.list.d/php-sury.list <<SURYPHP
 # Added by Moodle Friendly Installation installer.
 deb [signed-by=/usr/share/keyrings/deb.sury.org-php.gpg] https://packages.sury.org/php/ ${codename} main
 SURYPHP
-                apt-get update -y
-            fi
+            apt-get update -y
         fi
+    fi
 
-        pkg_install \
-            "php${PHP_SERIES}" "php${PHP_SERIES}-cli" "php${PHP_SERIES}-fpm" \
-            "php${PHP_SERIES}-mysql" "php${PHP_SERIES}-curl" "php${PHP_SERIES}-xml" \
-            "php${PHP_SERIES}-mbstring" "php${PHP_SERIES}-zip" "php${PHP_SERIES}-gd" \
-            "php${PHP_SERIES}-intl" "php${PHP_SERIES}-soap" "php${PHP_SERIES}-opcache" \
-            "php${PHP_SERIES}-bcmath" "php${PHP_SERIES}-ldap"
+    pkg_install \
+        "php${PHP_SERIES}" "php${PHP_SERIES}-cli" "php${PHP_SERIES}-fpm" \
+        "php${PHP_SERIES}-mysql" "php${PHP_SERIES}-curl" "php${PHP_SERIES}-xml" \
+        "php${PHP_SERIES}-mbstring" "php${PHP_SERIES}-zip" "php${PHP_SERIES}-gd" \
+        "php${PHP_SERIES}-intl" "php${PHP_SERIES}-soap" "php${PHP_SERIES}-opcache" \
+        "php${PHP_SERIES}-bcmath" "php${PHP_SERIES}-ldap"
 
-        PHP_BIN="/usr/bin/php${PHP_SERIES}"
-        PHP_FPM_SERVICE="php${PHP_SERIES}-fpm"
-        PHP_FPM_SOCKET="/run/php/php${PHP_SERIES}-fpm.sock"
+    PHP_BIN="/usr/bin/php${PHP_SERIES}"
+    PHP_FPM_SERVICE="php${PHP_SERIES}-fpm"
+    PHP_FPM_SOCKET="/run/php/php${PHP_SERIES}-fpm.sock"
+}
+
+install_php() {
+    log "Installing PHP >= ${PHP_REQUIRED} and extensions used by Moodle/the panel"
+
+    if [[ "${OS_FAMILY}" == "debian" ]]; then
+        install_debian_php_default || install_debian_php_versioned
     else
         if [[ "${OS_FAMILY}" == "rhel" ]]; then
             local major="${OS_VERSION_ID%%.*}"
@@ -474,10 +510,16 @@ SURYPHP
     [[ -n "${php_current}" ]] || die "Could not read the installed PHP version."
     version_ge "${php_current}" "${PHP_REQUIRED}" || die "Installed PHP (${php_current}) is lower than the Moodle requirement (${PHP_REQUIRED})."
 
+    PHP_SERIES="$(${PHP_BIN} -r 'echo PHP_MAJOR_VERSION.".".PHP_MINOR_VERSION;' 2>/dev/null || printf '%s' "${PHP_SERIES}")"
+    if [[ "${OS_FAMILY}" == "debian" ]]; then
+        PHP_FPM_SERVICE="php${PHP_SERIES}-fpm"
+        PHP_FPM_SOCKET="/run/php/php${PHP_SERIES}-fpm.sock"
+    fi
+
     tune_php_ini
     systemctl enable --now "${PHP_FPM_SERVICE}"
     systemctl restart "${PHP_FPM_SERVICE}"
-    log "PHP ativo: ${php_current} (${PHP_FPM_SERVICE})"
+    log "PHP active: ${php_current} (${PHP_FPM_SERVICE})"
 }
 
 tune_php_ini() {
@@ -526,14 +568,8 @@ install_mariadb() {
     local wanted="${MARIADB_REQUIRED:-10.11.0}"
     local series="$(printf '%s' "${wanted}" | awk -F. '{print $1"."$2}')"
 
-    if curl -fsSL https://r.mariadb.com/downloads/mariadb_repo_setup -o /tmp/mariadb_repo_setup; then
-        chmod +x /tmp/mariadb_repo_setup
-        bash /tmp/mariadb_repo_setup --mariadb-server-version="mariadb-${series}" || warn "Failed to configure MariaDB ${series} repository; trying the distribution repository."
-        pkg_update
-    else
-        warn "Could not download mariadb_repo_setup; trying the distribution repository."
-    fi
-
+    # Prefer the distribution repository first. Debian 12/13 and Ubuntu 24.04 already
+    # provide a MariaDB version compatible with the current Moodle requirement.
     if [[ "${OS_FAMILY}" == "debian" ]]; then
         pkg_install mariadb-server mariadb-client
     else
@@ -542,6 +578,35 @@ install_mariadb() {
 
     DB_SERVICE="mariadb"
     systemctl enable --now mariadb || systemctl enable --now mysql
+
+    local client raw_version version=""
+    client="$(mysql_client || true)"
+    if [[ -n "${client}" ]]; then
+        raw_version="$(${client} --version || true)"
+        version="$(printf '%s' "${raw_version}" | grep -oE 'Distrib[[:space:]]+[0-9]+(\.[0-9]+){1,2}' | grep -oE '[0-9]+(\.[0-9]+){1,2}' | head -n1 || true)"
+        if [[ -z "${version}" ]]; then
+            version="$(printf '%s' "${raw_version}" | grep -oE '[0-9]+(\.[0-9]+){1,2}[^[:space:]]*-MariaDB' | grep -oE '^[0-9]+(\.[0-9]+){1,2}' | head -n1 || true)"
+        fi
+    fi
+
+    if [[ -n "${version}" ]] && version_ge "${version}" "${wanted}"; then
+        return 0
+    fi
+
+    warn "Distribution MariaDB (${version:-unknown}) is lower than required (${wanted}). Trying the MariaDB upstream repository."
+    if curl -fsSL https://r.mariadb.com/downloads/mariadb_repo_setup -o /tmp/mariadb_repo_setup; then
+        chmod +x /tmp/mariadb_repo_setup
+        bash /tmp/mariadb_repo_setup --mariadb-server-version="mariadb-${series}" || die "Failed to configure MariaDB ${series} repository."
+        pkg_update
+        if [[ "${OS_FAMILY}" == "debian" ]]; then
+            pkg_install mariadb-server mariadb-client
+        else
+            pkg_install MariaDB-server MariaDB-client || pkg_install mariadb-server mariadb
+        fi
+        systemctl enable --now mariadb || systemctl enable --now mysql
+    else
+        die "Could not download mariadb_repo_setup and the distribution MariaDB is not compatible."
+    fi
 }
 
 setup_mysql_apt_repository() {
