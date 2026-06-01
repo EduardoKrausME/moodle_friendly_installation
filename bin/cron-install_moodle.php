@@ -1,6 +1,6 @@
 <?php
 
-$domain = (string) ($job["domain"] ?? "");
+$domain = $job["domain"] ?? "";
 if (!domainHasDnsRecord($domain)) {
     $message =
         "DNS ainda não configurado para {$domain}. Configure o registro A ou AAAA apontando para este servidor. O cron verificará novamente em 1 minuto.";
@@ -40,8 +40,8 @@ function domainHasDnsRecord(string $domain): bool {
 }
 
 function appendJobLog(array $job, string $message, string $level = 'info'): void {
-    $domain = (string) ($job['domain'] ?? 'domain');
-    $logfile = (string) ($job['log_file'] ?? (app_config_path("/logs/install-{$domain}.log")));
+    $domain = $job['domain'] ?? 'domain';
+    $logfile = $job['log_file'] ?? (app_config_path("/logs/install-{$domain}.log"));
     if (!is_dir(dirname($logfile))) {
         mkdir(dirname($logfile), 0750, true);
     }
@@ -54,7 +54,7 @@ function appendJobLog(array $job, string $message, string $level = 'info'): void
 }
 
 function executeInstallJob(array $job): array {
-    $domain = (string) $job["domain"];
+    $domain =$job["domain"];
     $base = "/home/{$domain}";
     $moodledir = "{$base}/moodle";
     $webroot = "{$moodledir}/public";
@@ -63,8 +63,8 @@ function executeInstallJob(array $job): array {
     $dbuser = dbUser($domain);
     $dbpass = bin2hex(random_bytes(10)) . "A#";
 
-    $apacheconf = rtrim(app_config("apache_sites_enabled"), "/") . "/{$domain}.conf";
-    $nginxconf = rtrim(app_config("nginx_sites_enabled"), "/") . "/{$domain}.conf";
+    $apacheconf = "/etc/httpd/sites-enabled/{$domain}.conf";
+    $nginxconf = "/etc/nginx/sites-enabled/{$domain}.conf";
     $cronfile = "/etc/cron.d/moodle-{$domain}";
     $configfile = "{$moodledir}/config.php";
 
@@ -96,7 +96,6 @@ function executeInstallJob(array $job): array {
         "ADMIN_PASS_SH" => sh($job["admin_pass"]),
         "ADMIN_EMAIL" => $job["admin_email"],
         "MOODLE_BRANCH" => $job["moodle_branch"],
-        "MOODLE_GIT_URL" => app_config("moodle_git_url"),
         "TEMPLATES_DIR" => app_config_path("/templates"),
         "APACHE_USER" => app_config("apache_user"),
         "APACHE_GROUP" => app_config("apache_group"),
@@ -121,7 +120,7 @@ function executeInstallJob(array $job): array {
     file_put_contents($scriptfile, $script);
     chmod($scriptfile, 0700);
 
-    $logfile = (string) ($job["log_file"] ?? (app_config_path("/logs/install-{$domain}.log")));
+    $logfile = $job["log_file"] ?? (app_config_path("/logs/install-{$domain}.log"));
     if (!is_dir(dirname($logfile))) {
         mkdir(dirname($logfile), 0750, true);
     }
@@ -142,7 +141,7 @@ function renderTemplateFile(string $file, array $vars): string {
         throw new RuntimeException("Cannot read template: {$file}");
     }
     foreach ($vars as $key => $value) {
-        $content = str_replace("{{{$key}}}", (string) $value, $content);
+        $content = str_replace("{{{$key}}}",$value, $content);
     }
     if (preg_match('/\.php$/i', $file)) {
         $content = str_replace('$', '\$', $content);

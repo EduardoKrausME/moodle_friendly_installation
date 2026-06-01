@@ -22,17 +22,17 @@ if ($result['exitcode'] === 0) {
 
 function executeAppBuildJob(array $job): array {
     $domain = sanitizeDomain((string) ($job['domain'] ?? ''));
-    $packageuid = (string) ($job['package_uid'] ?? '');
-    $packagename = (string) ($job['package_name'] ?? '');
-    $moodleurl = trim((string) ($job['moodle_url'] ?? ''));
+    $packageuid = $job['package_uid'] ?? '';
+    $packagename = $job['package_name'] ?? '';
+    $moodleurl = $job['moodle_url'] ?? '';
     if ($moodleurl === '') {
         $moodleurl = 'https://' . $domain;
     }
     $moodleurl = rtrim($moodleurl, '/');
-    $color = (string) ($job['statusbarbackgroundcolor'] ?? '#08422A');
-    $version = (string) ($job['app_version'] ?? AppManager::appVersion());
-    $iconpath = (string) ($job['icon_path'] ?? '');
-    $logfile = (string) ($job['log_file'] ?? app_config_path('/logs/app-build-' . $domain . '.log'));
+    $color = $job['statusbarbackgroundcolor'] ?? '#08422A';
+    $version = $job['app_version'] ?? AppManager::appVersion();
+    $iconpath = $job['icon_path'] ?? '';
+    $logfile = $job['log_file'] ?? app_config_path('/logs/app-build-' . $domain . '.log');
 
     ensureDir(dirname($logfile), 0750);
     appendAppBuildLog($logfile, 'Iniciando build do APP para ' . $domain . '.');

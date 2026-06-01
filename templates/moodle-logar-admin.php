@@ -25,8 +25,7 @@ if (!hash_equals($expected, $signature)) {
     die("Link Inválido...");
 }
 
-
-printf("<br>Processado em: %0.16f segundos", (microtime(true) - $inicio)/1000000);
+printf("<br>Processado em: %0.16f segundos", (microtime(true) - $inicio) / 1000000);
 
 error_reporting(E_ALL);
 ini_set('display_errors', 'On');
@@ -37,37 +36,36 @@ $release = intval($releases[0]) . "." . intval($releases[1]);
 $sql = "SELECT * FROM {user} u WHERE u.id IN ($CFG->siteadmins) LIMIT 1";
 $user = $DB->get_record_sql($sql);
 
-printf("<br>Processado em: %0.16f segundos", (microtime(true) - $inicio)/1000000);
+printf("<br>Processado em: %0.16f segundos", (microtime(true) - $inicio) / 1000000);
 
 \core\session\manager::login_user($user);
 
-printf("<br>Processado em: %0.16f segundos", (microtime(true) - $inicio)/1000000);
+printf("<br>Processado em: %0.16f segundos", (microtime(true) - $inicio) / 1000000);
 
 // Update login times.
 update_user_login_times();
 
-printf("<br>Processado em: %0.16f segundos", (microtime(true) - $inicio)/1000000);
+printf("<br>Processado em: %0.16f segundos", (microtime(true) - $inicio) / 1000000);
 
 // Extra session prefs init.
 set_login_session_preferences();
 
-printf("<br>Processado em: %0.16f segundos", (microtime(true) - $inicio)/1000000);
+printf("<br>Processado em: %0.16f segundos", (microtime(true) - $inicio) / 1000000);
 
 // Trigger login event.
 $event = \core\event\user_loggedin::create(
-    array(
+    [
         'userid' => $user->id,
         'objectid' => $user->id,
-        'other' => array('username' => $user->username),
-    )
+        'other' => ['username' => $user->username],
+    ]
 );
 $event->trigger();
 
-printf("<br>Processado em: %0.16f segundos", (microtime(true) - $inicio)/1000000);
+printf("<br>Processado em: %0.16f segundos", (microtime(true) - $inicio) / 1000000);
 
 $SESSION->tool_mfa_authenticated = true;
 
-printf("<br>Processado em: %0.16f segundos", (microtime(true) - $inicio)/1000000);
-
+printf("<br>Processado em: %0.16f segundos", (microtime(true) - $inicio) / 1000000);
 
 header('Location: ./');
