@@ -22,6 +22,6 @@ render_header(t('login.title'));
 echo render_app_template('page/login', [
     'has_error' => $error != null,
     'error' => $error,
-    'username' => 'admin',
+    'username' => '',
 ]);
 render_footer();
