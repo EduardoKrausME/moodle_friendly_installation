@@ -297,7 +297,7 @@ prompt_database_select() {
         DB_ENGINE="$(printf '%s' "${DB_ENGINE}" | tr '[:upper:]' '[:lower:]')"
     elif ui_available; then
         local choice=""
-        choice="$(whiptail             --title "Moodle Friendly Installation"             --menu "Database to install"             14 78 2             "mariadb" "MariaDB ${MARIADB_REQUIRED:+>= ${MARIADB_REQUIRED}}"             "mysql" "MySQL ${MYSQL_REQUIRED:+>= ${MYSQL_REQUIRED}}"             3>&1 1>&2 2>&3 < /dev/tty)" || die "Database selection cancelled."
+        choice="$(whiptail             --title "Moodle Friendly Installation"             --menu "Database to install"             14 78 2             "mysql" "MySQL ${MYSQL_REQUIRED:+>= ${MYSQL_REQUIRED}}"             "mariadb" "MariaDB ${MARIADB_REQUIRED:+>= ${MARIADB_REQUIRED}}"             3>&1 1>&2 2>&3 < /dev/tty)" || die "Database selection cancelled."
         DB_ENGINE="${choice}"
     else
         [[ "${TTY_IN_FD_OPENED}" == "1" ]] || open_interactive_terminal
@@ -987,11 +987,10 @@ ensure_sites_enabled_includes() {
     local nginx_include_file="/etc/nginx/conf.d/00-sites-enabled.conf"
     local nginx_include_line="include /etc/nginx/sites-enabled/*.conf;"
 
-    if ! grep -Eq '^[[:space:]]*include[[:space:]]+/etc/nginx/sites-enabled/[^;]*;' /etc/nginx/nginx.conf 2>/dev/null; then
-        touch "${nginx_include_file}"
-        if ! grep -Eq '^[[:space:]]*include[[:space:]]+/etc/nginx/sites-enabled/[^;]*;' "${nginx_include_file}" 2>/dev/null; then
-            printf '\n%s\n' "${nginx_include_line}" >> "${nginx_include_file}"
-        fi
+    touch "${nginx_include_file}"
+
+    if ! grep -Eq '^[[:space:]]*include[[:space:]]+/etc/nginx/sites-enabled/[^;]*;' "${nginx_include_file}" 2>/dev/null; then
+        printf '\n%s\n' "${nginx_include_line}" >> "${nginx_include_file}"
     fi
 }
 
@@ -1294,10 +1293,31 @@ restart_services() {
     restart_unit_with_retry nginx
 }
 
+prompt_lets_encrypt_email() {
+    local default_email="admin@${PANEL_DOMAIN}"
+    local value=""
+
+    if [[ "${NONINTERACTIVE}" == "1" ]]; then
+        LE_EMAIL="${LE_EMAIL:-${default_email}}"
+    elif ui_available; then
+        value="$(whiptail \
+            --title "Moodle Friendly Installation" \
+            --inputbox "Digite o e-mail para registrar o certificado Let's Encrypt." \
+            10 78 "${LE_EMAIL:-${default_email}}" \
+            3>&1 1>&2 2>&3 < /dev/tty)" || die "Let's Encrypt email input cancelled."
+
+        LE_EMAIL="${value:-${default_email}}"
+    else
+        prompt_text LE_EMAIL "E-mail para Let's Encrypt" "${LE_EMAIL:-${default_email}}"
+    fi
+
+    LE_EMAIL="$(printf '%s' "${LE_EMAIL}" | tr -d '[:space:]')"
+}
+
 issue_lets_encrypt() {
     [[ -n "${PANEL_DOMAIN}" ]] || return 0
 
-    prompt_text LE_EMAIL "\n\n\nE-mail para Let's Encrypt" "admin@${PANEL_DOMAIN}"
+    prompt_lets_encrypt_email
     [[ "${LE_EMAIL}" =~ ^[^@[:space:]]+@[^@[:space:]]+\.[^@[:space:]]+$ ]] || die "Invalid Let's Encrypt email."
 
     log "Issuing Let's Encrypt certificate for ${PANEL_DOMAIN}"

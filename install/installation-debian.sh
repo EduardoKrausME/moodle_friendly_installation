@@ -323,8 +323,8 @@ prompt_database_select() {
             --title "Moodle Friendly Installation" \
             --menu "Selecione o banco de dados para instalar" \
             14 78 2 \
-            "mariadb" "MariaDB ${MARIADB_REQUIRED:+>= ${MARIADB_REQUIRED}}" \
             "mysql" "MySQL ${MYSQL_REQUIRED:+>= ${MYSQL_REQUIRED}}" \
+            "mariadb" "MariaDB ${MARIADB_REQUIRED:+>= ${MARIADB_REQUIRED}}" \
             3>&1 1>&2 2>&3 < /dev/tty)" || die "Database selection cancelled."
         DB_ENGINE="${choice}"
     else
@@ -1138,7 +1138,6 @@ install_bundled_nginx_files() {
 }
 
 ensure_sites_enabled_includes() {
-    APACHE_SITES_DIR="$(resolve_apache_sites_dir)"
     mkdir -p "${APACHE_SITES_DIR}" "${NGINX_SITES_DIR}"
 
     install_bundled_nginx_files
@@ -1152,11 +1151,10 @@ ensure_sites_enabled_includes() {
     local nginx_include_file="/etc/nginx/conf.d/00-sites-enabled.conf"
     local nginx_include_line="include /etc/nginx/sites-enabled/*.conf;"
 
-    if ! grep -Eq '^[[:space:]]*include[[:space:]]+/etc/nginx/sites-enabled/[^;]*;' /etc/nginx/nginx.conf 2>/dev/null; then
-        touch "${nginx_include_file}"
-        if ! grep -Eq '^[[:space:]]*include[[:space:]]+/etc/nginx/sites-enabled/[^;]*;' "${nginx_include_file}" 2>/dev/null; then
-            printf '\n%s\n' "${nginx_include_line}" >> "${nginx_include_file}"
-        fi
+    touch "${nginx_include_file}"
+
+    if ! grep -Eq '^[[:space:]]*include[[:space:]]+/etc/nginx/sites-enabled/[^;]*;' "${nginx_include_file}" 2>/dev/null; then
+        printf '\n%s\n' "${nginx_include_line}" >> "${nginx_include_file}"
     fi
 }
 
@@ -1448,12 +1446,9 @@ prompt_lets_encrypt_email() {
             --inputbox "Digite o e-mail para registrar o certificado Let's Encrypt." \
             10 78 "${LE_EMAIL:-${default_email}}" \
             3>&1 1>&2 2>&3 < /dev/tty)" || die "Let's Encrypt email input cancelled."
+
         LE_EMAIL="${value:-${default_email}}"
     else
-        box_message \
-            "Let's Encrypt" \
-            "Type the e-mail that will be used to issue the SSL certificate." \
-            "Default: ${default_email}"
         prompt_text LE_EMAIL "E-mail para Let's Encrypt" "${LE_EMAIL:-${default_email}}"
     fi
 
