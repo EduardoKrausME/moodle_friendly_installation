@@ -22,7 +22,7 @@ $values = [
     'domain' => '',
     'site_fullname' => '',
     'admin_user' => "admin",
-    'admin_email' => "admin@moodle",
+    'admin_email' => "admin@moodle.com",
     'moodle_branch' => $defaultbranch,
     'issue_cert' => '1',
 ];
