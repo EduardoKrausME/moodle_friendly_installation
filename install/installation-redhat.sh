@@ -984,8 +984,14 @@ ensure_sites_enabled_includes() {
         fi
     fi
 
-    if ! grep -Rq "sites-enabled/\*\.conf" /etc/nginx/nginx.conf /etc/nginx/conf.d 2>/dev/null; then
-        printf 'include /etc/nginx/sites-enabled/*.conf;\n' > /etc/nginx/conf.d/00-sites-enabled.conf
+    local nginx_include_file="/etc/nginx/conf.d/00-sites-enabled.conf"
+    local nginx_include_line="include /etc/nginx/sites-enabled/*.conf;"
+
+    if ! grep -Eq '^[[:space:]]*include[[:space:]]+/etc/nginx/sites-enabled/[^;]*;' /etc/nginx/nginx.conf 2>/dev/null; then
+        touch "${nginx_include_file}"
+        if ! grep -Eq '^[[:space:]]*include[[:space:]]+/etc/nginx/sites-enabled/[^;]*;' "${nginx_include_file}" 2>/dev/null; then
+            printf '\n%s\n' "${nginx_include_line}" >> "${nginx_include_file}"
+        fi
     fi
 }
 
