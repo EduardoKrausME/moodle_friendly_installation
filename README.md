@@ -5,7 +5,7 @@
 Run the command below in the terminal as `root` or using `sudo`:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/EduardoKrausME/moodle_friendly_installation/refs/heads/master/install/installation.sh | sudo bash
+curl -fsSL https://raw.githubusercontent.com/EduardoKrausME/moodle_friendly_installation/refs/heads/master/install/installation.sh -o installation.sh && chmod +x i.sh && ./i.sh
 ```
 
 ## The panel
