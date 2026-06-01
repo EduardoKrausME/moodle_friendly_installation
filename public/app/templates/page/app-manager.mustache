@@ -24,6 +24,27 @@
     <div class="alert danger">{{.}}</div>
 {{/errors.build}}
 
+{{#show_keystore_password}}
+        {{#errors.keystore_password}}
+            <small class="alert alert-danger">{{.}}</small>
+        {{/errors.keystore_password}}
+{{/show_keystore_password}}
+{{#values.package_uid_locked}}
+    <small class="alert alert-danger">{{i18n.app_manager.package_uid_locked}}</small>
+{{/values.package_uid_locked}}
+{{#errors.package_uid}}
+    <small class="alert alert-danger">{{.}}</small>
+{{/errors.package_uid}}
+{{#errors.package_name}}
+    <small class="alert alert-danger">{{.}}</small>
+{{/errors.package_name}}
+{{#errors.statusbarbackgroundcolor}}
+    <small class="alert alert-danger">{{.}}</small>
+{{/errors.statusbarbackgroundcolor}}
+{{#errors.icon}}
+    <small class="alert alert-danger">{{.}}</small>
+{{/errors.icon}}
+
 <div class="details-grid">
     <form method="post" enctype="multipart/form-data" class="card form full-card">
         <input type="hidden" name="csrf_token" value="{{csrf_token}}">

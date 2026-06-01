@@ -16,6 +16,22 @@
     </div>
 {{/moodle_branch_load_failed}}
 
+{{#errors.domain}}
+    <small class="alert alert-danger">{{.}}</small>
+{{/errors.domain}}
+{{#errors.moodle_branch}}
+    <small class="alert alert-danger">{{.}}</small>
+{{/errors.moodle_branch}}
+{{#errors.admin_user}}
+    <small class="alert alert-danger">{{.}}</small>
+{{/errors.admin_user}}
+{{#errors.admin_pass}}
+    <small class="alert alert-danger">{{.}}</small>
+{{/errors.admin_pass}}
+{{#errors.admin_email}}
+    <small class="alert alert-danger">{{.}}</small>
+{{/errors.admin_email}}
+
 <form method="post" class="card form grid-form">
     <input type="hidden" name="csrf_token" value="{{csrf_token}}">
 
@@ -67,6 +83,7 @@
     </label>
 
     <div class="form-actions">
-        <button type="submit" {{^has_moodle_branches}}disabled{{/has_moodle_branches}}>{{i18n.actions.create_install_job}}</button>
+        <button type="submit"
+                {{^has_moodle_branches}}disabled{{/has_moodle_branches}}>{{i18n.actions.create_install_job}}</button>
     </div>
 </form>
