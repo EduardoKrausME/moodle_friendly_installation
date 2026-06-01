@@ -572,15 +572,62 @@ ask_install_options() {
     save_progress
 }
 
+is_valid_panel_domain() {
+    local domain="$1"
+
+    [[ -n "${domain}" ]] || return 1
+    [[ ${#domain} -le 253 ]] || return 1
+    [[ "${domain}" != *".."* ]] || return 1
+    [[ "${domain}" =~ ^([a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$ ]]
+}
+
+resolve_domain_a_records() {
+    local domain="$1"
+    local output=""
+
+    if command_exists dig; then
+        output="$(dig +time=2 +tries=1 +short A "${domain}" 2>/dev/null || true)"
+    elif command_exists host; then
+        output="$(host -t A "${domain}" 2>/dev/null | sed -n 's/^.* has address //p' || true)"
+    elif command_exists getent; then
+        output="$(getent ahostsv4 "${domain}" 2>/dev/null | sed -n 's/^\([0-9][0-9.]*\).*$/\1/p' || true)"
+    fi
+
+    printf '%s\n' "${output}" \
+        | sed -n '/^[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*$/p' \
+        | sort -u \
+        | tr '\n' ' ' \
+        | sed 's/[[:space:]]*$//'
+}
+
+first_ipv4_from_text() {
+    local text="$*"
+
+    printf '%s\n' "${text}" \
+        | grep -Eo '([0-9]{1,3}\.){3}[0-9]{1,3}' \
+        | sed -n '1p' \
+        || true
+
+    return 0
+}
+
 detect_public_ip() {
-    PUBLIC_IP="$(curl -fsSL --max-time 8 https://api.ipify.org 2>/dev/null || true)"
+    local detected=""
+
+    detected="$(curl -fsSL --max-time 8 https://api.ipify.org 2>/dev/null || true)"
+    PUBLIC_IP="$(first_ipv4_from_text "${detected}")"
+
     if [[ -z "${PUBLIC_IP}" ]]; then
-        PUBLIC_IP="$(curl -fsSL --max-time 8 https://ifconfig.me/ip 2>/dev/null || true)"
+        detected="$(curl -fsSL --max-time 8 https://ifconfig.me/ip 2>/dev/null || true)"
+        PUBLIC_IP="$(first_ipv4_from_text "${detected}")"
     fi
+
     if [[ -z "${PUBLIC_IP}" ]]; then
-        PUBLIC_IP="$(hostname -I | awk '{print $1}')"
+        detected="$(hostname -I 2>/dev/null || true)"
+        PUBLIC_IP="$(first_ipv4_from_text "${detected}")"
     fi
-    [[ -n "${PUBLIC_IP}" ]] || die "Could not detect the public IP."
+
+    [[ -n "${PUBLIC_IP}" ]] || die "Could not detect an IPv4 address for this server."
     log "Detected public IP: ${PUBLIC_IP}"
     save_progress
 }
@@ -595,8 +642,34 @@ check_dns_before_continue() {
             return
         fi
 
+        if ! is_valid_panel_domain "${PANEL_DOMAIN}"; then
+            if [[ "${NONINTERACTIVE}" == "1" ]]; then
+                die "Invalid domain: ${PANEL_DOMAIN}. Use only a valid domain, without http://, without path and without spaces."
+            fi
+
+            warn "Invalid domain: ${PANEL_DOMAIN}."
+            printf '
+Invalid domain: %s.
+' "${PANEL_DOMAIN}" >&4
+            printf 'Use only a valid domain, without http://, without path and without spaces.
+' >&4
+            printf 'Example: panel.example.com, or leave blank to use the public IP.
+' >&4
+            printf 'Press ENTER to type the domain again...' >&4
+            if ! IFS= read -r _ <&3; then
+                die "Could not read input from the terminal."
+            fi
+            printf '
+' >&4
+            PANEL_DOMAIN=""
+            PANEL_DOMAIN_SELECTED=0
+            save_progress
+            prompt_domain_box
+            continue
+        fi
+
         local resolved=""
-        resolved="$(dig +short A "${PANEL_DOMAIN}" | grep -E '^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$' | sort -u | tr '\n' ' ' | sed 's/[[:space:]]*$//')"
+        resolved="$(resolve_domain_a_records "${PANEL_DOMAIN}")"
         if [[ -z "${resolved}" ]]; then
             if [[ "${NONINTERACTIVE}" == "1" ]]; then
                 die "The domain ${PANEL_DOMAIN} does not have a published A record yet. Point DNS to ${PUBLIC_IP} and run this installer again."
@@ -1348,11 +1421,7 @@ CRON
 restart_services() {
     log "Validating and restarting services"
     systemctl enable --now "${PHP_FPM_SERVICE}"
-    systemctl restart "${PHP_FPM_SERVICE}"
-
     systemctl enable --now "${APACHE_SERVICE}"
-    systemctl restart "${APACHE_SERVICE}"
-
     systemctl enable --now nginx
 
     if [[ "${OS_FAMILY}" == "debian" ]]; then
@@ -1362,6 +1431,8 @@ restart_services() {
     fi
     nginx -t
 
+    systemctl restart "${PHP_FPM_SERVICE}"
+    systemctl restart "${APACHE_SERVICE}"
     systemctl restart nginx
 }
 
