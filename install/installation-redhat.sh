@@ -1163,7 +1163,11 @@ CRON
 restart_services() {
     log "Validating and restarting services"
     systemctl enable --now "${PHP_FPM_SERVICE}"
+    systemctl restart "${PHP_FPM_SERVICE}"
+
     systemctl enable --now "${APACHE_SERVICE}"
+    systemctl restart "${APACHE_SERVICE}"
+
     systemctl enable --now nginx
 
     if [[ "${OS_FAMILY}" == "debian" ]]; then
@@ -1173,8 +1177,6 @@ restart_services() {
     fi
     nginx -t
 
-    systemctl restart "${PHP_FPM_SERVICE}"
-    systemctl restart "${APACHE_SERVICE}"
     systemctl restart nginx
 }
 
