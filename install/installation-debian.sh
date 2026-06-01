@@ -1124,10 +1124,10 @@ install_bundled_nginx_files() {
     log "Installing bundled NGINX files into /etc/nginx"
     mkdir -p /etc/nginx/conf.d /etc/nginx/util /etc/nginx/cache
 
-    if [[ -f "${source_dir}/conf.d/00-sites-enabled.conf" ]]; then
-        install -D -m 0644 "${source_dir}/conf.d/00-sites-enabled.conf" /etc/nginx/conf.d/00-sites-enabled.conf
+    if [[ -f "${source_dir}/conf.d/00-moodle-admin.conf" ]]; then
+        install -D -m 0644 "${source_dir}/conf.d/00-moodle-admin.conf" /etc/nginx/conf.d/00-moodle-admin.conf
     else
-        warn "Bundled NGINX file was not found: ${source_dir}/conf.d/00-sites-enabled.conf"
+        warn "Bundled NGINX file was not found: ${source_dir}/conf.d/00-moodle-admin.conf"
     fi
 
     if [[ -f "${source_dir}/util/cache.conf" ]]; then
@@ -1142,13 +1142,17 @@ ensure_sites_enabled_includes() {
 
     install_bundled_nginx_files
 
+    if [[ -f /etc/nginx/nginx.conf ]]; then
+        sed -i -E '\|^[[:space:]]*include[[:space:]]+/etc/nginx/sites-enabled/\*;[[:space:]]*$|d' /etc/nginx/nginx.conf || true
+    fi
+
     if [[ "${OS_FAMILY}" != "debian" ]]; then
         if ! grep -Rq "sites-enabled/\*\.conf" /etc/httpd/conf /etc/httpd/conf.d 2>/dev/null; then
             printf '\nIncludeOptional sites-enabled/*.conf\n' >> /etc/httpd/conf/httpd.conf
         fi
     fi
 
-    local nginx_include_file="/etc/nginx/conf.d/00-sites-enabled.conf"
+    local nginx_include_file="/etc/nginx/conf.d/00-moodle-admin.conf"
     local nginx_include_line="include /etc/nginx/sites-enabled/*.conf;"
 
     touch "${nginx_include_file}"
