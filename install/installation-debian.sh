@@ -22,14 +22,6 @@ TTY_IN_FD_OPENED=0
 OS_ID=""
 OS_VERSION_ID=""
 OS_LIKE=""
-OS_FAMILY="debian"
-PKG_MANAGER="apt"
-WEB_USER="www-data"
-WEB_GROUP="www-data"
-APACHE_SERVICE="apache2"
-APACHE_SITES_DIR="/etc/apache2/sites-enabled"
-NGINX_SITES_DIR="/etc/nginx/sites-enabled"
-PANEL_VHOST_FILE="admin.moodle.conf"
 PHP_SERIES=""
 PHP_BIN="/usr/bin/php"
 PHP_FPM_SERVICE=""
@@ -431,9 +423,6 @@ print("".join(password))
 GENPASS
 }
 
-resolve_apache_sites_dir() {
-    printf '%s\n' "${APACHE_SITES_DIR}"
-}
 
 detect_os() {
     [[ -r /etc/os-release ]] || die "Could not detect the Linux distribution."
@@ -450,7 +439,7 @@ detect_os() {
             ;;
     esac
 
-    log "Detected system: ${OS_ID} ${OS_VERSION_ID} (${OS_FAMILY})"
+    log "Detected system: ${OS_ID} ${OS_VERSION_ID} (debian/ubuntu)"
 }
 pkg_update() {
     export DEBIAN_FRONTEND=noninteractive
@@ -790,28 +779,7 @@ SURYPHP
 install_php() {
     log "Installing PHP >= ${PHP_REQUIRED} and extensions used by Moodle/the panel"
 
-    if [[ "${OS_FAMILY}" == "debian" ]]; then
-        install_debian_php_default || install_debian_php_versioned
-    else
-        if [[ "${OS_FAMILY}" == "rhel" ]]; then
-            local major="${OS_VERSION_ID%%.*}"
-            if [[ "${major}" =~ ^[0-9]+$ ]] && [[ "${major}" -lt 8 ]]; then
-                die "CentOS/RHEL ${OS_VERSION_ID} is not supported for modern PHP. Use CentOS Stream/RHEL/Alma/Rocky 8+ or Fedora."
-            fi
-
-            pkg_install epel-release || true
-            if ! rpm -q remi-release >/dev/null 2>&1; then
-                rpm -Uvh "https://rpms.remirepo.net/enterprise/remi-release-${major}.rpm" || warn "Could not install remi-release automatically. Trying the default repository."
-            fi
-            ${PKG_MANAGER} module reset -y php || true
-            ${PKG_MANAGER} module enable -y "php:remi-${PHP_SERIES}" || warn "Could not enable php:remi-${PHP_SERIES}; trying the default package."
-        fi
-
-        pkg_install php php-cli php-fpm php-mysqlnd php-curl php-xml php-mbstring php-zip php-gd php-intl php-soap php-opcache php-bcmath php-ldap
-        PHP_BIN="/usr/bin/php"
-        PHP_FPM_SERVICE="php-fpm"
-        PHP_FPM_SOCKET="/run/php-fpm/www.sock"
-    fi
+    install_debian_php_default || install_debian_php_versioned
 
     command_exists "${PHP_BIN}" || die "PHP was not found at ${PHP_BIN}."
     local php_current=""
@@ -820,10 +788,8 @@ install_php() {
     version_ge "${php_current}" "${PHP_REQUIRED}" || die "Installed PHP (${php_current}) is lower than the Moodle requirement (${PHP_REQUIRED})."
 
     PHP_SERIES="$(${PHP_BIN} -r 'echo PHP_MAJOR_VERSION.".".PHP_MINOR_VERSION;' 2>/dev/null || printf '%s' "${PHP_SERIES}")"
-    if [[ "${OS_FAMILY}" == "debian" ]]; then
-        PHP_FPM_SERVICE="php${PHP_SERIES}-fpm"
-        PHP_FPM_SOCKET="/run/php/php${PHP_SERIES}-fpm.sock"
-    fi
+    PHP_FPM_SERVICE="php${PHP_SERIES}-fpm"
+    PHP_FPM_SOCKET="/run/php/php${PHP_SERIES}-fpm.sock"
 
     tune_php_ini
     systemctl enable --now "${PHP_FPM_SERVICE}"
@@ -832,20 +798,7 @@ install_php() {
 }
 
 tune_php_ini() {
-    local files=()
-    if [[ "${OS_FAMILY}" == "debian" ]]; then
-        files=("/etc/php/${PHP_SERIES}/cli/php.ini" "/etc/php/${PHP_SERIES}/fpm/php.ini")
-    else
-        files=("/etc/php.ini")
-        if [[ -f /etc/php-fpm.d/www.conf ]]; then
-            sed -i "s/^user = .*/user = ${WEB_USER}/" /etc/php-fpm.d/www.conf || true
-            sed -i "s/^group = .*/group = ${WEB_GROUP}/" /etc/php-fpm.d/www.conf || true
-            sed -i "s#^listen = .*#listen = ${PHP_FPM_SOCKET}#" /etc/php-fpm.d/www.conf || true
-            sed -i "s/^;\?listen.owner = .*/listen.owner = ${WEB_USER}/" /etc/php-fpm.d/www.conf || true
-            sed -i "s/^;\?listen.group = .*/listen.group = ${WEB_GROUP}/" /etc/php-fpm.d/www.conf || true
-            sed -i "s/^;\?listen.mode = .*/listen.mode = 0660/" /etc/php-fpm.d/www.conf || true
-        fi
-    fi
+    local files=("/etc/php/${PHP_SERIES}/cli/php.ini" "/etc/php/${PHP_SERIES}/fpm/php.ini")
 
     for file in "${files[@]}"; do
         [[ -f "${file}" ]] || continue
@@ -879,11 +832,7 @@ install_mariadb() {
 
     # Prefer the distribution repository first. Debian 12/13 and Ubuntu 24.04 already
     # provide a MariaDB version compatible with the current Moodle requirement.
-    if [[ "${OS_FAMILY}" == "debian" ]]; then
-        pkg_install mariadb-server mariadb-client
-    else
-        pkg_install MariaDB-server MariaDB-client || pkg_install mariadb-server mariadb
-    fi
+    pkg_install mariadb-server mariadb-client
 
     DB_SERVICE="mariadb"
     systemctl enable --now mariadb || systemctl enable --now mysql
@@ -907,11 +856,7 @@ install_mariadb() {
         chmod +x /tmp/mariadb_repo_setup
         bash /tmp/mariadb_repo_setup --mariadb-server-version="mariadb-${series}" || die "Failed to configure MariaDB ${series} repository."
         pkg_update
-        if [[ "${OS_FAMILY}" == "debian" ]]; then
-            pkg_install mariadb-server mariadb-client
-        else
-            pkg_install MariaDB-server MariaDB-client || pkg_install mariadb-server mariadb
-        fi
+        pkg_install mariadb-server mariadb-client
         systemctl enable --now mariadb || systemctl enable --now mysql
     else
         die "Could not download mariadb_repo_setup and the distribution MariaDB is not compatible."
@@ -921,8 +866,6 @@ install_mariadb() {
 setup_mysql_apt_repository() {
     # Moodle 5.2+ currently requires MySQL 8.4. Ubuntu LTS repositories may still provide MySQL 8.0,
     # so use Oracle's APT repository when the user chooses MySQL.
-    [[ "${OS_FAMILY}" == "debian" ]] || return 0
-
     local codename=""
     codename="$(lsb_release -sc 2>/dev/null || true)"
     if [[ -z "${codename}" && -r /etc/os-release ]]; then
@@ -969,49 +912,17 @@ MYSQLAPT
     apt-get update -y || die "Failed to update APT metadata after enabling the MySQL repository. The most common cause is an expired Oracle MySQL repository signing key. This installer uses RPM-GPG-KEY-mysql-2025 first; remove any old repo.mysql.com entries and run again if the error persists."
 }
 
-setup_mysql_yum_repository() {
-    [[ "${OS_FAMILY}" == "rhel" || "${OS_FAMILY}" == "fedora" ]] || return 0
-
-    local major="${OS_VERSION_ID%%.*}"
-    local platform=""
-    if [[ "${OS_FAMILY}" == "fedora" ]]; then
-        platform="fc${major}"
-    else
-        platform="el${major}"
-        ${PKG_MANAGER} -y module disable mysql >/dev/null 2>&1 || true
-    fi
-
-    log "Configuring the official MySQL Yum/DNF repository for MySQL ${MYSQL_REQUIRED:-8.4}"
-    pkg_install "https://repo.mysql.com/mysql84-community-release-${platform}-1.noarch.rpm" || warn "Could not install the MySQL repository RPM for ${platform}; trying the distribution repository."
-
-    # Import the newest Oracle MySQL signing key. Some repository RPMs still point
-    # to older keys, and the 2023 key expired in 2025.
-    if command_exists rpm; then
-        rpm --import https://repo.mysql.com/RPM-GPG-KEY-mysql-2025 ||             rpm --import https://repo.mysql.com/RPM-GPG-KEY-mysql-2023 ||             warn "Could not import the latest MySQL RPM GPG key."
-    fi
-    if [[ -d /etc/yum.repos.d ]]; then
-        sed -i 's#^gpgkey=.*RPM-GPG-KEY-mysql-[0-9][0-9][0-9][0-9]#gpgkey=https://repo.mysql.com/RPM-GPG-KEY-mysql-2025#' /etc/yum.repos.d/mysql*.repo 2>/dev/null || true
-    fi
-}
-
 install_mysql() {
     log "Installing MySQL >= ${MYSQL_REQUIRED:-8.4}"
 
-    if [[ "${OS_FAMILY}" == "debian" ]]; then
-        setup_mysql_apt_repository
-        if command_exists debconf-set-selections; then
-            printf 'mysql-community-server mysql-community-server/root-pass password %s\n' "${DB_ROOT_PASS}" | debconf-set-selections || true
-            printf 'mysql-community-server mysql-community-server/re-root-pass password %s\n' "${DB_ROOT_PASS}" | debconf-set-selections || true
-        fi
-        pkg_install mysql-server mysql-client || pkg_install default-mysql-server default-mysql-client
-        DB_SERVICE="mysql"
-        systemctl enable --now mysql || systemctl enable --now mysqld
-    else
-        setup_mysql_yum_repository
-        pkg_install mysql-community-server mysql-community-client || pkg_install mysql-server mysql || pkg_install community-mysql-server community-mysql
-        DB_SERVICE="mysqld"
-        systemctl enable --now mysqld || systemctl enable --now mysql
+    setup_mysql_apt_repository
+    if command_exists debconf-set-selections; then
+        printf 'mysql-community-server mysql-community-server/root-pass password %s\n' "${DB_ROOT_PASS}" | debconf-set-selections || true
+        printf 'mysql-community-server mysql-community-server/re-root-pass password %s\n' "${DB_ROOT_PASS}" | debconf-set-selections || true
     fi
+    pkg_install mysql-server mysql-client || pkg_install default-mysql-server default-mysql-client
+    DB_SERVICE="mysql"
+    systemctl enable --now mysql || systemctl enable --now mysqld
 }
 
 mysql_client() {
@@ -1108,12 +1019,8 @@ validate_database_version() {
 
 install_web_servers() {
     log "Installing Apache, NGINX and Certbot"
-    if [[ "${OS_FAMILY}" == "debian" ]]; then
-        pkg_install apache2 nginx certbot python3-certbot-nginx
-        a2enmod proxy proxy_fcgi setenvif rewrite headers >/dev/null 2>&1 || true
-    else
-        pkg_install httpd nginx certbot python3-certbot-nginx || pkg_install httpd nginx certbot
-    fi
+    pkg_install apache2 nginx certbot python3-certbot-nginx
+    a2enmod proxy proxy_fcgi setenvif rewrite headers >/dev/null 2>&1 || true
 }
 
 install_bundled_nginx_files() {
@@ -1138,7 +1045,7 @@ install_bundled_nginx_files() {
 }
 
 ensure_sites_enabled_includes() {
-    mkdir -p "${APACHE_SITES_DIR}" "${NGINX_SITES_DIR}"
+    mkdir -p /etc/apache2/sites-enabled /etc/nginx/sites-enabled
 
     install_bundled_nginx_files
 
@@ -1146,11 +1053,6 @@ ensure_sites_enabled_includes() {
         sed -i -E '\|^[[:space:]]*include[[:space:]]+/etc/nginx/sites-enabled/\*;[[:space:]]*$|d' /etc/nginx/nginx.conf || true
     fi
 
-    if [[ "${OS_FAMILY}" != "debian" ]]; then
-        if ! grep -Rq "sites-enabled/\*\.conf" /etc/httpd/conf /etc/httpd/conf.d 2>/dev/null; then
-            printf '\nIncludeOptional sites-enabled/*.conf\n' >> /etc/httpd/conf/httpd.conf
-        fi
-    fi
 
     local nginx_include_file="/etc/nginx/conf.d/00-moodle-admin.conf"
     local nginx_include_line="include /etc/nginx/sites-enabled/*.conf;"
@@ -1164,28 +1066,14 @@ ensure_sites_enabled_includes() {
 
 configure_apache_port() {
     log "Configuring Apache to listen only on 127.0.0.1:8080"
-    if [[ "${OS_FAMILY}" == "debian" ]]; then
-        sed -i -E 's/^[[:space:]]*Listen[[:space:]]+80$/# Listen 80 disabled by Moodle Friendly Installation installer/' /etc/apache2/ports.conf || true
-        grep -q '^Listen 127.0.0.1:8080$' /etc/apache2/ports.conf || printf '\nListen 127.0.0.1:8080\n' >> /etc/apache2/ports.conf
-        a2dissite 000-default >/dev/null 2>&1 || true
-    else
-        sed -i -E 's/^[[:space:]]*Listen[[:space:]]+80$/# Listen 80 disabled by Moodle Friendly Installation installer/' /etc/httpd/conf/httpd.conf || true
-        grep -q '^Listen 127.0.0.1:8080$' /etc/httpd/conf/httpd.conf || printf '\nListen 127.0.0.1:8080\n' >> /etc/httpd/conf/httpd.conf
-        if command_exists semanage; then
-            semanage port -a -t http_port_t -p tcp 8080 >/dev/null 2>&1 || semanage port -m -t http_port_t -p tcp 8080 >/dev/null 2>&1 || true
-        fi
-        setsebool -P httpd_can_network_connect 1 >/dev/null 2>&1 || true
-    fi
+    sed -i -E 's/^[[:space:]]*Listen[[:space:]]+80$/# Listen 80 disabled by Moodle Friendly Installation installer/' /etc/apache2/ports.conf || true
+    grep -q '^Listen 127.0.0.1:8080$' /etc/apache2/ports.conf || printf '\nListen 127.0.0.1:8080\n' >> /etc/apache2/ports.conf
+    a2dissite 000-default >/dev/null 2>&1 || true
 }
 
 configure_firewall() {
     if command_exists ufw && ufw status | grep -q active; then
         ufw allow 'Nginx Full' || true
-    fi
-    if systemctl is-active --quiet firewalld; then
-        firewall-cmd --permanent --add-service=http || true
-        firewall-cmd --permanent --add-service=https || true
-        firewall-cmd --reload || true
     fi
 }
 
@@ -1201,11 +1089,7 @@ ensure_php_dependencies() {
 
     log "Installing panel PHP dependencies through Composer"
     if ! command_exists composer; then
-        if [[ "${OS_FAMILY}" == "debian" ]]; then
-            pkg_install composer || true
-        else
-            pkg_install composer || true
-        fi
+        pkg_install composer || true
     fi
 
     command_exists composer || die "Composer is not installed and public/app/vendor/autoload.php does not exist. Install Composer or commit the vendor/ directory."
@@ -1276,8 +1160,8 @@ PHP
     base_url="$(safe_php_string "${BASE_URL}")"
     mysql_pass="$(safe_php_string "${DB_ROOT_PASS}")"
     phpbin="$(safe_php_string "${PHP_BIN}")"
-    apache_user="$(safe_php_string "${WEB_USER}")"
-    apache_group="$(safe_php_string "${WEB_GROUP}")"
+    apache_user="$(safe_php_string "www-data")"
+    apache_group="$(safe_php_string "www-data")"
 
     update_panel_config_values "${config_file}" \
         "app_name=${app_name}" \
@@ -1298,7 +1182,7 @@ PHP
 remove_legacy_panel_vhost() {
     local dir="$1"
     local file="$2"
-    local target_file="${dir}/${PANEL_VHOST_FILE}"
+    local target_file="${dir}/admin.moodle.conf"
 
     [[ -n "${file}" ]] || return 0
     [[ "${file}" != "${target_file}" ]] || return 0
@@ -1311,7 +1195,7 @@ remove_legacy_panel_vhost() {
 
 cleanup_legacy_panel_vhosts() {
     local dir="$1"
-    local current_file="${dir}/${PANEL_VHOST_FILE}"
+    local current_file="${dir}/admin.moodle.conf"
     local legacy_file
 
     for legacy_file in "${dir}/${SERVER_NAME}.conf" "${dir}/_.conf"; do
@@ -1327,14 +1211,10 @@ cleanup_legacy_panel_vhosts() {
 }
 
 write_apache_vhost() {
-    APACHE_SITES_DIR="$(resolve_apache_sites_dir)"
-    local file="${APACHE_SITES_DIR}/${PANEL_VHOST_FILE}"
-    cleanup_legacy_panel_vhosts "${APACHE_SITES_DIR}"
+    local file="/etc/apache2/sites-enabled/admin.moodle.conf"
+    cleanup_legacy_panel_vhosts "/etc/apache2/sites-enabled"
     local server_for_apache="${PANEL_DOMAIN:-${PUBLIC_IP}}"
-    local apache_log_dir="/var/log/httpd"
-    if [[ "${OS_FAMILY}" == "debian" ]]; then
-        apache_log_dir="/var/log/apache2"
-    fi
+    local apache_log_dir="/var/log/apache2"
     cat > "${file}" <<APACHE
 <VirtualHost 127.0.0.1:8080>
     ServerName ${server_for_apache}
@@ -1361,8 +1241,8 @@ APACHE
 }
 
 write_nginx_vhost() {
-    local file="${NGINX_SITES_DIR}/${PANEL_VHOST_FILE}"
-    cleanup_legacy_panel_vhosts "${NGINX_SITES_DIR}"
+    local file="/etc/nginx/sites-enabled/admin.moodle.conf"
+    cleanup_legacy_panel_vhosts "/etc/nginx/sites-enabled"
     local listen="listen 80;"
     local server_name="${PANEL_DOMAIN:-_}"
     if [[ -z "${PANEL_DOMAIN}" ]]; then
@@ -1394,20 +1274,13 @@ NGINX
 
 set_permissions() {
     log "Adjusting permissions"
-    chown -R root:"${WEB_GROUP}" "${INSTALL_DIR}"
+    chown -R root:www-data "${INSTALL_DIR}"
     find "${INSTALL_DIR}" -type d -exec chmod 0750 {} \;
     find "${INSTALL_DIR}" -type f -exec chmod 0640 {} \;
     chmod +x "${INSTALL_DIR}/bin/cron-root-runner.php" "${INSTALL_DIR}/bin/cron-install_moodle.php" "${INSTALL_DIR}/bin/cron-app_build.php" 2>/dev/null || true
     chmod 0770 "${INSTALL_DIR}/data" "${INSTALL_DIR}/runtime" "${INSTALL_DIR}/logs" "${INSTALL_DIR}/queue"
     chmod 0640 "${INSTALL_DIR}/public/config.php" "${INSTALL_DIR}/data/users.json"
 
-    if [[ "${OS_FAMILY}" != "debian" ]] && command_exists restorecon; then
-        if command_exists semanage; then
-            semanage fcontext -a -t httpd_sys_content_t "${INSTALL_DIR}/public(/.*)?" >/dev/null 2>&1 || true
-            semanage fcontext -a -t httpd_sys_rw_content_t "${INSTALL_DIR}/(data|runtime|logs|queue)(/.*)?" >/dev/null 2>&1 || true
-        fi
-        restorecon -R "${INSTALL_DIR}" >/dev/null 2>&1 || true
-    fi
 }
 
 configure_cron() {
@@ -1423,16 +1296,12 @@ restart_services() {
     systemctl enable --now "${PHP_FPM_SERVICE}"
     systemctl restart "${PHP_FPM_SERVICE}"
 
-    systemctl enable --now "${APACHE_SERVICE}"
-    systemctl restart "${APACHE_SERVICE}"
+    systemctl enable --now apache2
+    systemctl restart apache2
 
     systemctl enable --now nginx
 
-    if [[ "${OS_FAMILY}" == "debian" ]]; then
-        apache2ctl configtest
-    else
-        httpd -t
-    fi
+    apache2ctl configtest
     nginx -t
 
     systemctl restart nginx
@@ -1476,7 +1345,7 @@ final_check() {
     if curl -k -fsSI --max-time 15 "${url}" >/dev/null 2>&1; then
         log "Panel is responding at ${url}"
     else
-        warn "Could not validate through curl. Check: systemctl status nginx ${APACHE_SERVICE} ${PHP_FPM_SERVICE}"
+        warn "Could not validate through curl. Check: systemctl status nginx apache2 ${PHP_FPM_SERVICE}"
     fi
 
     cat <<EOF
@@ -1500,9 +1369,7 @@ base_packages_installed() {
         command_exists "${command_name}" || return 1
     done
 
-    if [[ "${OS_FAMILY}" != "debian" ]]; then
-        command_exists systemctl || return 1
-    fi
+    command_exists systemctl || return 1
 
     return 0
 }
@@ -1565,13 +1432,8 @@ php_requirement_installed() {
 
         PHP_BIN="${phpbin}"
         PHP_SERIES="$(${PHP_BIN} -r 'echo PHP_MAJOR_VERSION.".".PHP_MINOR_VERSION;' 2>/dev/null || printf '%s' "${PHP_SERIES}")"
-        if [[ "${OS_FAMILY}" == "debian" ]]; then
-            PHP_FPM_SERVICE="php${PHP_SERIES}-fpm"
-            PHP_FPM_SOCKET="/run/php/php${PHP_SERIES}-fpm.sock"
-        else
-            PHP_FPM_SERVICE="php-fpm"
-            PHP_FPM_SOCKET="/run/php-fpm/www.sock"
-        fi
+        PHP_FPM_SERVICE="php${PHP_SERIES}-fpm"
+        PHP_FPM_SOCKET="/run/php/php${PHP_SERIES}-fpm.sock"
 
         if command_exists systemctl && ! systemctl list-unit-files "${PHP_FPM_SERVICE}.service" >/dev/null 2>&1; then
             warn "PHP CLI satisfies the requirement, but ${PHP_FPM_SERVICE} is not installed. PHP installation will run."
@@ -1640,11 +1502,7 @@ web_servers_requirement_installed() {
     command_exists nginx || return 1
     command_exists certbot || return 1
 
-    if [[ "${OS_FAMILY}" == "debian" ]]; then
-        command_exists apache2ctl || return 1
-    else
-        command_exists httpd || return 1
-    fi
+    command_exists apache2ctl || return 1
 
     return 0
 }
