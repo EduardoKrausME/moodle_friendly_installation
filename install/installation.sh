@@ -3,13 +3,13 @@ set -Eeuo pipefail
 IFS=$'\n\t'
 
 # Moodle Friendly Installation bootstrap.
-# Detects the operating system and delegates the installation to the specific installer.
+# Detects the operating system family and delegates the installation to the family installer.
 # Usage:
 #   curl -fsSL https://raw.githubusercontent.com/EduardoKrausME/moodle_friendly_installation/refs/heads/master/install/installation.sh | sudo bash
 #
 # When this file is executed from a cloned/unzipped repository, it uses the local
 # install/installation-*.sh file. When executed through curl, it downloads the
-# specific installer to a temporary file and executes it from there.
+# family installer to a temporary file and executes it from there.
 
 RAW_BASE_URL="https://raw.githubusercontent.com/EduardoKrausME/moodle_friendly_installation/refs/heads/master/install"
 
@@ -49,17 +49,14 @@ detect_installer() {
     local os_like="${ID_LIKE:-}"
 
     case "${os_id} ${os_like}" in
-        *ubuntu*)
-            printf 'installation-ubuntu.sh'
+        *debian*|*ubuntu*)
+            printf 'installation-debian.sh'
             ;;
-        *fedora*)
-            printf 'installation-fedora.sh'
-            ;;
-        *centos*|*rhel*|*rocky*|*almalinux*)
-            printf 'installation-centos.sh'
+        *fedora*|*centos*|*rhel*|*rocky*|*almalinux*)
+            printf 'installation-redhat.sh'
             ;;
         *)
-            die "Unsupported distribution: ID=${os_id}, ID_LIKE=${os_like}. Supported: Ubuntu, Fedora, CentOS/RHEL/AlmaLinux/Rocky."
+            die "Unsupported distribution: ID=${os_id}, ID_LIKE=${os_like}. Supported families: Debian/Ubuntu and Fedora/CentOS/RHEL/AlmaLinux/Rocky."
             ;;
     esac
 }

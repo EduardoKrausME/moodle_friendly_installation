@@ -2,9 +2,9 @@
 set -Eeuo pipefail
 IFS=$'\n\t'
 
-# Moodle Friendly Installation panel installer for Fedora.
+# Moodle Friendly Installation panel installer for Fedora/CentOS/RHEL/AlmaLinux/Rocky.
 # This file is normally called by installation.sh.
-# Usage: sudo bash installation-fedora.sh [repo-branch]
+# Usage: sudo bash installation-redhat.sh [repo-branch]
 
 ENV_URL="https://raw.githubusercontent.com/moodle/moodle/main/public/admin/environment.xml"
 INSTALL_DIR="${INSTALL_DIR:-/home/admin.moodle}"
@@ -244,12 +244,25 @@ detect_os() {
     OS_VERSION_ID="${VERSION_ID:-}"
     OS_LIKE="${ID_LIKE:-}"
 
-    if [[ "${OS_ID}" != "fedora" ]]; then
-        die "This installer supports Fedora only. Detected: ID=${OS_ID}, ID_LIKE=${OS_LIKE}. Use install-moodle-friendly-installation.sh to auto-select the correct installer."
-    fi
-
-    OS_FAMILY="fedora"
-    PKG_MANAGER="dnf"
+    case "${OS_ID} ${OS_LIKE}" in
+        *fedora*)
+            OS_FAMILY="fedora"
+            PKG_MANAGER="dnf"
+            ;;
+        *centos*|*rhel*|*rocky*|*almalinux*)
+            OS_FAMILY="rhel"
+            if command_exists dnf; then
+                PKG_MANAGER="dnf"
+            elif command_exists yum; then
+                PKG_MANAGER="yum"
+            else
+                die "RHEL-family system detected, but neither dnf nor yum is available."
+            fi
+            ;;
+        *)
+            die "This installer supports Fedora/CentOS/RHEL/AlmaLinux/Rocky only. Detected: ID=${OS_ID}, ID_LIKE=${OS_LIKE}. Use install/installation.sh to auto-select the correct installer."
+            ;;
+    esac
     WEB_USER="apache"
     WEB_GROUP="apache"
     APACHE_SERVICE="httpd"

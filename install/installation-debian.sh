@@ -2,9 +2,9 @@
 set -Eeuo pipefail
 IFS=$'\n\t'
 
-# Moodle Friendly Installation panel installer for Centos.
+# Moodle Friendly Installation panel installer for Debian/Ubuntu.
 # This file is normally called by installation.sh.
-# Usage: sudo bash installation-centos.sh [repo-branch]
+# Usage: sudo bash installation-debian.sh [repo-branch]
 
 ENV_URL="https://raw.githubusercontent.com/moodle/moodle/main/public/admin/environment.xml"
 INSTALL_DIR="${INSTALL_DIR:-/home/admin.moodle}"
@@ -245,24 +245,18 @@ detect_os() {
     OS_LIKE="${ID_LIKE:-}"
 
     case "${OS_ID} ${OS_LIKE}" in
-        *centos*|*rhel*|*rocky*|*almalinux*) ;;
+        *debian*|*ubuntu*) ;;
         *)
-            die "This installer supports CentOS/RHEL/AlmaLinux/Rocky only. Detected: ID=${OS_ID}, ID_LIKE=${OS_LIKE}. Use install-moodle-friendly-installation.sh to auto-select the correct installer."
+            die "This installer supports the Debian/Ubuntu family only. Detected: ID=${OS_ID}, ID_LIKE=${OS_LIKE}. Use install/installation.sh to auto-select the correct installer."
             ;;
     esac
 
-    OS_FAMILY="rhel"
-    if command_exists dnf; then
-        PKG_MANAGER="dnf"
-    elif command_exists yum; then
-        PKG_MANAGER="yum"
-    else
-        die "CentOS/RHEL detected, but neither dnf nor yum is available."
-    fi
-    WEB_USER="apache"
-    WEB_GROUP="apache"
-    APACHE_SERVICE="httpd"
-    APACHE_SITES_DIR="/etc/httpd/sites-enabled"
+    OS_FAMILY="debian"
+    PKG_MANAGER="apt"
+    WEB_USER="www-data"
+    WEB_GROUP="www-data"
+    APACHE_SERVICE="apache2"
+    APACHE_SITES_DIR="/etc/apache2/sites-enabled"
 
     log "Detected system: ${OS_ID} ${OS_VERSION_ID} (${OS_FAMILY})"
 }
@@ -418,9 +412,29 @@ install_php() {
 
     if [[ "${OS_FAMILY}" == "debian" ]]; then
         if ! apt-cache show "php${PHP_SERIES}-fpm" >/dev/null 2>&1; then
-            log "The default repository did not find php${PHP_SERIES}; adding ondrej/php PPA"
-            LC_ALL=C.UTF-8 add-apt-repository -y ppa:ondrej/php
-            apt-get update -y
+            if [[ "${OS_ID}" == "ubuntu" ]]; then
+                log "The default repository did not find php${PHP_SERIES}; adding ondrej/php PPA"
+                LC_ALL=C.UTF-8 add-apt-repository -y ppa:ondrej/php
+                apt-get update -y
+            else
+                log "The default repository did not find php${PHP_SERIES}; adding Sury PHP repository for Debian"
+                mkdir -p /usr/share/keyrings
+                curl -fsSL https://packages.sury.org/php/apt.gpg | gpg --dearmor -o /usr/share/keyrings/deb.sury.org-php.gpg
+                chmod 0644 /usr/share/keyrings/deb.sury.org-php.gpg
+                local codename=""
+                codename="$(lsb_release -sc 2>/dev/null || true)"
+                if [[ -z "${codename}" && -r /etc/os-release ]]; then
+                    # shellcheck source=/dev/null
+                    source /etc/os-release
+                    codename="${VERSION_CODENAME:-}"
+                fi
+                [[ -n "${codename}" ]] || die "Could not detect the Debian codename for the PHP repository."
+                cat > /etc/apt/sources.list.d/php-sury.list <<SURYPHP
+# Added by Moodle Friendly Installation installer.
+deb [signed-by=/usr/share/keyrings/deb.sury.org-php.gpg] https://packages.sury.org/php/ ${codename} main
+SURYPHP
+                apt-get update -y
+            fi
         fi
 
         pkg_install \
@@ -542,7 +556,12 @@ setup_mysql_apt_repository() {
         source /etc/os-release
         codename="${VERSION_CODENAME:-}"
     fi
-    [[ -n "${codename}" ]] || die "Could not detect the Ubuntu codename for the MySQL APT repository."
+    [[ -n "${codename}" ]] || die "Could not detect the Debian/Ubuntu codename for the MySQL APT repository."
+
+    local apt_os="debian"
+    if [[ "${OS_ID}" == "ubuntu" ]]; then
+        apt_os="ubuntu"
+    fi
 
     log "Configuring the official MySQL APT repository for MySQL ${MYSQL_REQUIRED:-8.4}"
     mkdir -p /usr/share/keyrings
@@ -555,7 +574,7 @@ setup_mysql_apt_repository() {
 
     cat > /etc/apt/sources.list.d/mysql-community.list <<MYSQLAPT
 # Added by Moodle Friendly Installation installer.
-deb [signed-by=/usr/share/keyrings/mysql.gpg] http://repo.mysql.com/apt/ubuntu/ ${codename} mysql-8.4-lts mysql-tools
+deb [signed-by=/usr/share/keyrings/mysql.gpg] http://repo.mysql.com/apt/${apt_os}/ ${codename} mysql-8.4-lts mysql-tools
 MYSQLAPT
     apt-get update -y || die "Failed to update APT metadata after enabling the MySQL repository."
 }
