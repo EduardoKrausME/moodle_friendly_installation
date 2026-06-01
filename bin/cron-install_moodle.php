@@ -1,5 +1,7 @@
 <?php
 
+use app\JobManager;
+
 $domain = $job["domain"] ?? "";
 if (!domainHasDnsRecord($domain)) {
     $message =
