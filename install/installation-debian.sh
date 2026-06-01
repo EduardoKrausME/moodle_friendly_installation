@@ -586,28 +586,75 @@ detect_public_ip() {
 }
 
 check_dns_before_continue() {
-    if [[ -z "${PANEL_DOMAIN}" ]]; then
-        SERVER_NAME="_"
-        BASE_URL="http://${PUBLIC_IP}"
-        log "The panel installation will be available by IP: ${BASE_URL}"
+    while true; do
+        if [[ -z "${PANEL_DOMAIN}" ]]; then
+            SERVER_NAME="_"
+            BASE_URL="http://${PUBLIC_IP}"
+            log "The panel installation will be available by IP: ${BASE_URL}"
+            save_progress
+            return
+        fi
+
+        local resolved=""
+        resolved="$(dig +short A "${PANEL_DOMAIN}" | grep -E '^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$' | sort -u | tr '\n' ' ' | sed 's/[[:space:]]*$//')"
+        if [[ -z "${resolved}" ]]; then
+            if [[ "${NONINTERACTIVE}" == "1" ]]; then
+                die "The domain ${PANEL_DOMAIN} does not have a published A record yet. Point DNS to ${PUBLIC_IP} and run this installer again."
+            fi
+
+            warn "The domain ${PANEL_DOMAIN} does not have a published A record yet."
+            printf '
+The domain %s does not have a published A record yet.
+' "${PANEL_DOMAIN}" >&4
+            printf 'Point DNS to %s, or type another domain.
+' "${PUBLIC_IP}" >&4
+            printf 'Press ENTER to type the domain again...' >&4
+            if ! IFS= read -r _ <&3; then
+                die "Could not read input from the terminal."
+            fi
+            printf '
+' >&4
+            PANEL_DOMAIN=""
+            PANEL_DOMAIN_SELECTED=0
+            save_progress
+            prompt_domain_box
+            continue
+        fi
+
+        if ! printf ' %s ' "${resolved}" | grep -q " ${PUBLIC_IP} "; then
+            if [[ "${NONINTERACTIVE}" == "1" ]]; then
+                die "DNS mismatch for ${PANEL_DOMAIN}. Resolved: ${resolved}. Expected: ${PUBLIC_IP}. Fix DNS and run this installer again."
+            fi
+
+            warn "DNS mismatch for ${PANEL_DOMAIN}. Resolved: ${resolved}. Expected: ${PUBLIC_IP}."
+            printf '
+DNS mismatch for %s.
+' "${PANEL_DOMAIN}" >&4
+            printf 'Resolved: %s
+' "${resolved}" >&4
+            printf 'Expected: %s
+' "${PUBLIC_IP}" >&4
+            printf 'Fix DNS, or type another domain.
+' >&4
+            printf 'Press ENTER to type the domain again...' >&4
+            if ! IFS= read -r _ <&3; then
+                die "Could not read input from the terminal."
+            fi
+            printf '
+' >&4
+            PANEL_DOMAIN=""
+            PANEL_DOMAIN_SELECTED=0
+            save_progress
+            prompt_domain_box
+            continue
+        fi
+
+        SERVER_NAME="${PANEL_DOMAIN}"
+        BASE_URL="https://${PANEL_DOMAIN}"
+        log "DNS verified: ${PANEL_DOMAIN} points to ${PUBLIC_IP}"
         save_progress
         return
-    fi
-
-    local resolved=""
-    resolved="$(dig +short A "${PANEL_DOMAIN}" | grep -E '^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$' | sort -u | tr '\n' ' ' | sed 's/[[:space:]]*$//')"
-    if [[ -z "${resolved}" ]]; then
-        die "The domain ${PANEL_DOMAIN} does not have a published A record yet. Point DNS to ${PUBLIC_IP} and run this installer again."
-    fi
-
-    if ! printf ' %s ' "${resolved}" | grep -q " ${PUBLIC_IP} "; then
-        die "DNS mismatch for ${PANEL_DOMAIN}. Resolved: ${resolved}. Expected: ${PUBLIC_IP}. Fix DNS and run this installer again."
-    fi
-
-    SERVER_NAME="${PANEL_DOMAIN}"
-    BASE_URL="https://${PANEL_DOMAIN}"
-    log "DNS verified: ${PANEL_DOMAIN} points to ${PUBLIC_IP}"
-    save_progress
+    done
 }
 
 install_debian_php_default() {
