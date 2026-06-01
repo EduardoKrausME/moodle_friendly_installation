@@ -35,7 +35,7 @@
                 {{i18n.app_manager.keystore_password}}
                 <input type="text" name="keystore_password" autocomplete="new-password" minlength="6" required>
                 <small>{{i18n.app_manager.keystore_help}}</small>
-                {{#errors.keystore_password}}<small class="error">{{.}}</small>{{/errors.keystore_password}}
+                {{#errors.keystore_password}}<small class="alert alert-danger">{{.}}</small>{{/errors.keystore_password}}
             </label>
         {{/show_keystore_password}}
         {{^show_keystore_password}}
@@ -46,21 +46,21 @@
             Package UID
             <input type="text" name="package_uid" placeholder="{{domain}}" value="{{values.package_uid}}" {{#values.package_uid_locked}}readonly{{/values.package_uid_locked}}>
             {{#values.package_uid_locked}}
-                <small class="error">{{i18n.app_manager.package_uid_locked}}</small>
+                <small class="alert alert-danger">{{i18n.app_manager.package_uid_locked}}</small>
             {{/values.package_uid_locked}}
-            {{#errors.package_uid}}<small class="error">{{.}}</small>{{/errors.package_uid}}
+            {{#errors.package_uid}}<small class="alert alert-danger">{{.}}</small>{{/errors.package_uid}}
         </label>
 
         <label>
             {{i18n.app_manager.package_name}}
             <input type="text" name="package_name" value="{{values.package_name}}" required>
-            {{#errors.package_name}}<small class="error">{{.}}</small>{{/errors.package_name}}
+            {{#errors.package_name}}<small class="alert alert-danger">{{.}}</small>{{/errors.package_name}}
         </label>
 
         <label>
             {{i18n.app_manager.color}}
             <input type="text" name="statusbarbackgroundcolor" value="{{values.statusbarbackgroundcolor}}" placeholder="#08422a" required>
-            {{#errors.statusbarbackgroundcolor}}<small class="error">{{.}}</small>{{/errors.statusbarbackgroundcolor}}
+            {{#errors.statusbarbackgroundcolor}}<small class="alert alert-danger">{{.}}</small>{{/errors.statusbarbackgroundcolor}}
         </label>
 
         <label>
@@ -72,7 +72,7 @@
             {{^values.has_icon}}
                 <small>{{i18n.app_manager.icon_required_help}}</small>
             {{/values.has_icon}}
-            {{#errors.icon}}<small class="error">{{.}}</small>{{/errors.icon}}
+            {{#errors.icon}}<small class="alert alert-danger">{{.}}</small>{{/errors.icon}}
         </label>
 
         {{^build_ready}}
