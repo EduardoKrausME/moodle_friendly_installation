@@ -206,7 +206,7 @@ class FilesystemLoader implements Loader
      */
     private function resolveLocalPath($path)
     {
-        if (strpos($path, 'file://') == 0) {
+        if (strpos($path, 'file://') === 0) {
             $path = substr($path, strlen('file://'));
         }
 
@@ -221,6 +221,6 @@ class FilesystemLoader implements Loader
      */
     protected function shouldCheckPath()
     {
-        return strpos($this->baseDir, '://') == false || strpos($this->baseDir, 'file://') == 0;
+        return strpos($this->baseDir, '://') === false || strpos($this->baseDir, 'file://') === 0;
     }
 }
