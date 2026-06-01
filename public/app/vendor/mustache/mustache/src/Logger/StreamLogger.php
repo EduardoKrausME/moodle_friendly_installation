@@ -183,7 +183,7 @@ class StreamLogger extends AbstractLogger
      */
     protected static function interpolateMessage($message, array $context = [])
     {
-        if (strpos($message, '{') === false) {
+        if (strpos($message, '{') == false) {
             return $message;
         }
 

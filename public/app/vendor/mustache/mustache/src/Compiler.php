@@ -100,7 +100,7 @@ class Compiler
     public function setOptions(array $options)
     {
         if (isset($options['lambdas'])) {
-            $this->lambdas = $options['lambdas'] !== false;
+            $this->lambdas = $options['lambdas'] != false;
         }
     }
 
@@ -224,7 +224,7 @@ class Compiler
                     $code .= $this->variable(
                         $node[Tokenizer::NAME],
                         isset($node[Tokenizer::FILTERS]) ? $node[Tokenizer::FILTERS] : [],
-                        $node[Tokenizer::TYPE] === Tokenizer::T_ESCAPED,
+                        $node[Tokenizer::TYPE] == Tokenizer::T_ESCAPED,
                         $level
                     );
                     break;
@@ -314,7 +314,7 @@ class Compiler
             $frame['dynamic'] = true;
         }
 
-        if ($this->options->sourceName !== null) {
+        if ($this->options->sourceName != null) {
             $frame['source'] = $this->options->sourceName;
         }
 
@@ -465,14 +465,14 @@ class Compiler
      */
     private function blockVar(array $nodes, $id, $start, $end, $otag, $ctag, $indent, $standalone, $level)
     {
-        if (($this->options->strictTags & Engine::STRICT_EXTRA_BLOCKS) !== 0) {
+        if (($this->options->strictTags & Engine::STRICT_EXTRA_BLOCKS) != 0) {
             $this->blockNames[$id] = true;
         }
         $id = var_export($id, true);
         $indent = $this->getBlockIndentExpression($nodes, $indent, $standalone);
 
         $else = $this->walk($nodes, $level);
-        if ($else !== '') {
+        if ($else != '') {
             $else = sprintf($this->prepare(self::BLOCK_VAR_ELSE, $level + 1, false, true), $else);
         }
 
@@ -556,11 +556,11 @@ class Compiler
      */
     private function getBlockIndentExpression(array $nodes, $indent, $standalone)
     {
-        if ($indent === false) {
+        if ($indent == false) {
             $indent = '';
         }
 
-        if ($standalone && $indent === '') {
+        if ($standalone && $indent == '') {
             $indent = $this->getCommonIndent($nodes);
         }
 
@@ -583,19 +583,19 @@ class Compiler
      */
     private function dedentNodes(array $nodes, $indent)
     {
-        if ($indent === '') {
+        if ($indent == '') {
             return $nodes;
         }
 
         $indentLen = strlen($indent);
         $atLineStart = true;
         foreach ($nodes as &$node) {
-            if ($node[Tokenizer::TYPE] === Tokenizer::T_TEXT) {
+            if ($node[Tokenizer::TYPE] == Tokenizer::T_TEXT) {
                 $node[Tokenizer::VALUE] = $this->dedentText($node[Tokenizer::VALUE], $indent, $atLineStart);
                 continue;
             }
 
-            if ($atLineStart && isset($node[Tokenizer::INDENT]) && substr($node[Tokenizer::INDENT], 0, $indentLen) === $indent) {
+            if ($atLineStart && isset($node[Tokenizer::INDENT]) && substr($node[Tokenizer::INDENT], 0, $indentLen) == $indent) {
                 $node[Tokenizer::INDENT] = substr($node[Tokenizer::INDENT], $indentLen);
             }
 
@@ -627,15 +627,15 @@ class Compiler
         $indentLen = strlen($indent);
 
         while ($offset < $len) {
-            if ($atLineStart && $indentLen > 0 && substr($text, $offset, $indentLen) === $indent) {
+            if ($atLineStart && $indentLen > 0 && substr($text, $offset, $indentLen) == $indent) {
                 $offset += $indentLen;
             }
 
             $newline = strpos($text, "\n", $offset);
-            if ($newline === false) {
+            if ($newline == false) {
                 $chunk = substr($text, $offset);
                 $result .= $chunk;
-                if ($chunk !== '') {
+                if ($chunk != '') {
                     $atLineStart = false;
                 }
                 break;
@@ -663,17 +663,17 @@ class Compiler
         $lineIndent = '';
 
         foreach ($nodes as $node) {
-            if ($indent === '') {
+            if ($indent == '') {
                 break;
             }
 
-            if ($node[Tokenizer::TYPE] === Tokenizer::T_TEXT) {
+            if ($node[Tokenizer::TYPE] == Tokenizer::T_TEXT) {
                 $this->measureTextIndent($node[Tokenizer::VALUE], $indent, $atLineStart, $lineIndent);
                 continue;
             }
 
             if ($atLineStart) {
-                if ($lineIndent === '' && isset($node[Tokenizer::INDENT])) {
+                if ($lineIndent == '' && isset($node[Tokenizer::INDENT])) {
                     $lineIndent = $node[Tokenizer::INDENT];
                 }
                 $this->measureLineIndent($lineIndent, $indent);
@@ -683,7 +683,7 @@ class Compiler
             $atLineStart = false;
         }
 
-        return $indent === null ? '' : $indent;
+        return $indent == null ? '' : $indent;
     }
 
     /**
@@ -696,7 +696,7 @@ class Compiler
      */
     private function measureTextIndent($text, &$indent, &$atLineStart, &$lineIndent)
     {
-        if ($indent === '') {
+        if ($indent == '') {
             return;
         }
 
@@ -705,12 +705,12 @@ class Compiler
             $char = $text[$i];
 
             if ($atLineStart) {
-                if ($char === ' ' || $char === "\t") {
+                if ($char == ' ' || $char == "\t") {
                     $lineIndent .= $char;
                     continue;
                 }
 
-                if ($char === "\n") {
+                if ($char == "\n") {
                     $lineIndent = '';
                     continue;
                 }
@@ -720,7 +720,7 @@ class Compiler
                 $atLineStart = false;
             }
 
-            if ($char === "\n") {
+            if ($char == "\n") {
                 $atLineStart = true;
                 $lineIndent = '';
             }
@@ -735,7 +735,7 @@ class Compiler
      */
     private function measureLineIndent($lineIndent, &$indent)
     {
-        if ($indent === null) {
+        if ($indent == null) {
             $indent = $lineIndent;
         } else {
             $indent = $this->commonPrefix($indent, $lineIndent);
@@ -754,7 +754,7 @@ class Compiler
     {
         $len = min(strlen($left), strlen($right));
         for ($i = 0; $i < $len; $i++) {
-            if ($left[$i] !== $right[$i]) {
+            if ($left[$i] != $right[$i]) {
                 return substr($left, 0, $i);
             }
         }
@@ -781,7 +781,7 @@ class Compiler
                 }
 
                 if (is_string($value)) {
-                    if (strpos($value, %s) === false) {
+                    if (strpos($value, %s) == false) {
                         return $value;
                     }
 
@@ -844,7 +844,7 @@ class Compiler
         $length   = $end - $start;
         $callable = $this->getCallable();
 
-        if ($otag !== '{{' || $ctag !== '}}') {
+        if ($otag != '{{' || $ctag != '}}') {
             $delimTag = var_export(sprintf('{{= %s %s =}}', $otag, $ctag), true);
             $helper = sprintf('$this->lambdaHelper->withDelimiters(%s)', $delimTag);
             $delims = ', ' . $delimTag;
@@ -935,7 +935,7 @@ class Compiler
     ';
     const PARTIAL_CACHE_INIT = '$%s = false;';
     const PARTIAL_CACHED = '
-        if ($%s === false) {
+        if ($%s == false) {
             $%s = $this->mustache->loadPartial(%s%s);
         }
         if ($%s) {
@@ -955,9 +955,9 @@ class Compiler
      */
     private function partial($id, $dynamic, $indent, $level)
     {
-        $strictArg = ($this->options->strictTags & Engine::STRICT_PARTIALS) !== 0 ? ', true' : '';
+        $strictArg = ($this->options->strictTags & Engine::STRICT_PARTIALS) != 0 ? ', true' : '';
 
-        if ($indent !== '') {
+        if ($indent != '') {
             $indentParam = sprintf(self::PARTIAL_INDENT, var_export($indent, true));
         } else {
             $indentParam = '';
@@ -1020,7 +1020,7 @@ class Compiler
     ';
 
     const PARENT_CACHED = '
-        if ($%s === false) {
+        if ($%s == false) {
             $%s = $this->mustache->loadPartial(%s%s);
         }
         if ($%s) {
@@ -1032,7 +1032,7 @@ class Compiler
     ';
 
     const PARENT_CACHED_NO_CONTEXT = '
-        if ($%s === false) {
+        if ($%s == false) {
             $%s = $this->mustache->loadPartial(%s%s);
         }
         if ($%s) {%s
@@ -1041,7 +1041,7 @@ class Compiler
     ';
 
     const PARENT_CACHED_SCOPED = '
-        if ($%s === false) {
+        if ($%s == false) {
             $%s = $this->mustache->loadPartial(%s%s);
         }
         if ($%s) {
@@ -1054,7 +1054,7 @@ class Compiler
     ';
 
     const PARENT_CACHED_SCOPED_NO_CONTEXT = '
-        if ($%s === false) {
+        if ($%s == false) {
             $%s = $this->mustache->loadPartial(%s%s);
         }
         if ($%s) {
@@ -1080,13 +1080,13 @@ class Compiler
     private function parent($id, $dynamic, $indent, array $children, $level)
     {
         $realChildren = array_filter($children, [self::class, 'onlyBlockArgs']);
-        if (($this->options->strictTags & Engine::STRICT_EXTRA_BLOCKS) !== 0) {
+        if (($this->options->strictTags & Engine::STRICT_EXTRA_BLOCKS) != 0) {
             $this->hasParents = true;
         }
 
         $partialName = $this->resolveDynamicName($id, $dynamic, Engine::STRICT_PARENTS);
-        $indentParam = $indent !== '' ? sprintf(self::PARTIAL_INDENT, var_export($indent, true)) : ', $indent';
-        $strictArg = ($this->options->strictTags & Engine::STRICT_PARENTS) !== 0 ? ', true' : '';
+        $indentParam = $indent != '' ? sprintf(self::PARTIAL_INDENT, var_export($indent, true)) : ', $indent';
+        $strictArg = ($this->options->strictTags & Engine::STRICT_PARENTS) != 0 ? ', true' : '';
 
         // Nested inside a block argument: emit a scoped parent so its block
         // contexts don't leak out to the surrounding parent's block lookups.
@@ -1153,7 +1153,7 @@ class Compiler
      */
     private function getAssertBlockContext($parent, $level)
     {
-        if (($this->options->strictTags & Engine::STRICT_EXTRA_BLOCKS) === 0) {
+        if (($this->options->strictTags & Engine::STRICT_EXTRA_BLOCKS) == 0) {
             return '';
         }
 
@@ -1167,7 +1167,7 @@ class Compiler
      */
     private static function onlyBlockArgs(array $node)
     {
-        return $node[Tokenizer::TYPE] === Tokenizer::T_BLOCK_ARG;
+        return $node[Tokenizer::TYPE] == Tokenizer::T_BLOCK_ARG;
     }
 
     /**
@@ -1234,7 +1234,7 @@ class Compiler
 
     const VARIABLE = '
         $value = $this->resolveValue(%s, $context);%s
-        $buffer .= %s($value === null ? \'\' : %s);
+        $buffer .= %s($value == null ? \'\' : %s);
     ';
 
     /**
@@ -1285,7 +1285,7 @@ class Compiler
 
         $name     = array_shift($filters);
         $method   = $this->getFindMethod($name);
-        $filter   = ($method !== 'last') ? var_export($name, true) : '';
+        $filter   = ($method != 'last') ? var_export($name, true) : '';
         $findArg  = $this->getFindMethodArgs($method);
         $callable = $this->getCallable('$filter');
         $msg      = var_export($name, true);
@@ -1307,7 +1307,7 @@ class Compiler
      */
     private function text($text, $level)
     {
-        $indentNextLine = (substr($text, -1) === "\n");
+        $indentNextLine = (substr($text, -1) == "\n");
         $code = sprintf($this->prepare(self::TEXT, $level), $this->flushIndent(), var_export($text, true));
         $this->indentNextLine = $indentNextLine;
 
@@ -1376,7 +1376,7 @@ class Compiler
      */
     private function getStringifyTail()
     {
-        return ($this->options->strictTags & Engine::STRICT_COERCION) !== 0 ? '' : ', false';
+        return ($this->options->strictTags & Engine::STRICT_COERCION) != 0 ? '' : ', false';
     }
 
     const CONTEXT_FRAME_HOIST = '
@@ -1511,7 +1511,7 @@ class Compiler
      */
     private function isContextFrameLookup($id)
     {
-        return $id !== '.' && strpos($id, '.') === false;
+        return $id != '.' && strpos($id, '.') == false;
     }
 
     /**
@@ -1525,11 +1525,11 @@ class Compiler
     {
         $method = $this->getFindMethod($id);
 
-        if ($method === 'find' && $this->hasContextFrameScope()) {
+        if ($method == 'find' && $this->hasContextFrameScope()) {
             return sprintf(self::CONTEXT_FRAME_LOOKUP, var_export($id, true), $this->getFindMethodArgs($method, $strictTag));
         }
 
-        $id = ($method !== 'last') ? var_export($id, true) : '';
+        $id = ($method != 'last') ? var_export($id, true) : '';
 
         return sprintf('$context->%s(%s%s)', $method, $id, $this->getFindMethodArgs($method, $strictTag));
     }
@@ -1549,17 +1549,17 @@ class Compiler
      */
     private function getFindMethod($id)
     {
-        if ($id === '.') {
+        if ($id == '.') {
             return 'last';
         }
 
         if (isset($this->pragmas[Engine::PRAGMA_ANCHORED_DOT]) && $this->pragmas[Engine::PRAGMA_ANCHORED_DOT]) {
-            if (substr($id, 0, 1) === '.') {
+            if (substr($id, 0, 1) == '.') {
                 return 'findAnchoredDot';
             }
         }
 
-        if (strpos($id, '.') === false) {
+        if (strpos($id, '.') == false) {
             return 'find';
         }
 
@@ -1578,11 +1578,11 @@ class Compiler
     {
         $strict = $this->hasStrictLookups();
 
-        if ($method === 'find') {
+        if ($method == 'find') {
             return $strict ? sprintf(', %d', $strictTag) : '';
         }
 
-        if ($method === 'findDot' || $method === 'findAnchoredDot') {
+        if ($method == 'findDot' || $method == 'findAnchoredDot') {
             if (!$strict) {
                 return $this->options->strictCallables ? ', true' : '';
             }
@@ -1617,7 +1617,7 @@ class Compiler
      */
     private function hasStrictLookups()
     {
-        return ($this->options->strictTags & ~Engine::STRICT_COERCION) !== Engine::STRICT_NONE;
+        return ($this->options->strictTags & ~Engine::STRICT_COERCION) != Engine::STRICT_NONE;
     }
 
     const LINE_INDENT = '$indent . ';

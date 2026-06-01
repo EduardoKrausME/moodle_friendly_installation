@@ -21,13 +21,13 @@ if (!empty($allowedbranches) && !in_array($defaultbranch, $allowedbranches, true
 $values = [
     'domain' => '',
     'site_fullname' => '',
-    'admin_user' => app_config('default_admin_user'),
-    'admin_email' => app_config('default_admin_email'),
+    'admin_user' => "admin",
+    'admin_email' => "admin@moodle",
     'moodle_branch' => $defaultbranch,
     'issue_cert' => '1',
 ];
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     validate_csrf();
     $values = array_merge($values, $_POST);
     $validation = Validator::validateInstallRequest($_POST, $allowedbranches);
@@ -41,9 +41,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-$selectedbranch = (string) ($values['moodle_branch'] ?? $defaultbranch);
+$selectedbranch = $values['moodle_branch'] ?? $defaultbranch;
 foreach ($moodlebranches as $index => $branch) {
-    $moodlebranches[$index]['selected'] = $branch['name'] === $selectedbranch;
+    $moodlebranches[$index]['selected'] = $branch['name'] == $selectedbranch;
 }
 
 render_header(t('install.title'));
@@ -55,18 +55,18 @@ echo render_app_template('page/install', [
     'moodle_branch_load_failed' => empty($moodlebranches),
     'moodle_branches' => $moodlebranches,
     'values' => [
-        'domain' => (string) ($values['domain'] ?? ''),
-        'site_fullname' => (string) ($values['site_fullname'] ?? ''),
-        'admin_user' => (string) ($values['admin_user'] ?? app_config('default_admin_user')),
-        'admin_email' => (string) ($values['admin_email'] ?? app_config('default_admin_email')),
+        'domain' => $values['domain'] ?? '',
+        'site_fullname' => $values['site_fullname'] ?? '',
+        'admin_user' => $values['admin_user'],
+        'admin_email' => $values['admin_email'],
         'issue_cert' => !empty($values['issue_cert']),
     ],
     'errors' => [
-        'domain' => (string) ($errors['domain'] ?? ''),
-        'moodle_branch' => (string) ($errors['moodle_branch'] ?? ''),
-        'admin_user' => (string) ($errors['admin_user'] ?? ''),
-        'admin_pass' => (string) ($errors['admin_pass'] ?? ''),
-        'admin_email' => (string) ($errors['admin_email'] ?? ''),
+        'domain' => $errors['domain'] ?? '',
+        'moodle_branch' => $errors['moodle_branch'] ?? '',
+        'admin_user' => $errors['admin_user'] ?? '',
+        'admin_pass' => $errors['admin_pass'] ?? '',
+        'admin_email' => $errors['admin_email'] ?? '',
     ],
 ]);
 

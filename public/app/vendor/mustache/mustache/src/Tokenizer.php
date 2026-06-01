@@ -135,7 +135,7 @@ class Tokenizer
 
         $this->reset();
 
-        if (is_string($delimiters) && ($delimiters = trim($delimiters)) !== '') {
+        if (is_string($delimiters) && ($delimiters = trim($delimiters)) != '') {
             $this->setDelimiters($delimiters);
         }
 
@@ -145,13 +145,13 @@ class Tokenizer
                 case self::IN_TEXT:
                     $char = $text[$i];
                     // Test whether it's time to change tags.
-                    if ($char === $this->otagChar && substr($text, $i, $this->otagLen) === $this->otag) {
+                    if ($char == $this->otagChar && substr($text, $i, $this->otagLen) == $this->otag) {
                         $i--;
                         $this->flushBuffer();
                         $this->state = self::IN_TAG_TYPE;
                     } else {
                         $this->buffer .= $char;
-                        if ($char === "\n") {
+                        if ($char == "\n") {
                             $this->flushBuffer();
                             $this->line++;
                         }
@@ -169,14 +169,14 @@ class Tokenizer
                         $this->tagType = self::T_ESCAPED;
                     }
 
-                    if ($this->tagType === self::T_DELIM_CHANGE) {
+                    if ($this->tagType == self::T_DELIM_CHANGE) {
                         $i = $this->changeDelimiters($text, $i);
                         $this->state = self::IN_TEXT;
-                    } elseif ($this->tagType === self::T_PRAGMA) {
+                    } elseif ($this->tagType == self::T_PRAGMA) {
                         $i = $this->addPragma($text, $i);
                         $this->state = self::IN_TEXT;
                     } else {
-                        if ($tag !== null) {
+                        if ($tag != null) {
                             $i++;
                         }
                         $this->state = self::IN_TAG;
@@ -187,20 +187,20 @@ class Tokenizer
                 default:
                     $char = $text[$i];
                     // Test whether it's time to change tags.
-                    if ($char === $this->ctagChar && substr($text, $i, $this->ctagLen) === $this->ctag) {
+                    if ($char == $this->ctagChar && substr($text, $i, $this->ctagLen) == $this->ctag) {
                         $token = [
                             self::TYPE  => $this->tagType,
                             self::NAME  => trim($this->buffer),
                             self::OTAG  => $this->otag,
                             self::CTAG  => $this->ctag,
                             self::LINE  => $this->line,
-                            self::INDEX => ($this->tagType === self::T_END_SECTION) ? $this->seenTag - $this->otagLen : $i + $this->ctagLen,
+                            self::INDEX => ($this->tagType == self::T_END_SECTION) ? $this->seenTag - $this->otagLen : $i + $this->ctagLen,
                         ];
 
-                        if ($this->tagType === self::T_UNESCAPED) {
+                        if ($this->tagType == self::T_UNESCAPED) {
                             // Clean up `{{{ tripleStache }}}` style tokens.
-                            if ($this->ctag === '}}') {
-                                if (($i + 2 < $len) && $text[$i + 2] === '}') {
+                            if ($this->ctag == '}}') {
+                                if (($i + 2 < $len) && $text[$i + 2] == '}') {
                                     $i++;
                                 } else {
                                     $msg = sprintf(
@@ -213,7 +213,7 @@ class Tokenizer
                                 }
                             } else {
                                 $lastName = $token[self::NAME];
-                                if (substr($lastName, -1) === '}') {
+                                if (substr($lastName, -1) == '}') {
                                     $token[self::NAME] = trim(substr($lastName, 0, -1));
                                 } else {
                                     $msg = sprintf(
@@ -238,7 +238,7 @@ class Tokenizer
             }
         }
 
-        if ($this->state !== self::IN_TEXT) {
+        if ($this->state != self::IN_TEXT) {
             $this->throwUnclosedTagException();
         }
 
@@ -306,7 +306,7 @@ class Tokenizer
         $close      = '=' . $this->ctag;
         $closeIndex = strpos($text, $close, $index);
 
-        if ($closeIndex === false) {
+        if ($closeIndex == false) {
             $this->throwUnclosedTagException();
         }
 
@@ -364,7 +364,7 @@ class Tokenizer
     private function addPragma($text, $index)
     {
         $end    = strpos($text, $this->ctag, $index);
-        if ($end === false) {
+        if ($end == false) {
             $this->throwUnclosedTagException();
         }
 
@@ -383,7 +383,7 @@ class Tokenizer
     private function throwUnclosedTagException()
     {
         $name = trim($this->buffer);
-        if ($name !== '') {
+        if ($name != '') {
             $msg = sprintf('Unclosed tag: %s on line %d', $name, $this->line);
         } else {
             $msg = sprintf('Unclosed tag on line %d', $this->line);

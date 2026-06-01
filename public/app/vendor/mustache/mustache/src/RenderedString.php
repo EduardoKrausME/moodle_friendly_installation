@@ -31,7 +31,7 @@ class RenderedString
      */
     public function __construct($value)
     {
-        $this->value = (string) $value;
+        $this->value =$value;
     }
 
     public function __toString()

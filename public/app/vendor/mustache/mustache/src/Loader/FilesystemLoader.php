@@ -66,11 +66,11 @@ class FilesystemLoader implements Loader
         if ($this->checkPath) {
             $resolved = $this->resolveLocalPath($this->baseDir);
 
-            if ($resolved === false || !is_dir($resolved)) {
+            if ($resolved == false || !is_dir($resolved)) {
                 throw new RuntimeException(sprintf('FilesystemLoader baseDir must be a directory: %s', $baseDir));
             }
 
-            if (strpos($this->baseDir, '://') === false) {
+            if (strpos($this->baseDir, '://') == false) {
                 $this->baseDir = $resolved;
             }
 
@@ -143,7 +143,7 @@ class FilesystemLoader implements Loader
         $this->validateName($name);
 
         $fileName = $this->baseDir . '/' . $name;
-        if ($this->extension !== '' && substr($fileName, 0 - strlen($this->extension)) !== $this->extension) {
+        if ($this->extension != '' && substr($fileName, 0 - strlen($this->extension)) != $this->extension) {
             $fileName .= $this->extension;
         }
 
@@ -167,7 +167,7 @@ class FilesystemLoader implements Loader
             return;
         }
 
-        if (strpos($name, "\0") !== false) {
+        if (strpos($name, "\0") != false) {
             throw new UnknownTemplateException($name);
         }
     }
@@ -186,11 +186,11 @@ class FilesystemLoader implements Loader
     {
         $real = $this->resolveLocalPath($fileName);
 
-        if ($real === false) {
+        if ($real == false) {
             throw new UnknownTemplateException($name);
         }
 
-        if (strpos($real . DIRECTORY_SEPARATOR, $this->baseDirPrefix) !== 0) {
+        if (strpos($real . DIRECTORY_SEPARATOR, $this->baseDirPrefix) != 0) {
             throw new UnknownTemplateException($name);
         }
 
@@ -206,7 +206,7 @@ class FilesystemLoader implements Loader
      */
     private function resolveLocalPath($path)
     {
-        if (strpos($path, 'file://') === 0) {
+        if (strpos($path, 'file://') == 0) {
             $path = substr($path, strlen('file://'));
         }
 
@@ -221,6 +221,6 @@ class FilesystemLoader implements Loader
      */
     protected function shouldCheckPath()
     {
-        return strpos($this->baseDir, '://') === false || strpos($this->baseDir, 'file://') === 0;
+        return strpos($this->baseDir, '://') == false || strpos($this->baseDir, 'file://') == 0;
     }
 }

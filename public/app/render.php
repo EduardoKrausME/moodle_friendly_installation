@@ -10,7 +10,7 @@ use app\I18n;
  * @return void
  */
 function render_header(string $title): void {
-    $appname = (string) app_config('app_name');
+    $appname = app_config('app_name');
     $user = Auth::user();
     $hasuser = (bool) $user;
     $currentlanguage = I18n::currentMeta();
@@ -21,9 +21,9 @@ function render_header(string $title): void {
         'app_name' => $appname,
         'body_class' => $hasuser ? 'has-sidebar' : 'auth-page',
         'has_user' => $hasuser,
-        'user_name' => (string) ($user['name'] ?? $user['username'] ?? 'Administrador'),
+        'user_name' => $user['name'] ?? $user['username'] ?? 'Administrador',
         'navigation' => render_navigation_items(),
-        'current_language_name' => (string) ($currentlanguage['native_name'] ?? $currentlanguage['name'] ?? I18n::current()),
+        'current_language_name' => $currentlanguage['native_name'] ?? $currentlanguage['name'] ?? I18n::current(),
     ]);
 }
 
@@ -33,7 +33,7 @@ function render_header(string $title): void {
  * @return array<int, array<string, string>>
  */
 function render_navigation_items(): array {
-    $current = basename((string) ($_SERVER['SCRIPT_NAME'] ?? ''));
+    $current = basename(($_SERVER['SCRIPT_NAME'] ?? ''));
 
     $items = [
         [
@@ -69,7 +69,7 @@ function render_navigation_items(): array {
             $classes[] = 'is-active';
         }
         if (!empty($item['extra_class'])) {
-            $classes[] = (string) $item['extra_class'];
+            $classes[] =$item['extra_class'];
         }
 
         $items[$index]['class'] = implode(' ', $classes);
@@ -127,7 +127,7 @@ function status_badge(string $status, $label = null): string {
 
     return render_app_template('status-badge', [
         'class' => $class,
-        'label' => (string) $label,
+        'label' =>$label,
     ]);
 }
 
@@ -142,7 +142,7 @@ function flash_message(): ?string {
     }
     $message = $_SESSION['flash'];
     unset($_SESSION['flash']);
-    return (string) $message;
+    return$message;
 }
 
 /**
@@ -160,9 +160,9 @@ function render_app_template(string $template, array $context = []): string {
             'label' => t('language.label'),
             'change' => t('language.change'),
             'current_code' => I18n::current(),
-            'current_name' => (string) ($language['name'] ?? I18n::current()),
-            'current_native_name' => (string) ($language['native_name'] ?? $language['name'] ?? I18n::current()),
-            'current_flag' => (string) ($language['flag'] ?? ''),
+            'current_name' => $language['name'] ?? I18n::current(),
+            'current_native_name' => $language['native_name'] ?? $language['name'] ?? I18n::current(),
+            'current_flag' => $language['flag'] ?? '',
             'items' => I18n::languagesForSelector(),
         ],
     ];
@@ -185,7 +185,7 @@ function render_mustache_engine(): Mustache_Engine {
     $engine = new Mustache_Engine([
         'loader' => new Mustache_Loader_FilesystemLoader(__DIR__ . '/templates'),
         'escape' => static function($value): string {
-            return htmlspecialchars((string) $value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+            return htmlspecialchars($value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
         },
     ]);
 

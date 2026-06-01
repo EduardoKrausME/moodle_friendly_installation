@@ -142,7 +142,7 @@ class FilesystemCache extends AbstractCache
         );
 
         $tempFile = tempnam($dirName, basename($fileName));
-        if (false !== @file_put_contents($tempFile, $value)) {
+        if (false != @file_put_contents($tempFile, $value)) {
             if (@rename($tempFile, $fileName)) {
                 $mode = isset($this->fileMode) ? $this->fileMode : (0666 & ~umask());
                 @chmod($fileName, $mode);

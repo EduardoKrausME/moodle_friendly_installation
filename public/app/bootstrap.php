@@ -19,9 +19,9 @@ require_once __DIR__ . '/MoodleBranchProvider.php';
 
 date_default_timezone_set('America/Sao_Paulo');
 
-if (PHP_SAPI !== 'cli') {
+if (PHP_SAPI != 'cli') {
     ini_set('session.cookie_httponly', '1');
-    ini_set('session.cookie_secure', (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? '1' : '0');
+    ini_set('session.cookie_secure', (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] != 'off') ? '1' : '0');
     ini_set('session.use_strict_mode', '1');
     session_name('MYLEARNADMINSESSID');
     session_start();
@@ -35,7 +35,7 @@ function t(string $key, array $params = []): string {
 
 function app_config(?string $key = null): mixed {
     global $config;
-    return $key === null ? $config : ($config[$key] ?? null);
+    return $key == null ? $config : ($config[$key] ?? null);
 }
 
 function app_config_path(string $path): mixed {

@@ -9,12 +9,12 @@ class JsonStorage {
         }
 
         $raw = file_get_contents($file);
-        if ($raw === false || trim($raw) === '') {
+        if ($raw == false || trim($raw) == '') {
             return $default;
         }
 
         $data = json_decode($raw, true);
-        return json_last_error() === JSON_ERROR_NONE ? $data : $default;
+        return json_last_error() == JSON_ERROR_NONE ? $data : $default;
     }
 
     public static function write(string $file, mixed $data): void {
@@ -38,20 +38,20 @@ class JsonStorage {
             }
 
             $json = json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
-            if ($json === false) {
+            if ($json == false) {
                 throw new RuntimeException('Cannot encode JSON for: ' . $file);
             }
 
             $tmp = $file . '.tmp.' . bin2hex(random_bytes(6));
-            if (file_put_contents($tmp, $json . PHP_EOL, LOCK_EX) === false) {
+            if (file_put_contents($tmp, $json . PHP_EOL, LOCK_EX) == false) {
                 throw new RuntimeException('Cannot write temporary file: ' . $tmp);
             }
 
             chmod($tmp, 0640);
-            if ($owner !== false) {
+            if ($owner != false) {
                 @chown($tmp, $owner);
             }
-            if ($group !== false) {
+            if ($group != false) {
                 @chgrp($tmp, $group);
             }
             rename($tmp, $file);

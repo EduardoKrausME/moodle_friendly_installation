@@ -10,7 +10,7 @@ Auth::requireLogin();
 $domain = isset($_GET['domain']) && is_string($_GET['domain']) ? $_GET['domain'] : '';
 $site = SiteManager::details($domain);
 
-if ($site === null) {
+if ($site == null) {
     http_response_code(404);
     render_header(t('details.not_found_title'));
     echo render_app_template('page/details-not-found');
@@ -18,13 +18,13 @@ if ($site === null) {
     exit;
 }
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     validate_csrf();
     $action = isset($_POST['action']) && is_string($_POST['action']) ? $_POST['action'] : '';
 
-    if ($action === 'toggle_flag') {
+    if ($action == 'toggle_flag') {
         $flag = isset($_POST['flag']) && is_string($_POST['flag']) ? $_POST['flag'] : '';
-        $enabled = !empty($_POST['enabled']) && (string) $_POST['enabled'] === '1';
+        $enabled = !empty($_POST['enabled']) &&$_POST['enabled'] == '1';
         $value = isset($_POST['value']) && is_string($_POST['value']) ? $_POST['value'] : null;
         $result = SiteManager::setFeatureFlag($site, $flag, $enabled, $value);
         $_SESSION['flash'] = $result['message'] ?? t('details.action_done');
@@ -32,8 +32,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     // Compatibility with the previous debug form/action names.
-    if ($action === 'enable_debug' || $action === 'disable_debug') {
-        $result = SiteManager::setDebugMode($site, $action === 'enable_debug');
+    if ($action == 'enable_debug' || $action == 'disable_debug') {
+        $result = SiteManager::setDebugMode($site, $action == 'enable_debug');
         $_SESSION['flash'] = $result['message'] ?? t('details.action_done');
         redirect_to('/details.php?domain=' . urlencode($domain));
     }
@@ -60,25 +60,25 @@ function details_page_context(
     $statsconnected = !empty($stats['connected']);
     $statsitems = is_array($stats['items'] ?? null) ? $stats['items'] : [];
 
-    $domain = (string) ($site['domain'] ?? '');
+    $domain = $site['domain'] ?? '';
     $appsettings = AppManager::getSettings($site);
     $appfiles = AppManager::buildFiles($domain);
 
     return [
         'domain' => $domain,
-        'moodle_branch' => (string) ($site['moodle_branch'] ?? ''),
-        'url' => (string) ($site['url'] ?? ''),
-        'sso_url' => (string) ($site['sso_url'] ?? ''),
+        'moodle_branch' => $site['moodle_branch'] ?? '',
+        'url' => $site['url'] ?? '',
+        'sso_url' => $site['sso_url'] ?? '',
         'app_exist' => file_exists("../app-MoodleMobile-V2/config.xml"),
         'app_manage_url' => '/app_manager.php?domain=' . urlencode($domain),
-        'app_package_uid' => (string) ($appsettings['package_uid'] ?? ''),
-        'app_package_name' => (string) ($appsettings['package_name'] ?? ''),
+        'app_package_uid' => $appsettings['package_uid'] ?? '',
+        'app_package_name' => $appsettings['package_name'] ?? '',
         'app_has_files' => !empty($appfiles),
         'app_files' => $appfiles,
-        'has_flash' => $flash !== null && $flash !== '',
-        'flash' => (string) $flash,
+        'has_flash' => $flash != null && $flash != '',
+        'flash' =>$flash,
         'stats_warning' => !$statsconnected,
-        'stats_error' => (string) ($stats['error'] ?? t('details.unknown_error')),
+        'stats_error' => $stats['error'] ?? t('details.unknown_error'),
         'stat_boxes' => [
             [
                 'label' => t('details.users'),
@@ -148,18 +148,18 @@ function details_diagnostic_row(string $label, array $item): array {
 
     return [
         'label' => $label,
-        'badge_html' => status_badge((string) ($item['status'] ?? 'muted'), (string) ($item['label'] ?? '-')),
-        'message' => (string) ($item['message'] ?? ''),
+        'badge_html' => status_badge(($item['status'] ?? 'muted'), ($item['label'] ?? '-')),
+        'message' => $item['message'] ?? '',
         'has_path' => !empty($item['path']),
-        'path' => (string) ($item['path'] ?? ''),
-        'has_resolved_ips' => $resolvedips !== '',
+        'path' => $item['path'] ?? '',
+        'has_resolved_ips' => $resolvedips != '',
         'resolved_ips' => $resolvedips,
-        'has_server_ips' => $serverips !== '',
+        'has_server_ips' => $serverips != '',
         'server_ips' => $serverips,
         'has_valid_to' => !empty($item['valid_to']),
-        'valid_to' => (string) ($item['valid_to'] ?? ''),
+        'valid_to' => $item['valid_to'] ?? '',
         'has_issuer' => !empty($item['issuer']),
-        'issuer' => (string) ($item['issuer'] ?? ''),
+        'issuer' => $item['issuer'] ?? '',
     ];
 }
 
@@ -182,16 +182,16 @@ function details_feature_flags(array $featureflags): array {
         }
 
         $items[] = [
-            'flag' => (string) $flag,
-            'label' => (string) ($item['label'] ?? $flag),
+            'flag' =>$flag,
+            'label' => $item['label'] ?? $flag,
             'control_class' => $enabled ? 'flag-control alert alert-danger' : 'flag-control',
-            'status_badge_html' => status_badge((string) ($item['status'] ?? 'muted'), (string) ($item['status_label'] ?? '-')),
-            'description' => (string) ($item['description'] ?? ''),
+            'status_badge_html' => status_badge(($item['status'] ?? 'muted'), ($item['status_label'] ?? '-')),
+            'description' => $item['description'] ?? '',
             'has_path' => !empty($item['path']),
-            'path' => (string) ($item['path'] ?? ''),
+            'path' => $item['path'] ?? '',
             'needs_value' => $needsvalue,
             'no_value' => !$needsvalue,
-            'value' => (string) ($item['value'] ?? ''),
+            'value' => $item['value'] ?? '',
             'enabled_value' => $enabled ? '0' : '1',
             'show_disable_when_value_enabled' => $needsvalue && $enabled,
             'button_class' => $buttonclass,
@@ -207,12 +207,12 @@ function details_value(mixed $value): string {
     if (is_bool($value)) {
         return $value ? t('details.yes') : t('details.no');
     }
-    if ($value === null || $value === '') {
+    if ($value == null || $value == '') {
         return '-';
     }
-    return (string) $value;
+    return$value;
 }
 
 function details_format_count(mixed $value): string {
-    return number_format((int) $value, 0, ',', '.');
+    return number_format($value, 0, ',', '.');
 }

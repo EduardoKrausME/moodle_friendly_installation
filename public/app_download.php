@@ -11,7 +11,7 @@ $domain = isset($_GET['domain']) && is_string($_GET['domain']) ? $_GET['domain']
 $file = isset($_GET['file']) && is_string($_GET['file']) ? $_GET['file'] : '';
 $site = SiteManager::get($domain);
 
-if ($site === null) {
+if ($site == null) {
     http_response_code(404);
     exit(t('download.moodle_not_found'));
 }
@@ -22,14 +22,14 @@ if (!preg_match('/^[a-z0-9_.-]+\.(apk|aab)$/i', $file)) {
     exit(t('download.invalid_file'));
 }
 
-$path = AppManager::storageDir((string) ($site['domain'] ?? $domain)) . '/' . $file;
+$path = AppManager::storageDir(($site['domain'] ?? $domain)) . '/' . $file;
 if (!is_file($path) || !is_readable($path)) {
     http_response_code(404);
     exit(t('download.file_not_found'));
 }
 
-$ext = strtolower((string) pathinfo($path, PATHINFO_EXTENSION));
-$type = $ext === 'apk' ? 'application/vnd.android.package-archive' : 'application/octet-stream';
+$ext = strtolower(pathinfo($path, PATHINFO_EXTENSION));
+$type = $ext == 'apk' ? 'application/vnd.android.package-archive' : 'application/octet-stream';
 
 header('Content-Type: ' . $type);
 header('Content-Length: ' . filesize($path));

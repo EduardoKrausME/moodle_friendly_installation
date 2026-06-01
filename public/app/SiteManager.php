@@ -11,13 +11,13 @@ class SiteManager {
         $sites = [];
         foreach (self::discoverMoodleDirs() as $moodledir) {
             $site = self::buildBasicSite($moodledir);
-            if ($site !== null) {
+            if ($site != null) {
                 $sites[] = $site;
             }
         }
 
         usort($sites, static function(array $a, array $b): int {
-            return strcmp((string) ($a['domain'] ?? ''), (string) ($b['domain'] ?? ''));
+            return strcmp(($a['domain'] ?? ''), ($b['domain'] ?? ''));
         });
 
         return $sites;
@@ -25,7 +25,7 @@ class SiteManager {
 
     public static function get(string $domain): ?array {
         foreach (self::all() as $site) {
-            if (($site['domain'] ?? '') === $domain) {
+            if (($site['domain'] ?? '') == $domain) {
                 return $site;
             }
         }
@@ -34,17 +34,17 @@ class SiteManager {
 
     public static function details(string $domain): ?array {
         $site = self::get($domain);
-        if ($site === null) {
+        if ($site == null) {
             return null;
         }
 
-        $config = self::readMoodleConfig((string) ($site['config_file'] ?? ''));
+        $config = self::readMoodleConfig(($site['config_file'] ?? ''));
         $site['moodle_config'] = self::publicConfig($config);
         $site['diagnostics'] = [
             'nginx' => self::checkWebServerConfig('nginx', $site),
             'httpd' => self::checkWebServerConfig('httpd', $site),
-            'dns' => self::checkDns((string) ($site['domain'] ?? '')),
-            'ssl' => self::checkSsl((string) ($site['domain'] ?? '')),
+            'dns' => self::checkDns(($site['domain'] ?? '')),
+            'ssl' => self::checkSsl(($site['domain'] ?? '')),
             'debug' => self::checkDebugMode($site),
             'feature_flags' => self::checkFeatureFlags($site),
         ];
@@ -55,7 +55,7 @@ class SiteManager {
 
     private static function discoverMoodleDirs(): array {
         $dirs = [];
-        $homebase = rtrim((string) (app_config('home_base_dir') ?: '/home'), '/');
+        $homebase = rtrim(app_config('home_base_dir') ?: '/home', '/');
 
         $pattern = "{$homebase}/*/moodle/config.php";
         foreach (glob($pattern) ?: [] as $configfile) {
@@ -77,12 +77,12 @@ class SiteManager {
         $config = self::readMoodleConfig($configfile);
         $base = dirname($moodledir);
         $publicroot = is_dir($moodledir . '/public') ? $moodledir . '/public' : $moodledir;
-        $wwwroot = (string) ($config['wwwroot'] ?? '');
+        $wwwroot = $config['wwwroot'] ?? '';
         $domain = basename($base);
 
-        if ($wwwroot !== '') {
+        if ($wwwroot != '') {
             $host = parse_url($wwwroot, PHP_URL_HOST);
-            if (is_string($host) && $host !== '') {
+            if (is_string($host) && $host != '') {
                 $domain = $host;
             }
         }
@@ -101,30 +101,30 @@ class SiteManager {
             'base_dir' => $base,
             'moodle_dir' => $moodledir,
             'webroot' => realpath("{$publicroot}/../.."),
-            'dataroot' => (string) ($config['dataroot'] ?? ''),
+            'dataroot' => $config['dataroot'] ?? '',
             'config_file' => $configfile,
-            'url' => $wwwroot !== '' ? $wwwroot : 'https://' . $domain,
+            'url' => $wwwroot != '' ? $wwwroot : 'https://' . $domain,
             'created_at' => self::formatFileTime($configfile),
         ];
 
         if (isset($config["dbname"])) {
             $time = time();
-            $signature = hash_hmac('sha256', (string) $time, $config["dbname"]);
+            $signature = hash_hmac('sha256',$time, $config["dbname"]);
             $hash = "time={$time}&signature={$signature}&dbname={$config["dbname"]}";
             $return['sso_url'] =
-                ($wwwroot !== '' ? rtrim($wwwroot, '/') : 'https://' . $domain) . "/moodle-logar-admin.php?{$hash}";
+                ($wwwroot != '' ? rtrim($wwwroot, '/') : 'https://' . $domain) . "/moodle-logar-admin.php?{$hash}";
         }
 
         return $return;
     }
 
     private static function readMoodleConfig(string $configfile): array {
-        if ($configfile === '' || !is_readable($configfile)) {
+        if ($configfile == '' || !is_readable($configfile)) {
             return ['_error' => I18n::get('diagnostic.config_not_found')];
         }
 
         $content = file_get_contents($configfile);
-        if ($content === false) {
+        if ($content == false) {
             return ['_error' => I18n::get('diagnostic.config_not_readable')];
         }
 
@@ -134,14 +134,14 @@ class SiteManager {
         $config = [];
         foreach ($keys as $key) {
             $value = self::readCfgValue($content, $key);
-            if ($value !== null) {
+            if ($value != null) {
                 $config[$key] = $value;
             }
         }
 
         foreach (['dbport', 'dbsocket', 'dbcollation'] as $key) {
             $value = self::readArrayValue($content, $key);
-            if ($value !== null) {
+            if ($value != null) {
                 $config[$key] = $value;
             }
         }
@@ -171,7 +171,7 @@ class SiteManager {
                 'true' => true,
                 'false' => false,
                 'null' => null,
-                default => (int) $raw,
+                default => $raw,
             };
         }
 
@@ -204,7 +204,7 @@ class SiteManager {
             }
 
             $content = file_get_contents($versionfile);
-            if ($content === false) {
+            if ($content == false) {
                 continue;
             }
 
@@ -216,7 +216,7 @@ class SiteManager {
             break;
         }
 
-        if ($result['release'] === '' && $result['branch'] === '') {
+        if ($result['release'] == '' && $result['branch'] == '') {
             $result['release'] = I18n::get('diagnostic.version_not_found');
         }
 
@@ -224,11 +224,10 @@ class SiteManager {
     }
 
     private static function checkWebServerConfig(string $type, array $site): array {
-        $domain = (string) ($site['domain'] ?? '');
-        $key = $type === 'nginx' ? 'nginx_sites_enabled' : 'apache_sites_enabled';
-        $label = $type === 'nginx' ? 'NGINX' : 'APACHE';
-        $dir = rtrim(app_config($key), '/');
-        $file = $dir . '/' . $domain . '.conf';
+        $domain = $site['domain'] ?? '';
+        $dir = $type == 'nginx' ? '/etc/nginx/sites-enabled' : '/etc/httpd/sites-enabled';
+        $label = $type == 'nginx' ? 'NGINX' : 'APACHE';
+        $file = "{$dir}/{$domain}.conf";
 
         if (!is_file($file)) {
             return [
@@ -249,7 +248,7 @@ class SiteManager {
         }
 
         $content = file_get_contents($file);
-        if ($content === false) {
+        if ($content == false) {
             return [
                 'status' => 'warning',
                 'label' => I18n::get('status.not_readable'),
@@ -258,14 +257,14 @@ class SiteManager {
             ];
         }
 
-        $hasDomain = stripos($content, $domain) !== false;
-        $hasRoot = !empty($site['webroot']) && stripos($content, (string) $site['webroot']) !== false;
+        $hasDomain = stripos($content, $domain) != false;
+        $hasRoot = !empty($site['webroot']) && stripos($content,$site['webroot']) != false;
 
         if ($hasDomain) {
             return [
-                'status' => $hasRoot || $type === 'nginx' ? 'ok' : 'warning',
-                'label' => $hasRoot || $type === 'nginx' ? I18n::get('status.ok') : I18n::get('status.check_root'),
-                'message' => $hasRoot || $type === 'nginx'
+                'status' => $hasRoot || $type == 'nginx' ? 'ok' : 'warning',
+                'label' => $hasRoot || $type == 'nginx' ? I18n::get('status.ok') : I18n::get('status.check_root'),
+                'message' => $hasRoot || $type == 'nginx'
                     ? I18n::get('diagnostic.webserver_configured', ['label' => $label])
                     : I18n::get('diagnostic.webserver_domain_no_root', ['label' => $label]),
                 'path' => $file,
@@ -320,7 +319,7 @@ class SiteManager {
 
     private static function dnsRecords(string $domain): array {
         $records = ['A' => [], 'AAAA' => []];
-        if ($domain === '') {
+        if ($domain == '') {
             return $records;
         }
 
@@ -328,11 +327,11 @@ class SiteManager {
             $dns = @dns_get_record($domain, DNS_A + DNS_AAAA);
             if (is_array($dns)) {
                 foreach ($dns as $record) {
-                    if (($record['type'] ?? '') === 'A' && !empty($record['ip'])) {
-                        $records['A'][] = (string) $record['ip'];
+                    if (($record['type'] ?? '') == 'A' && !empty($record['ip'])) {
+                        $records['A'][] =$record['ip'];
                     }
-                    if (($record['type'] ?? '') === 'AAAA' && !empty($record['ipv6'])) {
-                        $records['AAAA'][] = (string) $record['ipv6'];
+                    if (($record['type'] ?? '') == 'AAAA' && !empty($record['ipv6'])) {
+                        $records['AAAA'][] =$record['ipv6'];
                     }
                 }
             }
@@ -352,22 +351,15 @@ class SiteManager {
 
     private static function serverIps(): array {
         $ips = [];
-        $configured = app_config('server_public_ips') ?: [];
-        if (is_string($configured) && $configured !== '') {
-            $configured = array_map('trim', explode(',', $configured));
-        }
-        if (is_array($configured)) {
-            $ips = array_merge($ips, $configured);
-        }
 
         foreach (['SERVER_ADDR', 'LOCAL_ADDR'] as $key) {
             if (!empty($_SERVER[$key])) {
-                $ips[] = (string) $_SERVER[$key];
+                $ips[] =$_SERVER[$key];
             }
         }
 
         if (!empty($_SERVER['HTTP_HOST'])) {
-            $host = preg_replace('/:\d+$/', '', (string) $_SERVER['HTTP_HOST']);
+            $host = preg_replace('/:\d+$/', '',$_SERVER['HTTP_HOST']);
             $hostIps = @gethostbynamel($host);
             if (is_array($hostIps)) {
                 $ips = array_merge($ips, $hostIps);
@@ -382,14 +374,14 @@ class SiteManager {
         }
 
         $ips = array_values(array_unique(array_filter(array_map('trim', $ips), static function(string $ip): bool {
-            return filter_var($ip, FILTER_VALIDATE_IP) !== false;
+            return filter_var($ip, FILTER_VALIDATE_IP) != false;
         })));
 
         return $ips;
     }
 
     private static function checkSsl(string $domain): array {
-        if ($domain === '') {
+        if ($domain == '') {
             return [
                 'status' => 'danger',
                 'label' => I18n::get('status.no_domain'),
@@ -415,16 +407,16 @@ class SiteManager {
         }
 
         $cert = $result['certificate'] ?? [];
-        $validTo = (int) ($cert['validTo_time_t'] ?? 0);
-        $validFrom = (int) ($cert['validFrom_time_t'] ?? 0);
+        $validTo = $cert['validTo_time_t'] ?? 0;
+        $validFrom = $cert['validFrom_time_t'] ?? 0;
         $now = time();
-        $days = $validTo > 0 ? (int) floor(($validTo - $now) / 86400) : null;
+        $days = $validTo > 0 ? floor(($validTo - $now) / 86400) : null;
 
         if ($verified && $validFrom <= $now && $validTo > $now) {
             return [
-                'status' => $days !== null && $days < 15 ? 'warning' : 'ok',
-                'label' => $days !== null && $days < 15 ? I18n::get('status.expires_soon') : I18n::get('status.ok'),
-                'message' => $days !== null ? I18n::get('diagnostic.ssl_valid_days', ['days' => $days]) :
+                'status' => $days != null && $days < 15 ? 'warning' : 'ok',
+                'label' => $days != null && $days < 15 ? I18n::get('status.expires_soon') : I18n::get('status.ok'),
+                'message' => $days != null ? I18n::get('diagnostic.ssl_valid_days', ['days' => $days]) :
                     I18n::get('diagnostic.ssl_valid'),
                 'issuer' => self::certName($cert['issuer'] ?? []),
                 'subject' => self::certName($cert['subject'] ?? []),
@@ -511,10 +503,10 @@ class SiteManager {
 
     private static function certName(array $data): string {
         if (!empty($data['CN'])) {
-            return (string) $data['CN'];
+            return$data['CN'];
         }
         if (!empty($data['O'])) {
-            return (string) $data['O'];
+            return$data['O'];
         }
         return '';
     }
@@ -575,7 +567,7 @@ class SiteManager {
 
     private static function countQuery(PDO $pdo, string $sql): int {
         $value = $pdo->query($sql)->fetchColumn();
-        return (int) $value;
+        return $value;
     }
 
     private static function formatFileTime(string $file): string {
@@ -597,12 +589,12 @@ class SiteManager {
         }
 
         $definition = $definitions[$flag];
-        if (($definition['handler'] ?? '') === 'maintenance') {
+        if (($definition['handler'] ?? '') == 'maintenance') {
             return self::setMaintenanceMode($site, $enabled);
         }
 
-        if (!empty($definition['value_type']) && $definition['value_type'] === 'email' && $enabled) {
-            $email = trim((string) $value);
+        if (!empty($definition['value_type']) && $definition['value_type'] == 'email' && $enabled) {
+            $email = trim($value);
             if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
                 return [
                     'ok' => false,
@@ -713,30 +705,30 @@ class SiteManager {
     private static function checkFeatureFlags(array $site): array {
         $items = [];
         foreach (self::featureFlagDefinitions() as $key => $definition) {
-            $file = self::featureFlagFile($site, (string) $definition['file']);
-            $enabled = $file !== '' && is_file($file);
+            $file = self::featureFlagFile($site,$definition['file']);
+            $enabled = $file != '' && is_file($file);
             $value = '';
 
             if ($enabled && !empty($definition['value_type']) && is_readable($file)) {
-                $value = trim((string) file_get_contents($file));
+                $value = trim(file_get_contents($file));
             }
 
-            $description = (string) ($definition['description'] ?? '');
-            if ($key === 'email_redirect' && $enabled && $value !== '') {
+            $description = $definition['description'] ?? '';
+            if ($key == 'email_redirect' && $enabled && $value != '') {
                 $description .= ' ' . I18n::get('diagnostic.email_current', ['email' => $value]);
             }
 
             $items[$key] = [
-                'label' => (string) ($definition['label'] ?? $key),
+                'label' => $definition['label'] ?? $key,
                 'description' => $description,
                 'path' => $file,
                 'enabled' => $enabled,
                 'value' => $value,
-                'value_type' => (string) ($definition['value_type'] ?? ''),
+                'value_type' => $definition['value_type'] ?? '',
                 'dangerous' => !empty($definition['dangerous']),
-                'status' => $enabled ? (string) ($definition['enabled_status'] ?? 'warning') : 'ok',
-                'status_label' => $enabled ? (string) ($definition['enabled_label'] ?? I18n::get('status.enabled')) :
-                    (string) ($definition['disabled_label'] ?? I18n::get('status.disabled')),
+                'status' => $enabled ? ($definition['enabled_status'] ?? 'warning') : 'ok',
+                'status_label' => $enabled ? ($definition['enabled_label'] ?? I18n::get('status.enabled')) :
+                    ($definition['disabled_label'] ?? I18n::get('status.disabled')),
             ];
         }
 
@@ -744,9 +736,9 @@ class SiteManager {
     }
 
     private static function writeFeatureFlagFile(array $site, array $definition, bool $enabled, ?string $content = null): array {
-        $file = self::featureFlagFile($site, (string) ($definition['file'] ?? ''));
-        $label = (string) ($definition['label'] ?? 'Flag');
-        if ($file === '') {
+        $file = self::featureFlagFile($site, ($definition['file'] ?? ''));
+        $label = $definition['label'] ?? 'Flag';
+        if ($file == '') {
             return [
                 'ok' => false,
                 'message' => I18n::get('diagnostic.flag_path_missing'),
@@ -755,7 +747,7 @@ class SiteManager {
 
         if ($enabled) {
             $content = $content ?? ('enabled_at=' . date('c') . PHP_EOL);
-            if (@file_put_contents($file, $content, LOCK_EX) === false) {
+            if (@file_put_contents($file, $content, LOCK_EX) == false) {
                 return [
                     'ok' => false,
                     'message' => I18n::get('diagnostic.flag_create_failed', ['file' => $file]),
@@ -785,25 +777,25 @@ class SiteManager {
 
     private static function setMaintenanceMode(array $site, bool $enabled): array {
         $cli = self::moodleCliFile($site, 'maintenance.php');
-        if ($cli === '') {
+        if ($cli == '') {
             return [
                 'ok' => false,
                 'message' => I18n::get('diagnostic.maintenance_cli_missing'),
             ];
         }
 
-        $phpbin = (string) (app_config('php_bin') ?: PHP_BINARY ?: '/usr/bin/php');
+        $phpbin = app_config('php_bin') ?: PHP_BINARY ?: '/usr/bin/php';
         $command = escapeshellarg($phpbin) . ' ' . escapeshellarg($cli) . ' ' . ($enabled ? '--enable' : '--disable') . ' 2>&1';
         $output = [];
         $exitcode = 0;
         exec($command, $output, $exitcode);
 
-        if ($exitcode !== 0) {
+        if ($exitcode != 0) {
             $message = trim(implode("\n", $output));
             return [
                 'ok' => false,
                 'message' => I18n::get(
-                    'diagnostic.maintenance_failed', ['message' => ($message !== '' ? $message : 'exit code ' . $exitcode)]
+                    'diagnostic.maintenance_failed', ['message' => ($message != '' ? $message : 'exit code ' . $exitcode)]
                 ),
             ];
         }
@@ -824,8 +816,8 @@ class SiteManager {
     }
 
     private static function moodleCliFile(array $site, string $filename): string {
-        $moodledir = rtrim((string) ($site['moodle_dir'] ?? ''), '/');
-        if ($moodledir === '') {
+        $moodledir = rtrim($site['moodle_dir'] ?? '', '/');
+        if ($moodledir == '') {
             return '';
         }
 
@@ -848,9 +840,9 @@ class SiteManager {
     }
 
     private static function featureFlagFile(array $site, string $filename): string {
-        $base = rtrim((string) ($site['base_dir'] ?? ''), '/');
+        $base = rtrim($site['base_dir'] ?? '', '/');
         $filename = ltrim($filename, '/');
-        if ($base === '' || $filename === '') {
+        if ($base == '' || $filename == '') {
             return '';
         }
         return $base . '/' . $filename;
@@ -859,7 +851,7 @@ class SiteManager {
     private static function checkDebugMode(array $site): array {
         $flags = self::checkFeatureFlags($site);
         $debug = $flags['debug'] ?? null;
-        if ($debug === null) {
+        if ($debug == null) {
             return [
                 'status' => 'muted',
                 'label' => '-',
@@ -869,9 +861,9 @@ class SiteManager {
         }
 
         return [
-            'status' => (string) ($debug['status'] ?? 'muted'),
-            'label' => (string) ($debug['status_label'] ?? '-'),
-            'path' => (string) ($debug['path'] ?? ''),
+            'status' => $debug['status'] ?? 'muted',
+            'label' => $debug['status_label'] ?? '-',
+            'path' => $debug['path'] ?? '',
             'enabled' => !empty($debug['enabled']),
         ];
     }

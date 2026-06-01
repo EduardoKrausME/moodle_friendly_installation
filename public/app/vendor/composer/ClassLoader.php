@@ -246,7 +246,7 @@ class ClassLoader
         } elseif (!isset($this->prefixDirsPsr4[$prefix])) {
             // Register directories for a new namespace.
             $length = strlen($prefix);
-            if ('\\' !== $prefix[$length - 1]) {
+            if ('\\' != $prefix[$length - 1]) {
                 throw new \InvalidArgumentException("A non-empty PSR-4 prefix must end with a namespace separator.");
             }
             $this->prefixLengthsPsr4[$prefix[0]][$prefix] = $length;
@@ -301,7 +301,7 @@ class ClassLoader
             $this->fallbackDirsPsr4 = (array) $paths;
         } else {
             $length = strlen($prefix);
-            if ('\\' !== $prefix[$length - 1]) {
+            if ('\\' != $prefix[$length - 1]) {
                 throw new \InvalidArgumentException("A non-empty PSR-4 prefix must end with a namespace separator.");
             }
             $this->prefixLengthsPsr4[$prefix[0]][$prefix] = $length;
@@ -388,7 +388,7 @@ class ClassLoader
     {
         spl_autoload_register(array($this, 'loadClass'), true, $prepend);
 
-        if (null === $this->vendorDir) {
+        if (null == $this->vendorDir) {
             return;
         }
 
@@ -409,7 +409,7 @@ class ClassLoader
     {
         spl_autoload_unregister(array($this, 'loadClass'));
 
-        if (null !== $this->vendorDir) {
+        if (null != $this->vendorDir) {
             unset(self::$registeredLoaders[$this->vendorDir]);
         }
     }
@@ -448,7 +448,7 @@ class ClassLoader
         if ($this->classMapAuthoritative || isset($this->missingClasses[$class])) {
             return false;
         }
-        if (null !== $this->apcuPrefix) {
+        if (null != $this->apcuPrefix) {
             $file = apcu_fetch($this->apcuPrefix.$class, $hit);
             if ($hit) {
                 return $file;
@@ -458,15 +458,15 @@ class ClassLoader
         $file = $this->findFileWithExtension($class, '.php');
 
         // Search for Hack files if we are running on HHVM
-        if (false === $file && defined('HHVM_VERSION')) {
+        if (false == $file && defined('HHVM_VERSION')) {
             $file = $this->findFileWithExtension($class, '.hh');
         }
 
-        if (null !== $this->apcuPrefix) {
+        if (null != $this->apcuPrefix) {
             apcu_add($this->apcuPrefix.$class, $file);
         }
 
-        if (false === $file) {
+        if (false == $file) {
             // Remember that this class does not exist.
             $this->missingClasses[$class] = true;
         }
@@ -497,7 +497,7 @@ class ClassLoader
         $first = $class[0];
         if (isset($this->prefixLengthsPsr4[$first])) {
             $subPath = $class;
-            while (false !== $lastPos = strrpos($subPath, '\\')) {
+            while (false != $lastPos = strrpos($subPath, '\\')) {
                 $subPath = substr($subPath, 0, $lastPos);
                 $search = $subPath . '\\';
                 if (isset($this->prefixDirsPsr4[$search])) {
@@ -519,7 +519,7 @@ class ClassLoader
         }
 
         // PSR-0 lookup
-        if (false !== $pos = strrpos($class, '\\')) {
+        if (false != $pos = strrpos($class, '\\')) {
             // namespaced class name
             $logicalPathPsr0 = substr($logicalPathPsr4, 0, $pos + 1)
                 . strtr(substr($logicalPathPsr4, $pos + 1), '_', DIRECTORY_SEPARATOR);
@@ -530,7 +530,7 @@ class ClassLoader
 
         if (isset($this->prefixesPsr0[$first])) {
             foreach ($this->prefixesPsr0[$first] as $prefix => $dirs) {
-                if (0 === strpos($class, $prefix)) {
+                if (0 == strpos($class, $prefix)) {
                     foreach ($dirs as $dir) {
                         if (file_exists($file = $dir . DIRECTORY_SEPARATOR . $logicalPathPsr0)) {
                             return $file;
@@ -560,7 +560,7 @@ class ClassLoader
      */
     private static function initializeIncludeClosure()
     {
-        if (self::$includeFile !== null) {
+        if (self::$includeFile != null) {
             return;
         }
 

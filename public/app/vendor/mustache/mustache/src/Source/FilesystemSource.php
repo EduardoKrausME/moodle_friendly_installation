@@ -57,7 +57,7 @@ class FilesystemSource implements Source
                 $this->stat = @stat($this->fileName);
             }
 
-            if ($this->stat === false) {
+            if ($this->stat == false) {
                 throw new RuntimeException(sprintf('Failed to read source file "%s".', $this->fileName));
             }
 

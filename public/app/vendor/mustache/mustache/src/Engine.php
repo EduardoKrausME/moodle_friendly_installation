@@ -255,7 +255,7 @@ class Engine
     public function __construct(array $options = [])
     {
         if (isset($options['template_class_prefix'])) {
-            $templateClassPrefix = (string) $options['template_class_prefix'];
+            $templateClassPrefix =$options['template_class_prefix'];
             if (!preg_match('/^[A-Za-z_\x80-\xff][A-Za-z0-9_\x80-\xff]*$/', $templateClassPrefix)) {
                 throw new InvalidArgumentException('Mustache Constructor "template_class_prefix" must be a valid PHP class name prefix');
             }
@@ -325,15 +325,15 @@ class Engine
         // Optional Mustache features
 
         if (isset($options['dynamic_names'])) {
-            $this->dynamicNames = $options['dynamic_names'] !== false;
+            $this->dynamicNames = $options['dynamic_names'] != false;
         }
 
         if (isset($options['inheritance'])) {
-            $this->inheritance = $options['inheritance'] !== false;
+            $this->inheritance = $options['inheritance'] != false;
         }
 
         if (isset($options['lambdas'])) {
-            $this->lambdas = $options['lambdas'] !== false;
+            $this->lambdas = $options['lambdas'] != false;
         }
 
         if (isset($options['pragmas'])) {
@@ -441,7 +441,7 @@ class Engine
             throw RenderingException::fromDebugContext($previous, $stack);
         }
 
-        if ($this->debugRendering !== self::DEBUG_RENDERING_ON_EXCEPTION || $this->debugRenderingRetry) {
+        if ($this->debugRendering != self::DEBUG_RENDERING_ON_EXCEPTION || $this->debugRenderingRetry) {
             throw $previous;
         }
 
@@ -673,11 +673,11 @@ class Engine
     public function setLogger($logger = null)
     {
         // n.b. this uses `is_a` to prevent a dependency on Psr\Log
-        if ($logger !== null && !$logger instanceof Logger && !is_a($logger, 'Psr\\Log\\LoggerInterface')) {
+        if ($logger != null && !$logger instanceof Logger && !is_a($logger, 'Psr\\Log\\LoggerInterface')) {
             throw new InvalidArgumentException('Expected an instance of Mustache\\Logger or Psr\\Log\\LoggerInterface.');
         }
 
-        if ($this->getCache()->getLogger() === null) {
+        if ($this->getCache()->getLogger() == null) {
             $this->getCache()->setLogger($logger);
         }
 
@@ -771,7 +771,7 @@ class Engine
      */
     public function setCache(Cache $cache)
     {
-        if (isset($this->logger) && $cache->getLogger() === null) {
+        if (isset($this->logger) && $cache->getLogger() == null) {
             $cache->setLogger($this->getLogger());
         }
 
@@ -851,7 +851,7 @@ class Engine
             'version'         => self::VERSION,
         ];
 
-        if ($this->getDebugRendering() && $sourceName !== null) {
+        if ($this->getDebugRendering() && $sourceName != null) {
             $chunks['debugSource'] = $sourceName;
         }
 
@@ -933,7 +933,7 @@ class Engine
      */
     public function loadLambda($source, $delims = null)
     {
-        if ($delims !== null) {
+        if ($delims != null) {
             $source = $delims . "\n" . $source;
         }
 
@@ -961,7 +961,7 @@ class Engine
         $className = $this->getTemplateClassName($source, $sourceName);
 
         if (!isset($this->templates[$className])) {
-            if ($cache === null || !$cache instanceof Cache) {
+            if ($cache == null || !$cache instanceof Cache) {
                 $cache = $this->getCache();
             }
 
@@ -980,7 +980,7 @@ class Engine
 
             $this->templates[$className] = new $className($this);
 
-            if ($this->debugRendering === self::DEBUG_RENDERING_ON_EXCEPTION && !$this->debugRenderingRetry) {
+            if ($this->debugRendering == self::DEBUG_RENDERING_ON_EXCEPTION && !$this->debugRenderingRetry) {
                 $this->templateSources[$className] = [
                     'source' => $source,
                     'sourceName' => $sourceName,
@@ -1064,11 +1064,11 @@ class Engine
 
     public static function normalizeStrictTags($strictTags)
     {
-        if ($strictTags === true) {
+        if ($strictTags == true) {
             return self::STRICT_ALL;
         }
 
-        if ($strictTags === false) {
+        if ($strictTags == false) {
             return self::STRICT_NONE;
         }
 
@@ -1076,7 +1076,7 @@ class Engine
             throw new InvalidArgumentException('Mustache Constructor "strict_tags" option must be a boolean or an integer bitmask');
         }
 
-        if (($strictTags & ~self::STRICT_ALL) !== 0) {
+        if (($strictTags & ~self::STRICT_ALL) != 0) {
             throw new InvalidArgumentException(sprintf('Unknown "strict_tags" bitmask: %d', $strictTags));
         }
 
@@ -1086,9 +1086,9 @@ class Engine
     private static function normalizeDebugRendering($debugRendering)
     {
         if (
-            $debugRendering === self::DEBUG_RENDERING_ALWAYS
-            || $debugRendering === self::DEBUG_RENDERING_NEVER
-            || $debugRendering === self::DEBUG_RENDERING_ON_EXCEPTION
+            $debugRendering == self::DEBUG_RENDERING_ALWAYS
+            || $debugRendering == self::DEBUG_RENDERING_NEVER
+            || $debugRendering == self::DEBUG_RENDERING_ON_EXCEPTION
         ) {
             return $debugRendering;
         }
@@ -1100,7 +1100,7 @@ class Engine
 
     private function getDebugRendering()
     {
-        return $this->debugRendering === self::DEBUG_RENDERING_ALWAYS || $this->debugRenderingRetry;
+        return $this->debugRendering == self::DEBUG_RENDERING_ALWAYS || $this->debugRenderingRetry;
     }
 
     /**

@@ -48,7 +48,7 @@ class LambdaHelper
     public function render($string)
     {
         $value = $this->mustache
-            ->loadLambda((string) $string, $this->delims)
+            ->loadLambda($string, $this->delims)
             ->renderInternal($this->context);
 
         return $this->mustache->getDoubleRenderLambdas() ? $value : $this->preventRender($value);

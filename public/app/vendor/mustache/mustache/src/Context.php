@@ -39,7 +39,7 @@ class Context
      */
     public function __construct($context = null, $buggyPropertyShadowing = false, $strictTags = Engine::STRICT_NONE)
     {
-        if ($context !== null) {
+        if ($context != null) {
             $this->stack = [$context];
             $this->stackSize = 1;
         }
@@ -75,7 +75,7 @@ class Context
      */
     public function pop()
     {
-        if ($this->stackSize === 0) {
+        if ($this->stackSize == 0) {
             return null;
         }
 
@@ -112,7 +112,7 @@ class Context
      */
     public function popRenderingFrame()
     {
-        if ($this->renderingStackSize === 0) {
+        if ($this->renderingStackSize == 0) {
             return null;
         }
 
@@ -149,7 +149,7 @@ class Context
      */
     public function last()
     {
-        return $this->stackSize === 0 ? false : $this->stack[$this->stackSize - 1];
+        return $this->stackSize == 0 ? false : $this->stack[$this->stackSize - 1];
     }
 
     /**
@@ -212,7 +212,7 @@ class Context
         $value = $this->findVariableInStack($chunks[0], $this->stack, $this->stackSize, $strictTag);
 
         // This wasn't really a dotted name, so we can just return the value.
-        if ($chunkCount === 1) {
+        if ($chunkCount == 1) {
             return $value;
         }
 
@@ -221,7 +221,7 @@ class Context
 
             if ($isCallable) {
                 $value = $value();
-            } elseif ($value === '') {
+            } elseif ($value == '') {
                 return $value;
             }
 
@@ -253,7 +253,7 @@ class Context
     public function findAnchoredDot($id, $strictCallables = false, $strictTag = Engine::STRICT_INTERPOLATION)
     {
         $chunks = explode('.', $id);
-        if ($chunks[0] !== '') {
+        if ($chunks[0] != '') {
             throw new InvalidArgumentException(sprintf('Unexpected id for findAnchoredDot: %s', $id));
         }
 
@@ -261,7 +261,7 @@ class Context
         $chunkCount = count($chunks);
 
         for ($i = 1; $i < $chunkCount; $i++) {
-            if ($value === '') {
+            if ($value == '') {
                 return $value;
             }
 
@@ -326,7 +326,7 @@ class Context
     {
         // The root scope is always kept; popping it would leave findInBlock
         // with no scope to read.
-        if ($this->blockScopeIndex === 0) {
+        if ($this->blockScopeIndex == 0) {
             return;
         }
 
@@ -394,7 +394,7 @@ class Context
             }
         }
 
-        if (($this->strictTags & $strictTag) !== 0) {
+        if (($this->strictTags & $strictTag) != 0) {
             throw new UnknownVariableException($id);
         }
 

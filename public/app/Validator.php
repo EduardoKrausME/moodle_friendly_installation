@@ -7,15 +7,15 @@ class Validator {
         $domain = strtolower(trim($domain));
         $domain = preg_replace('/^https?:\/\//', '', $domain);
         $domain = preg_replace('/\/.*$/', '', $domain);
-        return trim((string) $domain, '. ');
+        return trim($domain, '. ');
     }
 
     public static function validateInstallRequest(array $input, array $allowedbranches = []): array {
         $errors = [];
         $warnings = [];
 
-        $domain = self::normalizeDomain((string) ($input['domain'] ?? ''));
-        if ($domain === '') {
+        $domain = self::normalizeDomain($input['domain'] ?? '');
+        if ($domain == '') {
             $errors['domain'] = I18n::get('validation.domain_required');
         } else if (!preg_match('/^(?=.{4,253}$)([a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$/', $domain)) {
             $errors['domain'] = I18n::get('validation.domain_invalid');
@@ -23,9 +23,9 @@ class Validator {
             $errors['domain'] = I18n::get('validation.domain_reserved');
         }
 
-        $jobs = JsonStorage::read(app_config_path("/data/jobs.json"), []);
+        $jobs = JsonStorage::read(app_config_path("/data/jobs.json"));
         foreach ($jobs as $job) {
-            if (($job['domain'] ?? '') === $domain && in_array(($job['status'] ?? ''), ['pending', 'waiting_dns', 'running'], true)) {
+            if (($job['domain'] ?? '') == $domain && in_array(($job['status'] ?? ''), ['pending', 'waiting_dns', 'running'], true)) {
                 $errors['domain'] = I18n::get('validation.domain_pending');
                 break;
             }
@@ -37,30 +37,26 @@ class Validator {
                 I18n::get('validation.dns_warning');
         }
 
-        $sitefullname = trim((string) ($input['site_fullname'] ?? ''));
-        if ($sitefullname === '') {
-            $sitefullname = app_config('default_site_fullname_prefix') . ' - ' . $domain;
-        }
-
-        $adminuser = trim((string) ($input['admin_user'] ?? app_config('default_admin_user')));
+        $sitefullname = $input['site_fullname'];
+        $adminuser = $input['admin_user'] ?? app_config('default_admin_user');
         if (!preg_match('/^[a-z][a-z0-9._-]{2,31}$/', $adminuser)) {
             $errors['admin_user'] = I18n::get('validation.admin_user_invalid');
         }
 
-        $adminpass = (string) ($input['admin_pass'] ?? '');
+        $adminpass = $input['admin_pass'] ?? '';
         if (strlen($adminpass) < 8) {
             $errors['admin_pass'] = I18n::get('validation.admin_pass_short');
         }
 
-        $adminemail = trim((string) ($input['admin_email'] ?? app_config('default_admin_email')));
+        $adminemail = $input['admin_email'];
         if (!filter_var($adminemail, FILTER_VALIDATE_EMAIL)) {
             $errors['admin_email'] = I18n::get('validation.admin_email_invalid');
         }
 
-        $branch = trim((string) ($input['moodle_branch'] ?? app_config('default_moodle_branch')));
+        $branch = $input['moodle_branch'] ?? app_config('default_moodle_branch');
         if (!preg_match('/^MOODLE_(\d+)_STABLE$/', $branch, $branchmatches)) {
             $errors['moodle_branch'] = I18n::get('validation.branch_invalid');
-        } else if ((int) $branchmatches[1] < 502) {
+        } else if ($branchmatches[1] < 502) {
             $errors['moodle_branch'] = I18n::get('validation.branch_min');
         } else if (!empty($allowedbranches) && !in_array($branch, $allowedbranches, true)) {
             $errors['moodle_branch'] = I18n::get('validation.branch_unavailable');
@@ -82,11 +78,5 @@ class Validator {
                 'issue_cert' => $issuecert,
             ],
         ];
-    }
-
-    public static function dbSafeName(string $domain, string $prefix): string {
-        $name = preg_replace('/[^a-z0-9]+/', '_', strtolower($domain));
-        $name = trim((string) $name, '_');
-        return substr($prefix . '_' . $name, 0, 48);
     }
 }

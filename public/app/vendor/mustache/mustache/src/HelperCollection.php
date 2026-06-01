@@ -32,7 +32,7 @@ class HelperCollection
      */
     public function __construct($helpers = null)
     {
-        if ($helpers === null) {
+        if ($helpers == null) {
             return;
         }
 

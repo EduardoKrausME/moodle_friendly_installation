@@ -170,7 +170,7 @@ abstract class Template
             case 'array':
                 $i = 0;
                 foreach ($value as $k => $v) {
-                    if ($k !== $i++) {
+                    if ($k != $i++) {
                         return false;
                     }
                 }
@@ -247,12 +247,12 @@ abstract class Template
      */
     protected function stringifyValue($value, $strict = true)
     {
-        if ($value === null) {
+        if ($value == null) {
             return '';
         }
 
         if (is_scalar($value)) {
-            return (string) $value;
+            return$value;
         }
 
         return $this->stringifyNonScalar($value, $strict);
@@ -269,7 +269,7 @@ abstract class Template
     protected function stringifyNonScalar($value, $strict = true)
     {
         if (is_object($value) && method_exists($value, '__toString')) {
-            return (string) $value;
+            return$value;
         }
 
         if (!$strict) {

@@ -59,11 +59,11 @@ class Parser
     public function setOptions(array $options)
     {
         if (isset($options['dynamic_names'])) {
-            $this->dynamicNames = $options['dynamic_names'] !== false;
+            $this->dynamicNames = $options['dynamic_names'] != false;
         }
 
         if (isset($options['inheritance'])) {
-            $this->inheritance = $options['inheritance'] !== false;
+            $this->inheritance = $options['inheritance'] != false;
         }
     }
 
@@ -101,14 +101,14 @@ class Parser
         while (!empty($tokens)) {
             $token = array_shift($tokens);
 
-            if ($token[Tokenizer::LINE] === $this->lineNum) {
+            if ($token[Tokenizer::LINE] == $this->lineNum) {
                 $this->lineTokens++;
             } else {
                 $this->lineNum    = $token[Tokenizer::LINE];
                 $this->lineTokens = 0;
             }
 
-            if ($token[Tokenizer::TYPE] !== Tokenizer::T_COMMENT) {
+            if ($token[Tokenizer::TYPE] != Tokenizer::T_COMMENT) {
                 if (isset($token[Tokenizer::NAME])) {
                     list($name, $isDynamic) = $this->getDynamicName($token);
                     if ($isDynamic) {
@@ -149,11 +149,11 @@ class Parser
                         throw new SyntaxException($msg, $token);
                     }
 
-                    $sameName = $token[Tokenizer::NAME] !== $parent[Tokenizer::NAME];
+                    $sameName = $token[Tokenizer::NAME] != $parent[Tokenizer::NAME];
                     $tokenDynamic = isset($token[Tokenizer::DYNAMIC]) && $token[Tokenizer::DYNAMIC];
                     $parentDynamic = isset($parent[Tokenizer::DYNAMIC]) && $parent[Tokenizer::DYNAMIC];
 
-                    if ($sameName || ($tokenDynamic !== $parentDynamic)) {
+                    if ($sameName || ($tokenDynamic != $parentDynamic)) {
                         $msg = sprintf(
                             'Nesting error: %s%s (on line %d) vs. %s%s (on line %d)',
                             $parentDynamic ? '*' : '',
@@ -175,7 +175,7 @@ class Parser
                 case Tokenizer::T_PARTIAL:
                     $this->checkIfTokenIsAllowedInParent($parent, $token);
                     //store the whitespace prefix for laters!
-                    if (($indent = $this->clearStandaloneLines($nodes, $tokens)) !== null) {
+                    if (($indent = $this->clearStandaloneLines($nodes, $tokens)) != null) {
                         $token[Tokenizer::INDENT] = $indent[Tokenizer::VALUE];
                     }
                     $nodes[] = $token;
@@ -184,10 +184,10 @@ class Parser
                 case Tokenizer::T_PARENT:
                     $this->checkIfTokenIsAllowedInParent($parent, $token);
                     $standaloneCandidate = false;
-                    if (($indent = $this->clearStandaloneEmptySectionLines($nodes, $tokens, $token)) === null) {
+                    if (($indent = $this->clearStandaloneEmptySectionLines($nodes, $tokens, $token)) == null) {
                         $indent = $this->clearStandaloneLines($nodes, $tokens);
                     }
-                    if ($indent !== null) {
+                    if ($indent != null) {
                         $token[Tokenizer::INDENT] = $indent[Tokenizer::VALUE];
                         $token[Tokenizer::STANDALONE] = true;
                     } elseif ($this->sectionStartsLine($nodes)) {
@@ -202,13 +202,13 @@ class Parser
 
                 case Tokenizer::T_BLOCK_VAR:
                     if ($this->inheritance) {
-                        if (isset($parent) && $parent[Tokenizer::TYPE] === Tokenizer::T_PARENT) {
+                        if (isset($parent) && $parent[Tokenizer::TYPE] == Tokenizer::T_PARENT) {
                             $token[Tokenizer::TYPE] = Tokenizer::T_BLOCK_ARG;
                         }
-                        if (($indent = $this->clearStandaloneEmptySectionLines($nodes, $tokens, $token)) === null) {
+                        if (($indent = $this->clearStandaloneEmptySectionLines($nodes, $tokens, $token)) == null) {
                             $indent = $this->clearStandaloneLines($nodes, $tokens);
                         }
-                        if ($indent !== null) {
+                        if ($indent != null) {
                             $token[Tokenizer::INDENT] = $indent[Tokenizer::VALUE];
                             $token[Tokenizer::STANDALONE] = true;
                         }
@@ -267,7 +267,7 @@ class Parser
         }
 
         $prev = null;
-        if ($this->lineTokens === 1) {
+        if ($this->lineTokens == 1) {
             // this is the second node on this line, so it can't be standalone
             // unless the previous node is whitespace.
             if ($prev = end($nodes)) {
@@ -279,7 +279,7 @@ class Parser
 
         if ($next = reset($tokens)) {
             // If we're on a new line, bail.
-            if ($next[Tokenizer::LINE] !== $this->lineNum) {
+            if ($next[Tokenizer::LINE] != $this->lineNum) {
                 return;
             }
 
@@ -288,10 +288,10 @@ class Parser
                 return;
             }
 
-            if (count($tokens) !== 1) {
+            if (count($tokens) != 1) {
                 // Unless it's the last token in the template, the next token
                 // must end in newline for this to be standalone.
-                if (substr($next[Tokenizer::VALUE], -1) !== "\n") {
+                if (substr($next[Tokenizer::VALUE], -1) != "\n") {
                     return;
                 }
             }
@@ -334,15 +334,15 @@ class Parser
         $end = $tokens[0];
         $next = $tokens[1];
 
-        if (!$this->tokenClosesSection($token, $end) || $next[Tokenizer::LINE] !== $this->lineNum || !$this->tokenIsWhitespace($next)) {
+        if (!$this->tokenClosesSection($token, $end) || $next[Tokenizer::LINE] != $this->lineNum || !$this->tokenIsWhitespace($next)) {
             return;
         }
 
-        if (count($tokens) !== 2 && substr($next[Tokenizer::VALUE], -1) !== "\n") {
+        if (count($tokens) != 2 && substr($next[Tokenizer::VALUE], -1) != "\n") {
             return;
         }
 
-        if ($token[Tokenizer::TYPE] === Tokenizer::T_PARENT) {
+        if ($token[Tokenizer::TYPE] == Tokenizer::T_PARENT) {
             array_splice($tokens, 1, 1);
         }
 
@@ -362,11 +362,11 @@ class Parser
         }
 
         $next = $tokens[0];
-        if ($next[Tokenizer::LINE] !== $this->lineNum || !$this->tokenIsWhitespace($next)) {
+        if ($next[Tokenizer::LINE] != $this->lineNum || !$this->tokenIsWhitespace($next)) {
             return;
         }
 
-        if (count($tokens) !== 1 && substr($next[Tokenizer::VALUE], -1) !== "\n") {
+        if (count($tokens) != 1 && substr($next[Tokenizer::VALUE], -1) != "\n") {
             return;
         }
 
@@ -382,11 +382,11 @@ class Parser
      */
     private function sectionStartsLine(array $nodes)
     {
-        if ($this->lineTokens === 0) {
+        if ($this->lineTokens == 0) {
             return true;
         }
 
-        if ($this->lineTokens !== 1) {
+        if ($this->lineTokens != 1) {
             return false;
         }
 
@@ -404,7 +404,7 @@ class Parser
      */
     private function clearStandalonePrefix(array &$nodes)
     {
-        if ($this->lineTokens === 1) {
+        if ($this->lineTokens == 1) {
             return array_pop($nodes);
         }
 
@@ -424,7 +424,7 @@ class Parser
     private function parentHasStandaloneBody(array $node)
     {
         foreach ($node[Tokenizer::NODES] as $child) {
-            if ($child[Tokenizer::TYPE] === Tokenizer::T_TEXT) {
+            if ($child[Tokenizer::TYPE] == Tokenizer::T_TEXT) {
                 if (!$this->tokenIsWhitespace($child)) {
                     return false;
                 }
@@ -432,7 +432,7 @@ class Parser
                 continue;
             }
 
-            if ($child[Tokenizer::TYPE] !== Tokenizer::T_BLOCK_ARG || !isset($child[Tokenizer::STANDALONE])) {
+            if ($child[Tokenizer::TYPE] != Tokenizer::T_BLOCK_ARG || !isset($child[Tokenizer::STANDALONE])) {
                 return false;
             }
         }
@@ -464,15 +464,15 @@ class Parser
      */
     private function tokenClosesSection(array $open, array $end)
     {
-        if ($end[Tokenizer::TYPE] !== Tokenizer::T_END_SECTION || $end[Tokenizer::LINE] !== $this->lineNum) {
+        if ($end[Tokenizer::TYPE] != Tokenizer::T_END_SECTION || $end[Tokenizer::LINE] != $this->lineNum) {
             return false;
         }
 
-        $sameName = $end[Tokenizer::NAME] === $open[Tokenizer::NAME];
+        $sameName = $end[Tokenizer::NAME] == $open[Tokenizer::NAME];
         $endDynamic = isset($end[Tokenizer::DYNAMIC]) && $end[Tokenizer::DYNAMIC];
         $openDynamic = isset($open[Tokenizer::DYNAMIC]) && $open[Tokenizer::DYNAMIC];
 
-        return $sameName && $endDynamic === $openDynamic;
+        return $sameName && $endDynamic == $openDynamic;
     }
 
     /**
@@ -484,7 +484,7 @@ class Parser
      */
     private function tokenIsWhitespace(array $token)
     {
-        if ($token[Tokenizer::TYPE] === Tokenizer::T_TEXT) {
+        if ($token[Tokenizer::TYPE] == Tokenizer::T_TEXT) {
             return preg_match('/^\s*$/', $token[Tokenizer::VALUE]);
         }
 
@@ -500,7 +500,7 @@ class Parser
      */
     private function checkIfTokenIsAllowedInParent($parent, array $token)
     {
-        if (isset($parent) && $parent[Tokenizer::TYPE] === Tokenizer::T_PARENT) {
+        if (isset($parent) && $parent[Tokenizer::TYPE] == Tokenizer::T_PARENT) {
             throw new SyntaxException('Illegal content in < parent tag', $token);
         }
     }

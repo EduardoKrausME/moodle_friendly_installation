@@ -9,9 +9,9 @@ if (Auth::check()) {
 }
 
 $error = null;
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $username = trim((string)($_POST['username'] ?? ''));
-    $password = (string)($_POST['password'] ?? '');
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    $username = trim($_POST['username'] ?? '');
+    $password = $_POST['password'] ?? '';
     if (Auth::attempt($username, $password)) {
         redirect_to('/');
     }
@@ -20,7 +20,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 render_header(t('login.title'));
 echo render_app_template('page/login', [
-    'has_error' => $error !== null,
+    'has_error' => $error != null,
     'error' => $error,
     'username' => 'admin',
 ]);

@@ -49,11 +49,11 @@ class Auth {
         $loggeduser = null;
 
         foreach ($users as &$user) {
-            if (($user['username'] ?? '') !== $username) {
+            if (($user['username'] ?? '') != $username) {
                 continue;
             }
 
-            $stored = (string) ($user['password'] ?? '');
+            $stored = $user['password'] ?? '';
             $info = password_get_info($stored);
             $valid = false;
 

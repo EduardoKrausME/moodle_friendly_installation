@@ -7,7 +7,7 @@ class JobManager {
         $jobs = JsonStorage::read(app_config_path("/data/jobs.json"), []);
         usort(
             $jobs,
-            static fn(array $a, array $b): int => strcmp((string) ($b['created_at'] ?? ''), (string) ($a['created_at'] ?? ''))
+            static fn(array $a, array $b): int => strcmp(($b['created_at'] ?? ''), ($a['created_at'] ?? ''))
         );
         return $jobs;
     }
@@ -46,7 +46,7 @@ class JobManager {
             'type' => 'app_build',
             'status' => 'pending',
             'domain' => $data['domain'],
-            'moodle_url' => (string) ($data['moodle_url'] ?? ''),
+            'moodle_url' => $data['moodle_url'] ?? '',
             'package_uid' => $data['package_uid'],
             'package_name' => $data['package_name'],
             'statusbarbackgroundcolor' => $data['statusbarbackgroundcolor'],
@@ -72,7 +72,7 @@ class JobManager {
         JsonStorage::update(
             app_config_path("/data/jobs.json"), static function(array $jobs) use ($id, $callback, &$updated): array {
             foreach ($jobs as &$job) {
-                if (($job['id'] ?? '') === $id) {
+                if (($job['id'] ?? '') == $id) {
                     $job = $callback($job);
                     $job['updated_at'] = now_iso();
                     $updated = $job;
@@ -91,15 +91,15 @@ class JobManager {
         $pendingjobs = [];
 
         foreach ($jobs as $job) {
-            $status = (string) ($job['status'] ?? '');
-            $type = (string) ($job['type'] ?? '');
+            $status = $job['status'] ?? '';
+            $type = $job['type'] ?? '';
 
-            if ($type === 'install_moodle' && in_array($status, ['pending', 'waiting_dns'], true)) {
+            if ($type == 'install_moodle' && in_array($status, ['pending', 'waiting_dns'], true)) {
                 $pendingjobs[] = $job;
                 continue;
             }
 
-            if ($type === 'app_build' && $status === 'pending') {
+            if ($type == 'app_build' && $status == 'pending') {
                 $pendingjobs[] = $job;
             }
         }

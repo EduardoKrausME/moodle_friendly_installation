@@ -13,7 +13,7 @@ class MoodleBranchProvider {
                 continue;
             }
 
-            $version = (int) $matches[1];
+            $version = $matches[1];
             if ($version < $minimumversion) {
                 continue;
             }
@@ -40,7 +40,7 @@ class MoodleBranchProvider {
 
         for ($page = 1; $page <= 10; $page++) {
             $payload = self::fetchUrl(self::GITHUB_BRANCHES_URL . '?per_page=100&page=' . $page);
-            if ($payload === null) {
+            if ($payload == null) {
                 break;
             }
 
@@ -78,10 +78,10 @@ class MoodleBranchProvider {
             ]);
 
             $response = curl_exec($curl);
-            $statuscode = (int) curl_getinfo($curl, CURLINFO_RESPONSE_CODE);
+            $statuscode = curl_getinfo($curl, CURLINFO_RESPONSE_CODE);
             curl_close($curl);
 
-            if (is_string($response) && $response !== '' && $statuscode >= 200 && $statuscode < 300) {
+            if (is_string($response) && $response != '' && $statuscode >= 200 && $statuscode < 300) {
                 return $response;
             }
 
@@ -100,6 +100,6 @@ class MoodleBranchProvider {
         ]);
 
         $response = @file_get_contents($url, false, $context);
-        return is_string($response) && $response !== '' ? $response : null;
+        return is_string($response) && $response != '' ? $response : null;
     }
 }
