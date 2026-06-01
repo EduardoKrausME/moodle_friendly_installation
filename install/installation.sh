@@ -3,15 +3,13 @@ set -Eeuo pipefail
 IFS=$'\n\t'
 
 # Moodle Friendly Installation bootstrap.
-# Detects the operating system family and delegates the installation to the family installer.
+# Clones the full project into /home/admin.moodle and delegates the installation
+# to the local Debian/Ubuntu or RedHat/Fedora installer.
 # Usage:
 #   curl -fsSL https://raw.githubusercontent.com/EduardoKrausME/moodle_friendly_installation/refs/heads/master/install/installation.sh | sudo bash
-#
-# When this file is executed from a cloned/unzipped repository, it uses the local
-# install/installation-*.sh file. When executed through curl, it downloads the
-# family installer to a temporary file and executes it from there.
 
-RAW_BASE_URL="https://raw.githubusercontent.com/EduardoKrausME/moodle_friendly_installation/refs/heads/master/install"
+REPO_URL="${REPO_URL:-https://github.com/EduardoKrausME/moodle_friendly_installation.git}"
+REPO_BRANCH="${1:-${REPO_BRANCH:-master}}"
 
 log() {
     printf '\033[1;32m==>\033[0m %s\n' "$*"
@@ -26,17 +24,50 @@ die() {
     exit 1
 }
 
+need_root() {
+    if [[ "${EUID}" -ne 0 ]]; then
+        die "Run as root: curl -fsSL <url> | sudo bash"
+    fi
+}
+
 command_exists() {
     command -v "$1" >/dev/null 2>&1
 }
 
-script_dir() {
-    local src="${BASH_SOURCE[0]:-}"
-    if [[ -n "${src}" && -f "${src}" ]]; then
-        cd -- "$(dirname -- "${src}")" >/dev/null 2>&1 && pwd -P
+detect_package_manager() {
+    if command_exists apt-get; then
+        printf 'apt-get'
+    elif command_exists dnf; then
+        printf 'dnf'
+    elif command_exists yum; then
+        printf 'yum'
+    else
+        die "Could not find apt-get, dnf or yum to install bootstrap dependencies."
+    fi
+}
+
+install_bootstrap_dependencies() {
+    local pkg_manager
+    pkg_manager="$(detect_package_manager)"
+
+    if command_exists git && command_exists curl; then
         return 0
     fi
-    return 1
+
+    log "Installing bootstrap dependencies"
+    case "${pkg_manager}" in
+        apt-get)
+            export DEBIAN_FRONTEND=noninteractive
+            apt-get update
+            apt-get install -y git curl ca-certificates
+            ;;
+        dnf)
+            dnf install -y git curl ca-certificates
+            ;;
+        yum)
+            yum install -y git curl ca-certificates
+            ;;
+    esac
 }
 
 detect_installer() {
@@ -61,53 +92,74 @@ detect_installer() {
     esac
 }
 
-run_installer_file() {
-    local installer_path="$1"
-    shift || true
+clone_project() {
+    log "Cloning the project into /home/admin.moodle from ${REPO_URL} (${REPO_BRANCH})"
 
-    if [[ "${EUID}" -eq 0 ]]; then
-        bash "${installer_path}" "$@"
-        return
+    local tmpdir=""
+    tmpdir="$(mktemp -d)"
+    local config_backup="${tmpdir}/config.php"
+    local users_backup="${tmpdir}/users.json"
+
+    if [[ -f "/home/admin.moodle/public/config.php" ]]; then
+        cp -a "/home/admin.moodle/public/config.php" "${config_backup}"
+    fi
+    if [[ -f "/home/admin.moodle/data/users.json" ]]; then
+        cp -a "/home/admin.moodle/data/users.json" "${users_backup}"
     fi
 
-    command_exists sudo || die "This installer must run as root and sudo was not found. Run it as root or install sudo."
-    sudo bash "${installer_path}" "$@"
+    if [[ -d "/home/admin.moodle/.git" ]]; then
+        log "Updating existing Git checkout in /home/admin.moodle"
+        git -C "/home/admin.moodle" remote set-url origin "${REPO_URL}" || true
+        git -C "/home/admin.moodle" fetch --depth 1 origin "${REPO_BRANCH}" || die "Failed to fetch ${REPO_BRANCH} from ${REPO_URL}."
+        git -C "/home/admin.moodle" checkout -B "${REPO_BRANCH}" FETCH_HEAD || die "Failed to checkout ${REPO_BRANCH}."
+        git -C "/home/admin.moodle" reset --hard FETCH_HEAD || die "Failed to reset /home/admin.moodle."
+    else
+        if [[ -e "/home/admin.moodle" ]]; then
+            local backup_dir="/home/admin.moodle.backup.$(date +%Y%m%d%H%M%S)"
+            warn "/home/admin.moodle already exists and is not a Git checkout. Moving it to ${backup_dir}."
+            mv "/home/admin.moodle" "${backup_dir}"
+        fi
+
+        mkdir -p "$(dirname "/home/admin.moodle")"
+        git clone --depth 1 --branch "${REPO_BRANCH}" "${REPO_URL}" "/home/admin.moodle" || die "Failed to clone ${REPO_URL}."
+    fi
+
+    if [[ -f "${config_backup}" ]]; then
+        mkdir -p "/home/admin.moodle/public"
+        cp -a "${config_backup}" "/home/admin.moodle/public/config.php"
+        log "Preserved existing public/config.php"
+    fi
+    if [[ -f "${users_backup}" ]]; then
+        mkdir -p "/home/admin.moodle/data"
+        cp -a "${users_backup}" "/home/admin.moodle/data/users.json"
+        log "Preserved existing data/users.json"
+    fi
+
+    [[ -f "/home/admin.moodle/public/app/bootstrap.php" ]] || die "Invalid project clone: public/app/bootstrap.php was not found."
+    [[ -d "/home/admin.moodle/install" ]] || die "Invalid project clone: install/ folder was not found."
 }
 
-run_installer() {
+run_family_installer() {
     local installer="$1"
-    shift || true
+    local installer_path="/home/admin.moodle/install/${installer}"
 
-    local local_dir=""
-    if local_dir="$(script_dir 2>/dev/null || true)" && [[ -n "${local_dir}" && -f "${local_dir}/${installer}" ]]; then
-        log "Detected installer: ${installer}"
-        log "Running local installer: ${local_dir}/${installer}"
-        run_installer_file "${local_dir}/${installer}" "$@"
-        return
-    fi
+    [[ -f "${installer_path}" ]] || die "Installer file not found: ${installer_path}"
+    chmod +x "${installer_path}"
 
-    local url="${RAW_BASE_URL}/${installer}"
-    local tmpfile=""
-    tmpfile="$(mktemp)"
-
-    log "Detected installer: ${installer}"
-    log "Downloading installer: ${url}"
-    curl -fsSL "${url}" -o "${tmpfile}" || {
-        rm -f "${tmpfile}"
-        die "Failed to download ${url}"
-    }
-    chmod +x "${tmpfile}"
-
-    local rc=0
-    run_installer_file "${tmpfile}" "$@" || rc=$?
-    rm -f "${tmpfile}"
-    return "${rc}"
+    export REPO_URL REPO_BRANCH
+    log "Running ${installer_path}"
+    exec bash "${installer_path}" "${REPO_BRANCH}"
 }
 
 main() {
+    need_root
+    install_bootstrap_dependencies
+
     local installer
     installer="$(detect_installer)"
-    run_installer "${installer}" "$@"
+
+    clone_project
+    run_family_installer "${installer}"
 }
 
 main "$@"
