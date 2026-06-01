@@ -225,9 +225,8 @@ class SiteManager {
 
     private static function checkWebServerConfig(string $type, array $site): array {
         $domain = $site['domain'] ?? '';
-        $dir = $type == 'nginx' ? '/etc/nginx/sites-enabled' : '/etc/httpd/sites-enabled';
         $label = $type == 'nginx' ? 'NGINX' : 'APACHE';
-        $file = "{$dir}/{$domain}.conf";
+        $file = self::webServerConfigPath($type, $domain);
 
         if (!is_file($file)) {
             return [
@@ -277,6 +276,50 @@ class SiteManager {
             'message' => I18n::get('diagnostic.webserver_domain_missing', ['label' => $label]),
             'path' => $file,
         ];
+    }
+
+    private static function webServerConfigPath(string $type, string $domain): string {
+        if ($type == 'nginx') {
+            return "/etc/nginx/sites-enabled/{$domain}.conf";
+        }
+
+        return match (self::detectOperatingSystem()) {
+            'debian' => "/etc/apache2/sites-enabled/{$domain}.conf",
+            'redhat' => "/etc/httpd/sites-enabled/{$domain}.conf",
+            default => is_dir('/etc/apache2/sites-enabled')
+                ? "/etc/apache2/sites-enabled/{$domain}.conf"
+                : "/etc/httpd/sites-enabled/{$domain}.conf",
+        };
+    }
+
+    private static function detectOperatingSystem(): string {
+        $release = self::readOsRelease();
+        $id = strtolower((string) ($release['ID'] ?? ''));
+        $idlike = strtolower((string) ($release['ID_LIKE'] ?? ''));
+        $tokens = preg_split('/\s+/', trim("{$id} {$idlike}")) ?: [];
+
+        if (array_intersect($tokens, ['debian', 'ubuntu'])) {
+            return 'debian';
+        }
+
+        if (array_intersect($tokens, ['rhel', 'fedora', 'centos', 'rocky', 'almalinux'])) {
+            return 'redhat';
+        }
+
+        return 'unknown';
+    }
+
+    private static function readOsRelease(): array {
+        foreach (['/etc/os-release', '/usr/lib/os-release'] as $file) {
+            if (!is_readable($file)) {
+                continue;
+            }
+
+            $release = parse_ini_file($file, false, INI_SCANNER_RAW);
+            return is_array($release) ? $release : [];
+        }
+
+        return [];
     }
 
     private static function checkDns(string $domain): array {

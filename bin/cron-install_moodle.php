@@ -55,6 +55,48 @@ function appendJobLog(array $job, string $message, string $level = 'info'): void
     file_put_contents($logfile, $line . PHP_EOL, FILE_APPEND | LOCK_EX);
 }
 
+function apacheConfPath(string $domain): string {
+    $os = detectOperatingSystem();
+
+    return match ($os) {
+        'debian' => "/etc/apache2/sites-enabled/{$domain}.conf",
+        'redhat' => "/etc/httpd/sites-enabled/{$domain}.conf",
+        default => is_dir('/etc/apache2/sites-enabled')
+            ? "/etc/apache2/sites-enabled/{$domain}.conf"
+            : "/etc/httpd/sites-enabled/{$domain}.conf",
+    };
+}
+
+function detectOperatingSystem(): string {
+    $release = readOsRelease();
+    $id = strtolower((string) ($release['ID'] ?? ''));
+    $idlike = strtolower((string) ($release['ID_LIKE'] ?? ''));
+    $tokens = preg_split('/\s+/', trim("{$id} {$idlike}")) ?: [];
+
+    if (array_intersect($tokens, ['debian', 'ubuntu'])) {
+        return 'debian';
+    }
+
+    if (array_intersect($tokens, ['rhel', 'fedora', 'centos', 'rocky', 'almalinux'])) {
+        return 'redhat';
+    }
+
+    return 'unknown';
+}
+
+function readOsRelease(): array {
+    $files = ['/etc/os-release', '/usr/lib/os-release'];
+
+    foreach ($files as $file) {
+        if (is_readable($file)) {
+            $release = parse_ini_file($file, false, INI_SCANNER_RAW);
+            return is_array($release) ? $release : [];
+        }
+    }
+
+    return [];
+}
+
 function executeInstallJob(array $job): array {
     $domain =$job["domain"];
     $base = "/home/{$domain}";
@@ -65,7 +107,7 @@ function executeInstallJob(array $job): array {
     $dbuser = dbUser($domain);
     $dbpass = bin2hex(random_bytes(10)) . "A#";
 
-    $apacheconf = "/etc/httpd/sites-enabled/{$domain}.conf";
+    $apacheconf = apacheConfPath($domain);
     $nginxconf = "/etc/nginx/sites-enabled/{$domain}.conf";
     $cronfile = "/etc/cron.d/moodle-{$domain}";
     $configfile = "{$moodledir}/config.php";
