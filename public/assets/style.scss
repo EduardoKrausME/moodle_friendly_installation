@@ -551,28 +551,6 @@ small {
         margin: 14px 0 0;
     }
 }
-.div_scroll {
-    //max-height: 300px;
-    //overflow-y: auto;
-    //padding-right: 8px;
-    //background: linear-gradient(to bottom, transparent, 80%, rgba(0, 0, 0, 0.3)) bottom / 100% 40px no-repeat;
-    //scrollbar-width: thin;
-    //scrollbar-color: #999999 #f1f1f1;
-}
-.div_scroll::-webkit-scrollbar {
-    width: 10px;
-}
-.div_scroll::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border-radius: 10px;
-}
-.div_scroll::-webkit-scrollbar-thumb {
-    background: #999999;
-    border-radius: 10px;
-}
-.div_scroll::-webkit-scrollbar-thumb:hover {
-    background: #666666;
-}
 .debug-control {
     display: flex;
     justify-content: space-between;

@@ -66,7 +66,6 @@ rm -rf admin/tool/moodlenet message/output/airnotifier search/engine/solr files/
 
 log "Installing Moodle database"
 if [ ! -f "{{BASE_DIR}}/moodledata/.mylearn-installed" ]; then
-  echo "<div class=div_scroll>"
     sudo -u "{{APACHE_USER}}" "{{PHP_BIN}}" "{{BASE_DIR}}/moodle/admin/cli/install_database.php" \
         --agree-license \
         --fullname="{{SITE_FULLNAME}}" \
@@ -77,13 +76,10 @@ if [ ! -f "{{BASE_DIR}}/moodledata/.mylearn-installed" ]; then
         --adminpass={{ADMIN_PASS_SH}} \
         --adminemail="{{ADMIN_EMAIL}}"
     touch "{{BASE_DIR}}/moodledata/.mylearn-installed"
-
-    echo "</div>"
 fi
 
 log "Install Plugins"
 
-echo "<div class=div_scroll>"
 git clone --depth 1 https://github.com/EduardoKrausME/moodle-theme_eadtraining        {{BASE_DIR}}/moodle/public/theme/eadtraining
 git clone --depth 1 https://github.com/EduardoKrausME/moodle-message_kopereemail      {{BASE_DIR}}/moodle/public/message/output/kopereemail
 
@@ -138,8 +134,6 @@ sudo -u "{{APACHE_USER}}" "{{PHP_BIN}}" {{BASE_DIR}}/moodle/admin/cli/cfg.php --
 sudo -u "{{APACHE_USER}}" "{{PHP_BIN}}" {{BASE_DIR}}/moodle/admin/cli/cfg.php --name=site_regioncode      --set=- --component=hub
 sudo -u "{{APACHE_USER}}" "{{PHP_BIN}}" {{BASE_DIR}}/moodle/admin/cli/cfg.php --name=site_geolocation     --set=. --component=hub
 sudo -u "{{APACHE_USER}}" "{{PHP_BIN}}" {{BASE_DIR}}/moodle/admin/cli/cfg.php --name=site_street          --set=. --component=hub
-
-echo "</div>"
 
 log "Fixing owner and permissions"
 chown -R "{{APACHE_USER}}:{{APACHE_GROUP}}" "{{BASE_DIR}}"
