@@ -11,6 +11,7 @@ INSTALL_DIR="${INSTALL_DIR:-/home/admin.moodle}"
 REPO_URL="${REPO_URL:-https://github.com/EduardoKrausME/moodle_friendly_installation.git}"
 REPO_BRANCH="${1:-${REPO_BRANCH:-master}}"
 NONINTERACTIVE="${NONINTERACTIVE:-0}"
+TTY_IN_FD_OPENED=0
 
 OS_ID=""
 OS_VERSION_ID=""
@@ -78,6 +79,22 @@ print("'" + s + "'")
 PY
 }
 
+open_interactive_terminal() {
+    if [[ "${NONINTERACTIVE}" == "1" ]]; then
+        return 0
+    fi
+
+    if [[ ! -e /dev/tty ]]; then
+        die "Interactive installation requires a TTY. Run from SSH/terminal, or use NONINTERACTIVE=1 with DB_ENGINE, PANEL_DOMAIN and DB_ROOT_PASS."
+    fi
+
+    # Keep a stable terminal handle. This avoids prompts disappearing or read blocking
+    # when the installer itself was started through curl | sudo bash.
+    exec 3</dev/tty || die "Could not open /dev/tty for reading."
+    exec 4>/dev/tty || die "Could not open /dev/tty for writing."
+    TTY_IN_FD_OPENED=1
+}
+
 prompt_text() {
     local var_name="$1"
     local label="$2"
@@ -85,19 +102,19 @@ prompt_text() {
     local value=""
 
     if [[ "${NONINTERACTIVE}" == "1" ]]; then
-        value="${default_value}"
+        value="${!var_name:-${default_value}}"
     else
-        [[ -r /dev/tty ]] || die "Interactive input requires a terminal. Run from a terminal or set NONINTERACTIVE=1 with the required environment variables."
+        [[ "${TTY_IN_FD_OPENED}" == "1" ]] || open_interactive_terminal
 
         if [[ -n "${default_value}" ]]; then
-            printf '%s [%s]: ' "${label}" "${default_value}" > /dev/tty
-            if ! IFS= read -r value < /dev/tty; then
+            printf '%s [%s]: ' "${label}" "${default_value}" >&4
+            if ! IFS= read -r value <&3; then
                 die "Could not read input from the terminal."
             fi
             value="${value:-${default_value}}"
         else
-            printf '%s: ' "${label}" > /dev/tty
-            if ! IFS= read -r value < /dev/tty; then
+            printf '%s: ' "${label}" >&4
+            if ! IFS= read -r value <&3; then
                 die "Could not read input from the terminal."
             fi
         fi
@@ -115,13 +132,13 @@ prompt_secret() {
         value="${!var_name:-}"
         [[ -n "${value}" ]] || die "Variable ${var_name} must be defined when NONINTERACTIVE=1."
     else
-        [[ -r /dev/tty ]] || die "Interactive input requires a terminal. Run from a terminal or set NONINTERACTIVE=1 with the required environment variables."
-        printf '%s: ' "${label}" > /dev/tty
-        if ! IFS= read -r -s value < /dev/tty; then
-            printf '\n' > /dev/tty
+        [[ "${TTY_IN_FD_OPENED}" == "1" ]] || open_interactive_terminal
+        printf '%s: ' "${label}" >&4
+        if ! IFS= read -r -s value <&3; then
+            printf '\n' >&4
             die "Could not read password from the terminal."
         fi
-        printf '\n' > /dev/tty
+        printf '\n' >&4
     fi
 
     printf -v "${var_name}" '%s' "${value}"
@@ -249,6 +266,7 @@ PY
 }
 
 ask_install_options() {
+    log "Starting interactive installer questions"
     local db_default="mariadb"
     local choice=""
 
@@ -927,6 +945,7 @@ EOF
 main() {
     need_root
     detect_os
+    open_interactive_terminal
     install_base_packages
     fetch_moodle_environment
     ask_install_options

@@ -6,6 +6,10 @@ IFS=$'\n\t'
 # Detects the operating system and delegates the installation to the specific installer.
 # Usage:
 #   curl -fsSL https://raw.githubusercontent.com/EduardoKrausME/moodle_friendly_installation/refs/heads/master/install/installation.sh | sudo bash
+#
+# When this file is executed from a cloned/unzipped repository, it uses the local
+# install/installation-*.sh file. When executed through curl, it downloads the
+# specific installer to a temporary file and executes it from there.
 
 RAW_BASE_URL="https://raw.githubusercontent.com/EduardoKrausME/moodle_friendly_installation/refs/heads/master/install"
 
@@ -24,6 +28,15 @@ die() {
 
 command_exists() {
     command -v "$1" >/dev/null 2>&1
+}
+
+script_dir() {
+    local src="${BASH_SOURCE[0]:-}"
+    if [[ -n "${src}" && -f "${src}" ]]; then
+        cd -- "$(dirname -- "${src}")" >/dev/null 2>&1 && pwd -P
+        return 0
+    fi
+    return 1
 }
 
 detect_installer() {
@@ -51,33 +64,53 @@ detect_installer() {
     esac
 }
 
-run_remote_installer() {
-    local installer="$1"
+run_installer_file() {
+    local installer_path="$1"
     shift || true
 
-    local url="${RAW_BASE_URL}/${installer}"
-    local tmpfile=""
-    tmpfile="$(mktemp)"
-    trap 'rm -f "${tmpfile}"' EXIT
-
-    log "Detected installer: ${installer}"
-    log "Downloading: ${url}"
-    curl -fsSL "${url}" -o "${tmpfile}" || die "Failed to download ${url}"
-    chmod +x "${tmpfile}"
-
     if [[ "${EUID}" -eq 0 ]]; then
-        bash "${tmpfile}" "$@"
+        bash "${installer_path}" "$@"
         return
     fi
 
     command_exists sudo || die "This installer must run as root and sudo was not found. Run it as root or install sudo."
-    sudo bash "${tmpfile}" "$@"
+    sudo bash "${installer_path}" "$@"
+}
+
+run_installer() {
+    local installer="$1"
+    shift || true
+
+    local local_dir=""
+    if local_dir="$(script_dir 2>/dev/null || true)" && [[ -n "${local_dir}" && -f "${local_dir}/${installer}" ]]; then
+        log "Detected installer: ${installer}"
+        log "Running local installer: ${local_dir}/${installer}"
+        run_installer_file "${local_dir}/${installer}" "$@"
+        return
+    fi
+
+    local url="${RAW_BASE_URL}/${installer}"
+    local tmpfile=""
+    tmpfile="$(mktemp)"
+
+    log "Detected installer: ${installer}"
+    log "Downloading installer: ${url}"
+    curl -fsSL "${url}" -o "${tmpfile}" || {
+        rm -f "${tmpfile}"
+        die "Failed to download ${url}"
+    }
+    chmod +x "${tmpfile}"
+
+    local rc=0
+    run_installer_file "${tmpfile}" "$@" || rc=$?
+    rm -f "${tmpfile}"
+    return "${rc}"
 }
 
 main() {
     local installer
     installer="$(detect_installer)"
-    run_remote_installer "${installer}" "$@"
+    run_installer "${installer}" "$@"
 }
 
 main "$@"
