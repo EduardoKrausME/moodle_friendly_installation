@@ -52,15 +52,15 @@ MARIADB_REQUIRED=""
 MYSQL_REQUIRED=""
 
 log() {
-    printf '\033[1;32m==>\033[0m %s\n' "$*"
+    printf '\n\n\n\033[1;32m==>\033[0m %s\n' "$*"
 }
 
 warn() {
-    printf '\033[1;33mWARN:\033[0m %s\n' "$*" >&2
+    printf '\n\n\n\033[1;33mWARN:\033[0m %s\n' "$*" >&2
 }
 
 die() {
-    printf '\033[1;31mERROR:\033[0m %s\n' "$*" >&2
+    printf '\n\n\n\033[1;31mERROR:\033[0m %s\n' "$*" >&2
     exit 1
 }
 
