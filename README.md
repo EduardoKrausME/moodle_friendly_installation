@@ -64,8 +64,6 @@ Rename the file `config-example.php` to `config.php` and edit the file. The most
 "mysql_admin_host" => "localhost",
 "mysql_admin_user" => "root",
 "mysql_admin_pass" => "",
-"apache_sites_enabled" => "/etc/httpd/sites-enabled",
-"nginx_sites_enabled" => "/etc/nginx/sites-enabled",
 ````
 
 Adjust these paths according to the server. The panel was written assuming that Moodle installations are located in `/home/[domain]/moodle` and Moodledata in `/home/[domain]/moodledata`.
