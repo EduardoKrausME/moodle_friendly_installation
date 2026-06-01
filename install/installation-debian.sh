@@ -22,14 +22,12 @@ TTY_IN_FD_OPENED=0
 OS_ID=""
 OS_VERSION_ID=""
 OS_LIKE=""
-OS_FAMILY=""
-PKG_MANAGER=""
-WEB_USER=""
-WEB_GROUP=""
-APACHE_SERVICE=""
-APACHE_SITES_DIR=""
-DEBIAN_APACHE_SITES_DIR="/etc/apache2/sites-enabled"
-REDHAT_APACHE_SITES_DIR="/etc/httpd/sites-enabled"
+OS_FAMILY="debian"
+PKG_MANAGER="apt"
+WEB_USER="www-data"
+WEB_GROUP="www-data"
+APACHE_SERVICE="apache2"
+APACHE_SITES_DIR="/etc/apache2/sites-enabled"
 NGINX_SITES_DIR="/etc/nginx/sites-enabled"
 PANEL_VHOST_FILE="admin.moodle.conf"
 PHP_SERIES=""
@@ -434,17 +432,7 @@ GENPASS
 }
 
 resolve_apache_sites_dir() {
-    case "${OS_FAMILY}" in
-        debian)
-            printf '%s\n' "${DEBIAN_APACHE_SITES_DIR}"
-            ;;
-        fedora|rhel)
-            printf '%s\n' "${REDHAT_APACHE_SITES_DIR}"
-            ;;
-        *)
-            printf '%s\n' "${APACHE_SITES_DIR:-${DEBIAN_APACHE_SITES_DIR}}"
-            ;;
-    esac
+    printf '%s\n' "${APACHE_SITES_DIR}"
 }
 
 detect_os() {
@@ -462,46 +450,27 @@ detect_os() {
             ;;
     esac
 
-    OS_FAMILY="debian"
-    PKG_MANAGER="apt"
-    WEB_USER="www-data"
-    WEB_GROUP="www-data"
-    APACHE_SERVICE="apache2"
-    APACHE_SITES_DIR="${DEBIAN_APACHE_SITES_DIR}"
-
     log "Detected system: ${OS_ID} ${OS_VERSION_ID} (${OS_FAMILY})"
 }
 pkg_update() {
-    if [[ "${OS_FAMILY}" == "debian" ]]; then
-        export DEBIAN_FRONTEND=noninteractive
-        apt-get update -y
-    else
-        ${PKG_MANAGER} makecache -y || true
-    fi
+    export DEBIAN_FRONTEND=noninteractive
+    apt-get update -y
 }
 
 pkg_install() {
-    if [[ "${OS_FAMILY}" == "debian" ]]; then
-        export DEBIAN_FRONTEND=noninteractive
-        apt-get install -y "$@"
-    else
-        ${PKG_MANAGER} install -y "$@"
-    fi
+    export DEBIAN_FRONTEND=noninteractive
+    apt-get install -y "$@"
 }
 
 install_base_packages() {
     log "Installing base packages"
     pkg_update
-    if [[ "${OS_FAMILY}" == "debian" ]]; then
-        # Debian 13/Trixie no longer provides software-properties-common in stable.
-        # It is only needed on Ubuntu for add-apt-repository/ondrej/php.
-        pkg_install ca-certificates curl wget gnupg lsb-release unzip tar git dnsutils cron openssl python3 sed grep gawk coreutils debconf-utils whiptail
-        if [[ "${OS_ID}" == "ubuntu" ]]; then
-            pkg_install software-properties-common
-        fi
-    else
-        pkg_install ca-certificates curl wget gnupg2 unzip tar git bind-utils cronie openssl python3 sed grep gawk coreutils policycoreutils-python-utils || pkg_install ca-certificates curl wget gnupg2 unzip tar git bind-utils cronie openssl python3 sed grep gawk coreutils
-        systemctl enable --now crond >/dev/null 2>&1 || true
+
+    # Debian 13/Trixie no longer provides software-properties-common in stable.
+    # It is only needed on Ubuntu for add-apt-repository/ondrej/php.
+    pkg_install ca-certificates curl wget gnupg lsb-release unzip tar git dnsutils cron openssl python3 sed grep gawk coreutils debconf-utils whiptail
+    if [[ "${OS_ID}" == "ubuntu" ]]; then
+        pkg_install software-properties-common
     fi
 }
 

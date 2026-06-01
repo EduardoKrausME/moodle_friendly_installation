@@ -24,12 +24,10 @@ OS_VERSION_ID=""
 OS_LIKE=""
 OS_FAMILY=""
 PKG_MANAGER=""
-WEB_USER=""
-WEB_GROUP=""
-APACHE_SERVICE=""
-APACHE_SITES_DIR=""
-DEBIAN_APACHE_SITES_DIR="/etc/apache2/sites-enabled"
-REDHAT_APACHE_SITES_DIR="/etc/httpd/sites-enabled"
+WEB_USER="apache"
+WEB_GROUP="apache"
+APACHE_SERVICE="httpd"
+APACHE_SITES_DIR="/etc/httpd/sites-enabled"
 NGINX_SITES_DIR="/etc/nginx/sites-enabled"
 PANEL_VHOST_FILE="admin.moodle.conf"
 PHP_SERIES=""
@@ -378,20 +376,6 @@ print("".join(password))
 GENPASS
 }
 
-resolve_apache_sites_dir() {
-    case "${OS_FAMILY}" in
-        debian)
-            printf '%s\n' "${DEBIAN_APACHE_SITES_DIR}"
-            ;;
-        fedora|rhel)
-            printf '%s\n' "${REDHAT_APACHE_SITES_DIR}"
-            ;;
-        *)
-            printf '%s\n' "${APACHE_SITES_DIR:-${DEBIAN_APACHE_SITES_DIR}}"
-            ;;
-    esac
-}
-
 detect_os() {
     [[ -r /etc/os-release ]] || die "Could not detect the Linux distribution."
     # shellcheck source=/dev/null
@@ -419,40 +403,21 @@ detect_os() {
             die "This installer supports Fedora/CentOS/RHEL/AlmaLinux/Rocky only. Detected: ID=${OS_ID}, ID_LIKE=${OS_LIKE}. Use install/installation.sh to auto-select the correct installer."
             ;;
     esac
-    WEB_USER="apache"
-    WEB_GROUP="apache"
-    APACHE_SERVICE="httpd"
-    APACHE_SITES_DIR="${REDHAT_APACHE_SITES_DIR}"
-
     log "Detected system: ${OS_ID} ${OS_VERSION_ID} (${OS_FAMILY})"
 }
 pkg_update() {
-    if [[ "${OS_FAMILY}" == "debian" ]]; then
-        export DEBIAN_FRONTEND=noninteractive
-        apt-get update -y
-    else
-        ${PKG_MANAGER} makecache -y || true
-    fi
+    ${PKG_MANAGER} makecache -y || true
 }
 
 pkg_install() {
-    if [[ "${OS_FAMILY}" == "debian" ]]; then
-        export DEBIAN_FRONTEND=noninteractive
-        apt-get install -y "$@"
-    else
-        ${PKG_MANAGER} install -y "$@"
-    fi
+    ${PKG_MANAGER} install -y "$@"
 }
 
 install_base_packages() {
     log "Installing base packages"
     pkg_update
-    if [[ "${OS_FAMILY}" == "debian" ]]; then
-        pkg_install ca-certificates curl wget gnupg lsb-release software-properties-common unzip tar git dnsutils cron openssl python3 sed grep gawk coreutils debconf-utils whiptail
-    else
-        pkg_install ca-certificates curl wget gnupg2 unzip tar git bind-utils cronie openssl python3 sed grep gawk coreutils newt policycoreutils-python-utils || pkg_install ca-certificates curl wget gnupg2 unzip tar git bind-utils cronie openssl python3 sed grep gawk coreutils newt
-        systemctl enable --now crond >/dev/null 2>&1 || true
-    fi
+    pkg_install ca-certificates curl wget gnupg2 unzip tar git bind-utils cronie openssl python3 sed grep gawk coreutils newt policycoreutils-python-utils || pkg_install ca-certificates curl wget gnupg2 unzip tar git bind-utils cronie openssl python3 sed grep gawk coreutils newt
+    systemctl enable --now crond >/dev/null 2>&1 || true
 }
 
 fetch_moodle_environment() {
@@ -1009,7 +974,6 @@ install_bundled_nginx_files() {
 }
 
 ensure_sites_enabled_includes() {
-    APACHE_SITES_DIR="$(resolve_apache_sites_dir)"
     mkdir -p "${APACHE_SITES_DIR}" "${NGINX_SITES_DIR}"
 
     install_bundled_nginx_files
@@ -1190,7 +1154,6 @@ cleanup_legacy_panel_vhosts() {
 }
 
 write_apache_vhost() {
-    APACHE_SITES_DIR="$(resolve_apache_sites_dir)"
     local file="${APACHE_SITES_DIR}/${PANEL_VHOST_FILE}"
     cleanup_legacy_panel_vhosts "${APACHE_SITES_DIR}"
     local server_for_apache="${PANEL_DOMAIN:-${PUBLIC_IP}}"
