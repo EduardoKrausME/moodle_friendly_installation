@@ -22,7 +22,7 @@ fi
 
 if [ ! -d "{{BASE_DIR}}/moodle/.git" ]; then
     log "Cloning Moodle {{MOODLE_BRANCH}}"
-    git clone --quiet --depth 1 -b "{{MOODLE_BRANCH}}" "{{MOODLE_GIT_URL}}" "{{BASE_DIR}}/moodle"
+    git clone --quiet --depth 1 -b "{{MOODLE_BRANCH}}" https://github.com/moodle/moodle.git "{{BASE_DIR}}/moodle"
 else
     log "Moodle git checkout already exists. Fetching branch"
     git -C "{{BASE_DIR}}/moodle" fetch --all --prune
