@@ -5,7 +5,7 @@ IFS=$'\n\t'
 # Moodle Friendly Installation bootstrap.
 # Detects the operating system and delegates the installation to the specific installer.
 # Usage:
-#   curl -fsSL https://raw.githubusercontent.com/EduardoKrausME/moodle_friendly_installation/refs/heads/master/installation.sh | sudo bash
+#   curl -fsSL https://raw.githubusercontent.com/EduardoKrausME/moodle_friendly_installation/refs/heads/master/install/installation.sh | sudo bash
 
 RAW_BASE_URL="https://raw.githubusercontent.com/EduardoKrausME/moodle_friendly_installation/refs/heads/master/install"
 
@@ -56,16 +56,22 @@ run_remote_installer() {
     shift || true
 
     local url="${RAW_BASE_URL}/${installer}"
+    local tmpfile=""
+    tmpfile="$(mktemp)"
+    trap 'rm -f "${tmpfile}"' EXIT
+
     log "Detected installer: ${installer}"
-    log "Running: curl -fsSL ${url} | sudo bash"
+    log "Downloading: ${url}"
+    curl -fsSL "${url}" -o "${tmpfile}" || die "Failed to download ${url}"
+    chmod +x "${tmpfile}"
 
     if [[ "${EUID}" -eq 0 ]]; then
-        curl -fsSL "${url}" | bash -s -- "$@"
+        bash "${tmpfile}" "$@"
         return
     fi
 
     command_exists sudo || die "This installer must run as root and sudo was not found. Run it as root or install sudo."
-    curl -fsSL "${url}" | sudo bash -s -- "$@"
+    sudo bash "${tmpfile}" "$@"
 }
 
 main() {

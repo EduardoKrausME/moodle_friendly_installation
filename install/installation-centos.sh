@@ -87,11 +87,19 @@ prompt_text() {
     if [[ "${NONINTERACTIVE}" == "1" ]]; then
         value="${default_value}"
     else
+        [[ -r /dev/tty ]] || die "Interactive input requires a terminal. Run from a terminal or set NONINTERACTIVE=1 with the required environment variables."
+
         if [[ -n "${default_value}" ]]; then
-            read -r -p "${label} [${default_value}]: " value
+            printf '%s [%s]: ' "${label}" "${default_value}" > /dev/tty
+            if ! IFS= read -r value < /dev/tty; then
+                die "Could not read input from the terminal."
+            fi
             value="${value:-${default_value}}"
         else
-            read -r -p "${label}: " value
+            printf '%s: ' "${label}" > /dev/tty
+            if ! IFS= read -r value < /dev/tty; then
+                die "Could not read input from the terminal."
+            fi
         fi
     fi
 
@@ -107,8 +115,13 @@ prompt_secret() {
         value="${!var_name:-}"
         [[ -n "${value}" ]] || die "Variable ${var_name} must be defined when NONINTERACTIVE=1."
     else
-        read -r -s -p "${label}: " value
-        printf '\n'
+        [[ -r /dev/tty ]] || die "Interactive input requires a terminal. Run from a terminal or set NONINTERACTIVE=1 with the required environment variables."
+        printf '%s: ' "${label}" > /dev/tty
+        if ! IFS= read -r -s value < /dev/tty; then
+            printf '\n' > /dev/tty
+            die "Could not read password from the terminal."
+        fi
+        printf '\n' > /dev/tty
     fi
 
     printf -v "${var_name}" '%s' "${value}"
@@ -166,7 +179,7 @@ install_base_packages() {
     log "Installing base packages"
     pkg_update
     if [[ "${OS_FAMILY}" == "debian" ]]; then
-        pkg_install ca-certificates curl wget gnupg lsb-release software-properties-common unzip tar git dnsutils cron openssl python3 sed grep gawk coreutils
+        pkg_install ca-certificates curl wget gnupg lsb-release software-properties-common unzip tar git dnsutils cron openssl python3 sed grep gawk coreutils debconf-utils
     else
         pkg_install ca-certificates curl wget gnupg2 unzip tar git bind-utils cronie openssl python3 sed grep gawk coreutils policycoreutils-python-utils || pkg_install ca-certificates curl wget gnupg2 unzip tar git bind-utils cronie openssl python3 sed grep gawk coreutils
         systemctl enable --now crond >/dev/null 2>&1 || true
@@ -258,6 +271,12 @@ ask_install_options() {
 
     prompt_secret DB_ROOT_PASS "Database root password to save in config.php"
     [[ ${#DB_ROOT_PASS} -ge 8 ]] || die "The database root password must have at least 8 characters."
+    if [[ "${DB_ENGINE}" == "mysql" ]]; then
+        [[ "${DB_ROOT_PASS}" =~ [[:upper:]] ]] || die "For MySQL, the root password must contain at least one uppercase letter."
+        [[ "${DB_ROOT_PASS}" =~ [[:lower:]] ]] || die "For MySQL, the root password must contain at least one lowercase letter."
+        [[ "${DB_ROOT_PASS}" =~ [[:digit:]] ]] || die "For MySQL, the root password must contain at least one number."
+        [[ "${DB_ROOT_PASS}" =~ [^[:alnum:]] ]] || die "For MySQL, the root password must contain at least one special character."
+    fi
 }
 
 detect_public_ip() {
@@ -412,16 +431,67 @@ install_mariadb() {
     systemctl enable --now mariadb || systemctl enable --now mysql
 }
 
+setup_mysql_apt_repository() {
+    # Moodle 5.2+ currently requires MySQL 8.4. Ubuntu LTS repositories may still provide MySQL 8.0,
+    # so use Oracle's APT repository when the user chooses MySQL.
+    [[ "${OS_FAMILY}" == "debian" ]] || return 0
+
+    local codename=""
+    codename="$(lsb_release -sc 2>/dev/null || true)"
+    if [[ -z "${codename}" && -r /etc/os-release ]]; then
+        # shellcheck source=/dev/null
+        source /etc/os-release
+        codename="${VERSION_CODENAME:-}"
+    fi
+    [[ -n "${codename}" ]] || die "Could not detect the Ubuntu codename for the MySQL APT repository."
+
+    log "Configuring the official MySQL APT repository for MySQL ${MYSQL_REQUIRED:-8.4}"
+    mkdir -p /usr/share/keyrings
+    local key_tmp="/tmp/mysql-gpg-key.asc"
+    if ! curl -fsSL https://repo.mysql.com/RPM-GPG-KEY-mysql-2023 -o "${key_tmp}"; then
+        curl -fsSL https://repo.mysql.com/RPM-GPG-KEY-mysql-2022 -o "${key_tmp}" || die "Could not download the MySQL repository GPG key."
+    fi
+    gpg --dearmor < "${key_tmp}" > /usr/share/keyrings/mysql.gpg
+    chmod 0644 /usr/share/keyrings/mysql.gpg
+
+    cat > /etc/apt/sources.list.d/mysql-community.list <<MYSQLAPT
+# Added by Moodle Friendly Installation installer.
+deb [signed-by=/usr/share/keyrings/mysql.gpg] http://repo.mysql.com/apt/ubuntu/ ${codename} mysql-8.4-lts mysql-tools
+MYSQLAPT
+    apt-get update -y || die "Failed to update APT metadata after enabling the MySQL repository."
+}
+
+setup_mysql_yum_repository() {
+    [[ "${OS_FAMILY}" == "rhel" || "${OS_FAMILY}" == "fedora" ]] || return 0
+
+    local major="${OS_VERSION_ID%%.*}"
+    local platform=""
+    if [[ "${OS_FAMILY}" == "fedora" ]]; then
+        platform="fc${major}"
+    else
+        platform="el${major}"
+        ${PKG_MANAGER} -y module disable mysql >/dev/null 2>&1 || true
+    fi
+
+    log "Configuring the official MySQL Yum/DNF repository for MySQL ${MYSQL_REQUIRED:-8.4}"
+    pkg_install "https://repo.mysql.com/mysql84-community-release-${platform}-1.noarch.rpm" || warn "Could not install the MySQL repository RPM for ${platform}; trying the distribution repository."
+}
+
 install_mysql() {
     log "Installing MySQL >= ${MYSQL_REQUIRED:-8.4}"
 
     if [[ "${OS_FAMILY}" == "debian" ]]; then
-        # The official MySQL APT package is not stable by filename. Prefer distro package and validate version after installation.
+        setup_mysql_apt_repository
+        if command_exists debconf-set-selections; then
+            printf 'mysql-community-server mysql-community-server/root-pass password %s\n' "${DB_ROOT_PASS}" | debconf-set-selections || true
+            printf 'mysql-community-server mysql-community-server/re-root-pass password %s\n' "${DB_ROOT_PASS}" | debconf-set-selections || true
+        fi
         pkg_install mysql-server mysql-client || pkg_install default-mysql-server default-mysql-client
         DB_SERVICE="mysql"
         systemctl enable --now mysql || systemctl enable --now mysqld
     else
-        pkg_install mysql-server mysql || pkg_install community-mysql-server community-mysql
+        setup_mysql_yum_repository
+        pkg_install mysql-community-server mysql-community-client || pkg_install mysql-server mysql || pkg_install community-mysql-server community-mysql
         DB_SERVICE="mysqld"
         systemctl enable --now mysqld || systemctl enable --now mysql
     fi
@@ -468,35 +538,55 @@ FLUSH PRIVILEGES;
         run_mysql_password -e "${sql}" || warn "Could not apply full hardening through the password connection."
     else
         local current=""
+        local client
+        client="$(mysql_client)" || die "MySQL/MariaDB client was not found."
+
+        if [[ "${DB_ENGINE}" == "mysql" && -f /var/log/mysqld.log ]]; then
+            current="$(grep -i 'temporary password' /var/log/mysqld.log 2>/dev/null | tail -n1 | awk '{print $NF}' || true)"
+            if [[ -n "${current}" ]]; then
+                if MYSQL_PWD="${current}" "${client}" --connect-expired-password -uroot -e "${sql}" >/dev/null 2>&1; then
+                    return 0
+                fi
+            fi
+        fi
+
         if [[ "${NONINTERACTIVE}" == "1" ]]; then
             die "Could not authenticate to the database as root to apply the password."
         fi
-        read -r -s -p "Current database root password, if one already exists: " current
-        printf '\n'
-        local client
-        client="$(mysql_client)" || die "MySQL/MariaDB client was not found."
-        MYSQL_PWD="${current}" "${client}" -uroot -e "${sql}" || die "Failed to configure the database root password."
+        [[ -r /dev/tty ]] || die "Could not authenticate to the database and there is no terminal to ask the current root password."
+        printf 'Current database root password, if one already exists: ' > /dev/tty
+        if ! IFS= read -r -s current < /dev/tty; then
+            printf '\n' > /dev/tty
+            die "Could not read the current database root password."
+        fi
+        printf '\n' > /dev/tty
+        MYSQL_PWD="${current}" "${client}" --connect-expired-password -uroot -e "${sql}" || die "Failed to configure the database root password."
     fi
 }
 
 validate_database_version() {
-    local client version required label
+    local client version required label raw_version
     client="$(mysql_client)" || die "MySQL/MariaDB client was not found."
-    version="$(${client} --version | grep -oE '[0-9]+(\.[0-9]+){1,2}' | head -n1 || true)"
-    [[ -n "${version}" ]] || die "Could not validate the database version."
+    raw_version="$(${client} --version || true)"
 
     if [[ "${DB_ENGINE}" == "mariadb" ]]; then
         required="${MARIADB_REQUIRED:-10.11.0}"
         label="MariaDB"
+        version="$(printf '%s' "${raw_version}" | grep -oE 'Distrib[[:space:]]+[0-9]+(\.[0-9]+){1,2}' | grep -oE '[0-9]+(\.[0-9]+){1,2}' | head -n1 || true)"
+        if [[ -z "${version}" ]]; then
+            version="$(printf '%s' "${raw_version}" | grep -oE '[0-9]+(\.[0-9]+){1,2}[^[:space:]]*-MariaDB' | grep -oE '^[0-9]+(\.[0-9]+){1,2}' | head -n1 || true)"
+        fi
     else
         required="${MYSQL_REQUIRED:-8.4}"
         label="MySQL"
+        version="$(printf '%s' "${raw_version}" | grep -oE '[0-9]+(\.[0-9]+){1,2}' | head -n1 || true)"
     fi
 
+    [[ -n "${version}" ]] || die "Could not validate the database version. Raw output: ${raw_version}"
     if ! version_ge "${version}" "${required}"; then
         die "Installed ${label} (${version}) is lower than the Moodle requirement (${required}). Install a newer repository and run this installer again."
     fi
-    log "${label} ativo: ${version}"
+    log "${label} active: ${version}"
 }
 
 install_web_servers() {
@@ -560,7 +650,7 @@ fetch_panel() {
             rm -rf "${INSTALL_DIR}"
         else
             local overwrite=""
-            read -r -p "${INSTALL_DIR} already exists. Delete and reinstall? (yes/no) [no]: " overwrite
+            prompt_text overwrite "${INSTALL_DIR} already exists. Delete and reinstall? (yes/no)" "no"
             [[ "${overwrite}" == "yes" ]] || die "Installation canceled to avoid overwriting ${INSTALL_DIR}."
             rm -rf "${INSTALL_DIR}"
         fi
@@ -612,6 +702,10 @@ ensure_php_dependencies() {
 
 create_panel_config() {
     log "Generating panel public/config.php"
+    if [[ -f "${INSTALL_DIR}/public/config-example.php" && ! -f "${INSTALL_DIR}/public/config.php" ]]; then
+        mv "${INSTALL_DIR}/public/config-example.php" "${INSTALL_DIR}/public/config.php"
+    fi
+
     local app_name base_url mysql_pass phpbin apache_user apache_group apache_sites nginx_sites public_ip default_email
     app_name="$(safe_php_string "Moodle Friendly Installation")"
     base_url="$(safe_php_string "${BASE_URL}")"
