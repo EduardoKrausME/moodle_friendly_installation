@@ -1119,7 +1119,7 @@ install_web_servers() {
     log "Installing Apache, NGINX and Certbot"
     if [[ "${OS_FAMILY}" == "debian" ]]; then
         pkg_install apache2 nginx certbot python3-certbot-nginx
-        a2enmod proxy proxy_fcgi setenvif rewrite headers ssl >/dev/null 2>&1 || true
+        a2enmod proxy proxy_fcgi setenvif rewrite headers >/dev/null 2>&1 || true
     else
         pkg_install httpd nginx certbot python3-certbot-nginx || pkg_install httpd nginx certbot
     fi
@@ -1421,7 +1421,11 @@ CRON
 restart_services() {
     log "Validating and restarting services"
     systemctl enable --now "${PHP_FPM_SERVICE}"
+    systemctl restart "${PHP_FPM_SERVICE}"
+
     systemctl enable --now "${APACHE_SERVICE}"
+    systemctl restart "${APACHE_SERVICE}"
+
     systemctl enable --now nginx
 
     if [[ "${OS_FAMILY}" == "debian" ]]; then
@@ -1431,8 +1435,6 @@ restart_services() {
     fi
     nginx -t
 
-    systemctl restart "${PHP_FPM_SERVICE}"
-    systemctl restart "${APACHE_SERVICE}"
     systemctl restart nginx
 }
 
