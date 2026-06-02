@@ -135,9 +135,12 @@ sudo -u "{{APACHE_USER}}" "{{PHP_BIN}}" {{BASE_DIR}}/moodle/admin/cli/cfg.php --
 sudo -u "{{APACHE_USER}}" "{{PHP_BIN}}" {{BASE_DIR}}/moodle/admin/cli/cfg.php --name=site_geolocation     --set=. --component=hub
 sudo -u "{{APACHE_USER}}" "{{PHP_BIN}}" {{BASE_DIR}}/moodle/admin/cli/cfg.php --name=site_street          --set=. --component=hub
 
+log "SSO file"
+cp "{{TEMPLATES_DIR}}/moodle-logar-admin.php"  "{{BASE_DIR}}/moodle/public/"
+
 log "Fixing owner and permissions"
 chown -R "{{APACHE_USER}}:{{APACHE_GROUP}}" "{{BASE_DIR}}"
-chmod -R 777 "{{BASE_DIR}}/moodle"
+chmod -R 777 "{{BASE_DIR}}"
 
 log "Creating Moodle cron"
 cat > "{{CRON_FILE}}" <<EOF
@@ -163,8 +166,5 @@ fi
 
 log "Purging Moodle caches"
 sudo -u "{{APACHE_USER}}" "{{PHP_BIN}}" "{{BASE_DIR}}/moodle/admin/cli/purge_caches.php" || true
-
-log "SSO file"
-cp "{{TEMPLATES_DIR}}/moodle-logar-admin.php"  "{{BASE_DIR}}/moodle/public/"
 
 log "Done"
