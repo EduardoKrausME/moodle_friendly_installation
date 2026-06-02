@@ -67,7 +67,7 @@ return [
     ],
     'login' => [
         'title' => 'Login',
-        'eyebrow' => 'MyLearn Admin',
+        'eyebrow' => 'Software Moodle™ Admin',
         'heading' => 'Entrar al panel',
         'intro' => 'Accede para gestionar tus Moodles.',
         'username' => 'Usuario',

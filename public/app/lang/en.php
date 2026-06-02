@@ -67,7 +67,7 @@ return [
     ],
     'login' => [
         'title' => 'Login',
-        'eyebrow' => 'MyLearn Admin',
+        'eyebrow' => 'Software Moodle™ Admin',
         'heading' => 'Sign in to the panel',
         'intro' => 'Access the panel to manage your Moodle sites.',
         'username' => 'Username',
