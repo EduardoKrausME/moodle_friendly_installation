@@ -8,8 +8,6 @@ IFS=$'\n\t'
 
 ENV_URL="https://raw.githubusercontent.com/moodle/moodle/main/public/admin/environment.xml"
 INSTALL_DIR="${INSTALL_DIR:-/home/admin.moodle}"
-REPO_URL="${REPO_URL:-https://github.com/EduardoKrausME/moodle_friendly_installation.git}"
-REPO_BRANCH="${1:-${REPO_BRANCH:-master}}"
 NONINTERACTIVE="${NONINTERACTIVE:-0}"
 PROGRESS_DIR="${PROGRESS_DIR:-/var/lib/moodle-friendly-installation}"
 PROGRESS_FILE="${PROGRESS_FILE:-${PROGRESS_DIR}/installer-progress.env}"
@@ -1243,25 +1241,84 @@ issue_lets_encrypt() {
     systemctl reload nginx
 }
 
+terminal_link() {
+    local url="$1"
+    local label="${2:-$1}"
+
+    # OSC 8 hyperlink. Supported by many modern terminals.
+    printf '\033]8;;%s\033\\%s\033]8;;\033\\' "${url}" "${label}"
+}
+
 final_check() {
     local url="${BASE_URL}"
-    log "Final test: ${url}"
-    if curl -k -fsSI --max-time 15 "${url}" >/dev/null 2>&1; then
-        log "Panel is responding at ${url}"
-    else
-        warn "Could not validate through curl. Check: systemctl status nginx httpd ${PHP_FPM_SERVICE}"
+    local apache_service="apache2"
+    local curl_ok="0"
+
+    if systemctl list-unit-files httpd.service >/dev/null 2>&1; then
+        apache_service="httpd"
     fi
 
-    cat <<EOF
+    local reset="\033[0m"
+    local bold="\033[1m"
+    local green="\033[1;32m"
+    local yellow="\033[1;33m"
+    local red="\033[1;31m"
+    local blue="\033[1;34m"
+    local cyan="\033[1;36m"
+    local white="\033[1;37m"
+    local dim="\033[2m"
 
-Installation completed.
-Panel URL: ${url}
-Directory: ${INSTALL_DIR}
-Config: ${INSTALL_DIR}/public/config.php
-Cron: /etc/cron.d/moodle-friendly-installation-runner
-Runner log: /var/log/moodle-friendly-installation-runner.log
+    local sep="------------------------------------------------------------"
 
-EOF
+    log "Final test: ${url}"
+
+    if curl -k -fsSI --max-time 15 "${url}" >/dev/null 2>&1; then
+        curl_ok="1"
+        printf '\n%b==>%b Panel is responding at ' "${green}" "${reset}"
+        terminal_link "${url}" "${url}"
+        printf '\n'
+    else
+        warn "Could not validate through curl. Check: systemctl status nginx ${apache_service} ${PHP_FPM_SERVICE}"
+    fi
+
+    printf '\n'
+    printf '%b%s%b\n' "${cyan}" "${sep}" "${reset}"
+    printf '%b        .-.-.  .-.-.  .-.-.  .-.  .----.  .----.%b\n' "${blue}" "${reset}"
+    printf '%b        | M |--| O |--| O |--| D |--| L  |--| E  |%b\n' "${blue}" "${reset}"
+    printf '%b        `-.-´  `-.-´  `-.-´  `-´  `----´  `----´%b\n' "${blue}" "${reset}"
+    printf '%b          . . . Moodle Friendly Installation . . .%b\n' "${dim}" "${reset}"
+    printf '%b%s%b\n' "${cyan}" "${sep}" "${reset}"
+
+    if [[ "${curl_ok}" == "1" ]]; then
+        printf '%b%s%b\n' "${green}" "Installation completed successfully." "${reset}"
+    else
+        printf '%b%s%b\n' "${yellow}" "Installation completed, but the final HTTP test needs attention." "${reset}"
+    fi
+
+    printf '\n'
+    printf '%bAccess panel:%b ' "${bold}${white}" "${reset}"
+    terminal_link "${url}" "${url}"
+    printf '\n'
+
+    printf '%b%s%b\n' "${cyan}" "${sep}" "${reset}"
+    printf '%b%-14s%b %s\n' "${bold}" "Panel URL:" "${reset}" "${url}"
+    printf '%b%-14s%b %s\n' "${bold}" "Directory:" "${reset}" "${INSTALL_DIR}"
+    printf '%b%-14s%b %s\n' "${bold}" "Config:" "${reset}" "${INSTALL_DIR}/public/config.php"
+    printf '%b%-14s%b %s\n' "${bold}" "Cron:" "${reset}" "/etc/cron.d/moodle-friendly-installation-runner"
+    printf '%b%-14s%b %s\n' "${bold}" "Runner log:" "${reset}" "/var/log/moodle-friendly-installation-runner.log"
+    printf '%b%-14s%b %s\n' "${bold}" "Services:" "${reset}" "nginx ${apache_service} ${PHP_FPM_SERVICE}"
+    printf '%b%s%b\n' "${cyan}" "${sep}" "${reset}"
+
+    if [[ "${curl_ok}" != "1" ]]; then
+        printf '\n%bDiagnostic commands:%b\n' "${yellow}" "${reset}"
+        printf '  systemctl status nginx %s %s\n' "${apache_service}" "${PHP_FPM_SERVICE}"
+        printf '  journalctl -u nginx -n 80 --no-pager\n'
+        printf '  journalctl -u %s -n 80 --no-pager\n' "${apache_service}"
+        printf '  journalctl -u %s -n 80 --no-pager\n' "${PHP_FPM_SERVICE}"
+        printf '%b%s%b\n' "${cyan}" "${sep}" "${reset}"
+    fi
+
+    printf '\n'
 }
 
 
