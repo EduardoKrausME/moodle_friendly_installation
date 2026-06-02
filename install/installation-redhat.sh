@@ -611,6 +611,9 @@ EOF
 
 install_base_packages() {
     dnf install -y adoptium-temurin-java-repository
+    dnf config-manager setopt adoptium-temurin-java-repository.enabled=1 -y
+    dnf clean all -y
+    dnf makecache --refresh -y
     local base_packages=(
         ca-certificates curl wget gnupg2 unzip zip tar git bind-utils cronie openssl python3 sed grep gawk coreutils newt
         make gcc gcc-c++ temurin-17-jdk ImageMagick
