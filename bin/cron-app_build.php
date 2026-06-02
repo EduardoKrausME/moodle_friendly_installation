@@ -35,14 +35,14 @@ function executeAppBuildJob(array $job): array {
     $logfile = $job['log_file'] ?? app_config_path('/logs/app-build-' . $domain . '.log');
 
     ensureDir(dirname($logfile), 0750);
-    appendAppBuildLog($logfile, 'Iniciando build do APP para ' . $domain . '.');
+    appendAppBuildLog($logfile, 'Starting APP build for ' . $domain . '.');
 
     $source = app_config_path('/app-MoodleMobile-V2');
     if (!is_dir($source)) {
-        return failAppBuild($logfile, 'Diretório app-MoodleMobile-V2 não encontrado.');
+        return failAppBuild($logfile, 'app-MoodleMobile-V2 directory not found.');
     }
     if (!is_file($iconpath) || !is_readable($iconpath)) {
-        return failAppBuild($logfile, 'Ícone do APP não encontrado ou sem leitura.');
+        return failAppBuild($logfile, 'APP icon not found or not readable.');
     }
 
     $workroot = app_config_path('/runtime/app-builds/' . $job['id']);
@@ -55,7 +55,7 @@ function executeAppBuildJob(array $job): array {
     $resdir = $workdir . '/res/' . $resfolder;
     ensureDir($resdir, 0750);
     copy($iconpath, $resdir . '/logo.png');
-    chmod($resdir . '/logo.png', 0640);
+    chmod($resdir . '/logo.png', 0777);
 
     try {
         generateAppImages($resdir, $color, $logfile);
@@ -71,7 +71,7 @@ function executeAppBuildJob(array $job): array {
         runBuildCommand('npx cordova build android --release -- --packageType=bundle --buildConfig ' . escapeshellarg($buildconfig), $workdir, $logfile);
 
         $artifacts = moveBuildArtifacts($workdir, $domain, $packageuid, $version, $logfile);
-        appendAppBuildLog($logfile, 'Build finalizado com sucesso.');
+        appendAppBuildLog($logfile, 'Build completed successfully.');
 
         return [
             'exitcode' => 0,
@@ -125,7 +125,7 @@ function updateCordovaConfig(string $configfile, string $resfolder, string $pack
     $dom->preserveWhiteSpace = false;
     $dom->formatOutput = true;
     if (!$dom->load($configfile)) {
-        throw new RuntimeException('Não foi possível ler config.xml do APP.');
+        throw new RuntimeException('Could not read the APP config.xml.');
     }
 
     $root = $dom->documentElement;
@@ -197,7 +197,7 @@ function setPreference(DOMDocument $dom, string $name, string $value): void {
 function updateIndexHtml(string $file, string $packageuid, string $packagename, string $version, string $moodleurl): void {
     $content = file_get_contents($file);
     if ($content === false) {
-        throw new RuntimeException('Não foi possível ler www/index.html.');
+        throw new RuntimeException('Could not read www/index.html.');
     }
 
     $content = preg_replace_callback(
@@ -212,7 +212,7 @@ function updateIndexHtml(string $file, string $packageuid, string $packagename, 
     $content = replaceElementTextById($content, 'config-package_version', $version);
 
     if (file_put_contents($file, $content) === false) {
-        throw new RuntimeException('Não foi possível salvar www/index.html.');
+        throw new RuntimeException('Could not save www/index.html.');
     }
 }
 
@@ -231,7 +231,7 @@ function replaceDataAttribute(string $content, string $elementid, string $attrib
     );
 
     if ($updated === null) {
-        throw new RuntimeException('Erro ao atualizar atributo ' . $attribute . ' em #' . $elementid . '.');
+        throw new RuntimeException('Error updating attribute ' . $attribute . ' in #' . $elementid . '.');
     }
     if ($count > 0) {
         return $updated;
@@ -247,7 +247,7 @@ function replaceDataAttribute(string $content, string $elementid, string $attrib
     );
 
     if ($updated === null || $count === 0) {
-        throw new RuntimeException('Elemento #' . $elementid . ' não encontrado em www/index.html.');
+        throw new RuntimeException('Element #' . $elementid . ' not found in www/index.html.');
     }
 
     return $updated;
@@ -265,10 +265,10 @@ function replaceElementTextById(string $content, string $elementid, string $valu
     );
 
     if ($updated === null) {
-        throw new RuntimeException('Erro ao atualizar texto de #' . $elementid . '.');
+        throw new RuntimeException('Error updating text for #' . $elementid . '.');
     }
     if ($count === 0) {
-        throw new RuntimeException('Elemento #' . $elementid . ' não encontrado em www/index.html.');
+        throw new RuntimeException('Element #' . $elementid . ' not found in www/index.html.');
     }
 
     return $updated;
@@ -285,15 +285,15 @@ function createAndroidBuildConfig(string $resfolder, string $workdir, string $lo
     $buildconfig = $keydir . '/build.json';
 
     if (!is_file($keystore) || !is_readable($keystore)) {
-        throw new RuntimeException('Keystore Android não encontrado em res/' . $resfolder . '/key-android/keystore.');
+        throw new RuntimeException('Android keystore not found at res/' . $resfolder . '/key-android/keystore.');
     }
     if (!is_file($passfile) || !is_readable($passfile)) {
-        throw new RuntimeException('Senha da keystore Android não encontrada em res/' . $resfolder . '/key-android/keystore.txt.');
+        throw new RuntimeException('Android keystore password not found at res/' . $resfolder . '/key-android/keystore.txt.');
     }
 
     $password = trim((string) file_get_contents($passfile));
     if ($password === '') {
-        throw new RuntimeException('Arquivo keystore.txt está vazio.');
+        throw new RuntimeException('The keystore.txt file is empty.');
     }
 
     file_put_contents(
@@ -301,7 +301,7 @@ function createAndroidBuildConfig(string $resfolder, string $workdir, string $lo
         json_encode(AppManager::androidBuildConfig($keystore, $password), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . PHP_EOL
     );
     chmod($buildconfig, 0600);
-    appendAppBuildLog($logfile, 'Build config Android preparado em ' . $buildconfig . '.');
+    appendAppBuildLog($logfile, 'Android build config prepared at ' . $buildconfig . '.');
 
     return $buildconfig;
 }
@@ -311,10 +311,10 @@ function moveBuildArtifacts(string $workdir, string $domain, string $packageuid,
     $aab = newestFile($workdir . '/platforms/android/app/build/outputs/bundle/release/*.aab');
 
     if ($apk === null) {
-        throw new RuntimeException('APK não encontrado após o build.');
+        throw new RuntimeException('APK not found after the build.');
     }
     if ($aab === null) {
-        throw new RuntimeException('AAB não encontrado após o build.');
+        throw new RuntimeException('AAB not found after the build.');
     }
 
     $destdir = AppManager::storageDir($domain);
@@ -325,11 +325,11 @@ function moveBuildArtifacts(string $workdir, string $domain, string $packageuid,
 
     copy($apk, $apkdest);
     copy($aab, $aabdest);
-    chmod($apkdest, 0640);
-    chmod($aabdest, 0640);
+    chmod($apkdest, 0777);
+    chmod($aabdest, 0777);
 
-    appendAppBuildLog($logfile, 'APK movido para ' . $apkdest . '.');
-    appendAppBuildLog($logfile, 'AAB movido para ' . $aabdest . '.');
+    appendAppBuildLog($logfile, 'APK moved to ' . $apkdest . '.');
+    appendAppBuildLog($logfile, 'AAB moved to ' . $aabdest . '.');
 
     return [basename($apkdest), basename($aabdest)];
 }
@@ -361,7 +361,7 @@ function runCommand(string $command, string $cwd, string $logfile, bool $withjav
     $script = 'cd ' . escapeshellarg($cwd) . ' && ' . $env . $command . ' >> ' . escapeshellarg($logfile) . ' 2>&1';
     exec('/usr/bin/env bash -lc ' . escapeshellarg($script), $output, $exitcode);
     if ($exitcode !== 0) {
-        throw new RuntimeException('Comando falhou com código ' . $exitcode . ': ' . $command . '. Veja o log: ' . $logfile);
+        throw new RuntimeException('Command failed with code ' . $exitcode . ': ' . $command . '. See the log: ' . $logfile);
     }
 }
 
@@ -371,7 +371,7 @@ function appendAppBuildLog(string $logfile, string $message): void {
 }
 
 function failAppBuild(string $logfile, string $message): array {
-    appendAppBuildLog($logfile, 'ERRO: ' . $message);
+    appendAppBuildLog($logfile, 'ERROR: ' . $message);
     return [
         'exitcode' => 1,
         'message' => $message,
