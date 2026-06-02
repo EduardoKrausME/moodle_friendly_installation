@@ -63,6 +63,7 @@ class Validator {
         }
 
         $issuecert = !empty($input['issue_cert']);
+        $language = I18n::moodleLanguage(isset($input['language']) && is_string($input['language']) ? $input['language'] : I18n::current());
 
         return [
             'valid' => empty($errors),
@@ -76,6 +77,7 @@ class Validator {
                 'admin_email' => $adminemail,
                 'moodle_branch' => $branch,
                 'issue_cert' => $issuecert,
+                'language' => $language,
             ],
         ];
     }

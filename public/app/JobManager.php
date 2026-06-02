@@ -23,6 +23,7 @@ class JobManager {
             'admin_pass' => $data['admin_pass'],
             'admin_email' => $data['admin_email'],
             'moodle_branch' => $data['moodle_branch'],
+            'language' => I18n::moodleLanguage(isset($data['language']) && is_string($data['language']) ? $data['language'] : I18n::current()),
             'issue_cert' => (bool) $data['issue_cert'],
             'created_at' => now_iso(),
             'updated_at' => now_iso(),

@@ -69,7 +69,7 @@ if [ ! -f "{{BASE_DIR}}/moodledata/.mylearn-installed" ]; then
     sudo -u "{{APACHE_USER}}" "{{PHP_BIN}}" "{{BASE_DIR}}/moodle/admin/cli/install_database.php" \
         --agree-license \
         --fullname="{{SITE_FULLNAME}}" \
-        --lang=pt_br \
+        --lang={{MOODLE_LANG}} \
         --shortname="{{DOMAIN}}" \
         --summary="Moodle™ Admin" \
         --adminuser="{{ADMIN_USER}}" \
@@ -105,8 +105,8 @@ sudo -u "{{APACHE_USER}}" "{{PHP_BIN}}" {{BASE_DIR}}/moodle/admin/cli/cfg.php --
 sudo -u "{{APACHE_USER}}" "{{PHP_BIN}}" {{BASE_DIR}}/moodle/admin/cli/cfg.php --name=enablemyhome      --set=1
 sudo -u "{{APACHE_USER}}" "{{PHP_BIN}}" {{BASE_DIR}}/moodle/admin/cli/cfg.php --name=navshowallcourses --set=0
 
-sudo -u "{{APACHE_USER}}" "{{PHP_BIN}}" {{BASE_DIR}}/moodle/admin/cli/cfg.php --name=autolang           --set=0
-sudo -u "{{APACHE_USER}}" "{{PHP_BIN}}" {{BASE_DIR}}/moodle/admin/cli/cfg.php --name=lang               --set=pt_br
+sudo -u "{{APACHE_USER}}" "{{PHP_BIN}}" {{BASE_DIR}}/moodle/admin/cli/cfg.php --name=autolang           --set=1
+sudo -u "{{APACHE_USER}}" "{{PHP_BIN}}" {{BASE_DIR}}/moodle/admin/cli/cfg.php --name=lang               --set={{MOODLE_LANG}}
 sudo -u "{{APACHE_USER}}" "{{PHP_BIN}}" {{BASE_DIR}}/moodle/admin/cli/cfg.php --name=langmenu           --set=0
 sudo -u "{{APACHE_USER}}" "{{PHP_BIN}}" {{BASE_DIR}}/moodle/admin/cli/cfg.php --name=autologinguests    --set=0
 sudo -u "{{APACHE_USER}}" "{{PHP_BIN}}" {{BASE_DIR}}/moodle/admin/cli/cfg.php --name=guestloginbutton   --set=0
@@ -120,7 +120,7 @@ sudo -u "{{APACHE_USER}}" "{{PHP_BIN}}" {{BASE_DIR}}/moodle/admin/cli/cfg.php --
 
 # Hub
 sudo -u "{{APACHE_USER}}" "{{PHP_BIN}}" {{BASE_DIR}}/moodle/admin/cli/cfg.php --name=site_policyagreed    --set=1 --component=hub
-sudo -u "{{APACHE_USER}}" "{{PHP_BIN}}" {{BASE_DIR}}/moodle/admin/cli/cfg.php --name=site_language        --set=pt --component=hub
+sudo -u "{{APACHE_USER}}" "{{PHP_BIN}}" {{BASE_DIR}}/moodle/admin/cli/cfg.php --name=site_language        --set={{MOODLE_HUB_LANG}} --component=hub
 sudo -u "{{APACHE_USER}}" "{{PHP_BIN}}" {{BASE_DIR}}/moodle/admin/cli/cfg.php --name=site_countrycode     --set=AR --component=hub
 sudo -u "{{APACHE_USER}}" "{{PHP_BIN}}" {{BASE_DIR}}/moodle/admin/cli/cfg.php --name=site_privacy         --set=notdisplayed --component=hub
 sudo -u "{{APACHE_USER}}" "{{PHP_BIN}}" {{BASE_DIR}}/moodle/admin/cli/cfg.php --name=site_contactemail    --set=kraus@eduardokraus.com --component=hub

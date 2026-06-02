@@ -39,6 +39,16 @@ class I18n {
         return self::$current;
     }
 
+    public static function moodleLanguage(?string $language = null): string {
+        $language = $language === null ? self::$current : self::normalizeLanguage($language);
+        return self::isSupported($language) ? $language : self::DEFAULT_LANGUAGE;
+    }
+
+    public static function moodleHubLanguage(?string $language = null): string {
+        $language = self::moodleLanguage($language);
+        return $language == 'pt_br' ? 'pt' : $language;
+    }
+
     public static function strings(): array {
         return self::languageData(self::$current);
     }

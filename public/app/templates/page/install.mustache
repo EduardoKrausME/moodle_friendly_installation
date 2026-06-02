@@ -34,6 +34,7 @@
 
 <form method="post" class="card form">
     <input type="hidden" name="csrf_token" value="{{csrf_token}}">
+    <input type="hidden" name="language" value="{{language.current_code}}">
 
     <label>
         {{i18n.install.domain}}

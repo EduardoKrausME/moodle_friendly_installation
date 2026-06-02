@@ -111,7 +111,8 @@ class SiteManager {
         if (isset($config["dbname"])) {
             $time = time();
             $signature = hash_hmac('sha256', $time, $config["dbname"]);
-            $hash = "time={$time}&signature={$signature}&dbname={$config["dbname"]}";
+            $language = I18n::moodleLanguage();
+            $hash = "time={$time}&signature={$signature}&dbname={$config["dbname"]}&lang={$language}";
             $return['sso_url'] =
                 ($wwwroot != '' ? rtrim($wwwroot, '/') : 'https://' . $domain) . "/moodle-logar-admin.php?{$hash}";
         }

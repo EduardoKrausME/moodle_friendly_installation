@@ -1,5 +1,6 @@
 <?php
 
+use app\I18n;
 use app\JobManager;
 
 $domain = $job["domain"] ?? "";
@@ -147,6 +148,8 @@ function executeInstallJob(array $job): array {
         "ADMIN_PASS_SH" => sh($job["admin_pass"]),
         "ADMIN_EMAIL" => $job["admin_email"],
         "MOODLE_BRANCH" => $job["moodle_branch"],
+        "MOODLE_LANG" => I18n::moodleLanguage(isset($job["language"]) && is_string($job["language"]) ? $job["language"] : null),
+        "MOODLE_HUB_LANG" => I18n::moodleHubLanguage(isset($job["language"]) && is_string($job["language"]) ? $job["language"] : null),
         "TEMPLATES_DIR" => app_config_path("/templates"),
         "APACHE_USER" => app_config("apache_user"),
         "APACHE_GROUP" => app_config("apache_group"),
