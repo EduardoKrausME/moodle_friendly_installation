@@ -391,42 +391,9 @@ detect_os() {
     log "Detected system: ${OS_ID} ${OS_VERSION_ID} (debian/ubuntu)"
 }
 
-pkg_retry() {
-    local output
-    local code
-    local tries="${PKG_LOCK_RETRIES:-60}"
-    local delay="${PKG_LOCK_SLEEP:-5}"
-    local i
-
-    for ((i = 1; i <= tries; i++)); do
-        output="$("$@" 2>&1)"
-        code=$?
-
-        if [[ -n "${output}" ]]; then
-            printf '%s\n' "${output}"
-        fi
-
-        if [[ "${code}" -eq 0 ]]; then
-            return 0
-        fi
-
-        if grep -qiE 'Could not get lock|Unable to lock|Unable to acquire.*lock|is another process using it|lock-frontend|dpkg frontend lock' <<< "${output}"; then
-            warn "Package manager lock is busy. Retry ${i}/${tries} in ${delay}s..."
-            sleep "${delay}"
-            continue
-        fi
-
-        return "${code}"
-    done
-
-    warn "Package manager lock did not become available after ${tries} attempts."
-    return 1
-}
-
 pkg_update() {
     export DEBIAN_FRONTEND=noninteractive
-
-    pkg_retry apt-get \
+    apt-get \
         -o DPkg::Lock::Timeout=60 \
         -o Acquire::Retries=5 \
         update
@@ -434,8 +401,7 @@ pkg_update() {
 
 pkg_install() {
     export DEBIAN_FRONTEND=noninteractive
-
-    pkg_retry apt-get \
+    apt-get \
         -o DPkg::Lock::Timeout=60 \
         -o Acquire::Retries=5 \
         install -y "$@"
@@ -635,8 +601,18 @@ install_base_packages() {
 
     # Debian 13/Trixie no longer provides software-properties-common in stable.
     # It is only needed on Ubuntu for add-apt-repository/ondrej/php.
-    pkg_install ca-certificates curl wget gnupg lsb-release unzip zip tar git dnsutils cron openssl python3 sed grep gawk coreutils debconf-utils whiptail build-essential openjdk-17-jdk imagemagick
+    pkg_install ca-certificates curl wget gnupg lsb-release unzip zip tar git dnsutils cron openssl python3 sed grep gawk coreutils debconf-utils whiptail
+
+    if [[ "${OS_ID}" == "debian" ]]; then
+        pkg_install wget apt-transport-https gpg
+        mkdir -p /etc/apt/keyrings
+        wget -qO - https://packages.adoptium.net/artifactory/api/gpg/key/public | gpg --dearmor > /etc/apt/keyrings/adoptium.gpg
+        echo "deb [signed-by=/etc/apt/keyrings/adoptium.gpg] https://packages.adoptium.net/artifactory/deb $(. /etc/os-release; echo $VERSION_CODENAME) main" > /etc/apt/sources.list.d/adoptium.list
+        pkg_install build-essential imagemagick temurin-17-jdk
+    fi
+
     if [[ "${OS_ID}" == "ubuntu" ]]; then
+        pkg_install openjdk-17-jdk
         pkg_install software-properties-common
     fi
 
@@ -1462,6 +1438,7 @@ set_permissions() {
     find "${INSTALL_DIR}" -type f -exec chmod 0640 {} \;
     chmod +x "${INSTALL_DIR}/bin/cron-root-runner.php" "${INSTALL_DIR}/bin/cron-install_moodle.php" "${INSTALL_DIR}/bin/cron-app_build.php" 2>/dev/null || true
     chmod 0770 "${INSTALL_DIR}/data" "${INSTALL_DIR}/runtime" "${INSTALL_DIR}/logs" "${INSTALL_DIR}/queue"
+    chmod 0770 "${INSTALL_DIR}/app-MoodleMobile-V2/res"
     chmod 0640 "${INSTALL_DIR}/public/config.php" "${INSTALL_DIR}/data/users.json"
 
 }
@@ -1543,11 +1520,14 @@ final_check() {
     local bold="\033[1m"
     local green="\033[1;32m"
     local yellow="\033[1;33m"
-    local red="\033[1;31m"
     local blue="\033[1;34m"
-    local purple="\033[1;35m"
     local cyan="\033[1;36m"
     local white="\033[1;37m"
+    local navy="\033[1;34m"
+    local blue="\033[0;34m"
+    local cyan="\033[0;36m"
+    local white="\033[1;37m"
+    local green="\033[0;32m"
 
     local sep="------------------------------------------------------------"
 
@@ -1586,23 +1566,17 @@ final_check() {
 
     final_banner_line
     final_banner_points
-    printf '%b' "${bold}${purple:-${red}}"
-    final_banner_animate "███╗   ███╗ ██████╗  ██████╗ ██████╗ ██╗     ███████╗" "${purple:-${red}}"
+    printf '%b' "${bold}${navy}"
+    final_banner_animate "███╗   ███╗ ██████╗  ██████╗ ██████╗ ██╗     ███████╗" "${navy}"
     final_banner_animate "████╗ ████║██╔═══██╗██╔═══██╗██╔══██╗██║     ██╔════╝" "${blue}"
     final_banner_animate "██╔████╔██║██║   ██║██║   ██║██║  ██║██║     █████╗  " "${cyan}"
     final_banner_animate "██║╚██╔╝██║██║   ██║██║   ██║██║  ██║██║     ██╔══╝  " "${green}"
-    final_banner_animate "██║ ╚═╝ ██║╚██████╔╝╚██████╔╝██████╔╝███████╗███████╗" "${yellow}"
-    final_banner_animate "╚═╝     ╚═╝ ╚═════╝  ╚═════╝ ╚═════╝ ╚══════╝╚══════╝" "${red}"
+    final_banner_animate "██║ ╚═╝ ██║╚██████╔╝╚██████╔╝██████╔╝███████╗███████╗" "${white}"
+    final_banner_animate "╚═╝     ╚═╝ ╚═════╝  ╚═════╝ ╚═════╝ ╚══════╝╚══════╝" "${white}"
     printf '%b\n' "${reset}"
 
     final_banner_points
     final_banner_line
-
-    printf '\n'
-    printf '%b        .-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.%b\n' "${bold}${white}" "${reset}"
-    printf '%b        |     MOODLE ADMIN ONLINE AND READY TO USE    |%b\n' "${bold}${green}" "${reset}"
-    printf "%b        '-'-'-'-'-'-'-'-'-'-'-'-'-'-'-'-'-'-'-'-'-'-'-'\n"   "${bold}${white}" "${reset}"
-    printf '\n'
 
     if [[ "${curl_ok}" == "1" ]]; then
         sleep 0.5
@@ -1846,6 +1820,7 @@ PY
 main() {
 
     rm /var/lib/apt/lists/lock
+    rm /var/lib/dpkg/lock-frontend
 
     need_root
     load_progress

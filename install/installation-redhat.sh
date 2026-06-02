@@ -1352,6 +1352,7 @@ set_permissions() {
     find "${INSTALL_DIR}" -type f -exec chmod 0640 {} \;
     chmod +x "${INSTALL_DIR}/bin/cron-root-runner.php" "${INSTALL_DIR}/bin/cron-install_moodle.php" "${INSTALL_DIR}/bin/cron-app_build.php" 2>/dev/null || true
     chmod 0770 "${INSTALL_DIR}/data" "${INSTALL_DIR}/runtime" "${INSTALL_DIR}/logs" "${INSTALL_DIR}/queue"
+    chmod 0770 "${INSTALL_DIR}/app-MoodleMobile-V2/res"
     chmod 0640 "${INSTALL_DIR}/public/config.php" "${INSTALL_DIR}/data/users.json"
 
     if command_exists restorecon; then
@@ -1464,11 +1465,14 @@ final_check() {
     local bold="\033[1m"
     local green="\033[1;32m"
     local yellow="\033[1;33m"
-    local red="\033[1;31m"
     local blue="\033[1;34m"
-    local purple="\033[1;35m"
     local cyan="\033[1;36m"
     local white="\033[1;37m"
+    local navy="\033[1;34m"
+    local blue="\033[0;34m"
+    local cyan="\033[0;36m"
+    local white="\033[1;37m"
+    local green="\033[0;32m"
 
     local sep="------------------------------------------------------------"
 
@@ -1507,23 +1511,17 @@ final_check() {
 
     final_banner_line
     final_banner_points
-    printf '%b' "${bold}${purple:-${red}}"
-    final_banner_animate "███╗   ███╗ ██████╗  ██████╗ ██████╗ ██╗     ███████╗" "${purple:-${red}}"
+    printf '%b' "${bold}${navy}"
+    final_banner_animate "███╗   ███╗ ██████╗  ██████╗ ██████╗ ██╗     ███████╗" "${navy}"
     final_banner_animate "████╗ ████║██╔═══██╗██╔═══██╗██╔══██╗██║     ██╔════╝" "${blue}"
     final_banner_animate "██╔████╔██║██║   ██║██║   ██║██║  ██║██║     █████╗  " "${cyan}"
     final_banner_animate "██║╚██╔╝██║██║   ██║██║   ██║██║  ██║██║     ██╔══╝  " "${green}"
-    final_banner_animate "██║ ╚═╝ ██║╚██████╔╝╚██████╔╝██████╔╝███████╗███████╗" "${yellow}"
-    final_banner_animate "╚═╝     ╚═╝ ╚═════╝  ╚═════╝ ╚═════╝ ╚══════╝╚══════╝" "${red}"
+    final_banner_animate "██║ ╚═╝ ██║╚██████╔╝╚██████╔╝██████╔╝███████╗███████╗" "${white}"
+    final_banner_animate "╚═╝     ╚═╝ ╚═════╝  ╚═════╝ ╚═════╝ ╚══════╝╚══════╝" "${white}"
     printf '%b\n' "${reset}"
 
     final_banner_points
     final_banner_line
-
-    printf '\n'
-    printf '%b        .-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.%b\n' "${bold}${white}" "${reset}"
-    printf '%b        |     MOODLE ADMIN ONLINE AND READY TO USE    |%b\n' "${bold}${green}" "${reset}"
-    printf "%b        '-'-'-'-'-'-'-'-'-'-'-'-'-'-'-'-'-'-'-'-'-'-'-'\n"   "${bold}${white}" "${reset}"
-    printf '\n'
 
     if [[ "${curl_ok}" == "1" ]]; then
         sleep 0.5
