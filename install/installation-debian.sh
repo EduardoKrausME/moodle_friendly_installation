@@ -1826,6 +1826,9 @@ main() {
     if [ -e /var/lib/dpkg/lock-frontend ]; then
         rm /var/lib/dpkg/lock-frontend
     fi
+    if [ -e /var/lib/dpkg/lock ]; then
+        rm /var/lib/dpkg/lock
+    fi
 
     need_root
     load_progress
