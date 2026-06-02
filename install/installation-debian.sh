@@ -143,55 +143,6 @@ load_progress() {
     log "Loaded installer progress from ${PROGRESS_FILE}"
 }
 
-load_existing_panel_config() {
-    local config_file="${INSTALL_DIR}/public/config.php"
-    local existing_pass=""
-
-    [[ -f "${config_file}" ]] || return 0
-
-    existing_pass="$(python3 - "${config_file}" <<'PY'
-import re
-import sys
-from pathlib import Path
-
-text = Path(sys.argv[1]).read_text(errors='ignore')
-match = re.search(r"['\"]mysql_admin_pass['\"]\s*=>\s*('(?:\\.|[^'\\])*'|\"(?:\\.|[^\"\\])*\"|null)", text)
-if not match:
-    raise SystemExit(0)
-
-token = match.group(1)
-if token == 'null':
-    raise SystemExit(0)
-
-quote = token[0]
-value = token[1:-1]
-
-if quote == "'":
-    value = value.replace("\\'", "'").replace('\\\\', '\\')
-else:
-    # This is intentionally conservative. Installer-generated values are single quoted,
-    # but this also supports the most common double-quoted escaping used manually.
-    value = bytes(value, 'utf-8').decode('unicode_escape')
-
-if value:
-    print(value)
-PY
-)"
-
-    [[ -n "${existing_pass}" ]] || return 0
-
-    if [[ -n "${REQUESTED_DB_ROOT_PASS:-}" ]]; then
-        log "Using database root password provided through DB_ROOT_PASS. Existing panel config was not used."
-        return 0
-    fi
-
-    if [[ "${DB_ROOT_PASS:-}" != "${existing_pass}" ]]; then
-        DB_ROOT_PASS="${existing_pass}"
-        log "Loaded database root password from existing panel config.php."
-        save_progress
-    fi
-}
-
 mark_progress_done() {
     local var_name="$1"
     printf -v "${var_name}" '%s' "1"
@@ -441,14 +392,55 @@ detect_os() {
 
     log "Detected system: ${OS_ID} ${OS_VERSION_ID} (debian/ubuntu)"
 }
+
+pkg_retry() {
+    local output
+    local code
+    local tries="${PKG_LOCK_RETRIES:-60}"
+    local delay="${PKG_LOCK_SLEEP:-5}"
+    local i
+
+    for ((i = 1; i <= tries; i++)); do
+        output="$("$@" 2>&1)"
+        code=$?
+
+        if [[ -n "${output}" ]]; then
+            printf '%s\n' "${output}"
+        fi
+
+        if [[ "${code}" -eq 0 ]]; then
+            return 0
+        fi
+
+        if grep -qiE 'Could not get lock|Unable to lock|Unable to acquire.*lock|is another process using it|lock-frontend|dpkg frontend lock' <<< "${output}"; then
+            warn "Package manager lock is busy. Retry ${i}/${tries} in ${delay}s..."
+            sleep "${delay}"
+            continue
+        fi
+
+        return "${code}"
+    done
+
+    warn "Package manager lock did not become available after ${tries} attempts."
+    return 1
+}
+
 pkg_update() {
     export DEBIAN_FRONTEND=noninteractive
-    apt-get update -y
+
+    pkg_retry apt-get \
+        -o DPkg::Lock::Timeout=60 \
+        -o Acquire::Retries=5 \
+        update
 }
 
 pkg_install() {
     export DEBIAN_FRONTEND=noninteractive
-    apt-get install -y "$@"
+
+    pkg_retry apt-get \
+        -o DPkg::Lock::Timeout=60 \
+        -o Acquire::Retries=5 \
+        install -y "$@"
 }
 
 install_base_packages() {
@@ -1065,9 +1057,9 @@ ensure_sites_enabled_includes() {
 }
 
 configure_apache_port() {
-    log "Configuring Apache to listen only on 127.0.0.1:8080"
+    log "Configuring Apache to listen only on 8080"
     sed -i -E 's/^[[:space:]]*Listen[[:space:]]+80$/# Listen 80 disabled by Moodle Friendly Installation installer/' /etc/apache2/ports.conf || true
-    grep -q '^Listen 127.0.0.1:8080$' /etc/apache2/ports.conf || printf '\nListen 127.0.0.1:8080\n' >> /etc/apache2/ports.conf
+    grep -q '^Listen 8080$' /etc/apache2/ports.conf || printf '\nListen 8080\n' >> /etc/apache2/ports.conf
     a2dissite 000-default >/dev/null 2>&1 || true
 }
 
@@ -1169,7 +1161,6 @@ PHP
         "base_dir=realpath(__DIR__ . '/..')" \
         "default_moodle_branch='${MOODLE_STABLE_BRANCH}'" \
         "db_engine='${DB_ENGINE}'" \
-        "home_base_dir='/home'" \
         "apache_user=${apache_user}" \
         "apache_group=${apache_group}" \
         "php_bin=${phpbin}" \
@@ -1216,7 +1207,7 @@ write_apache_vhost() {
     local server_for_apache="${PANEL_DOMAIN:-${PUBLIC_IP}}"
     local apache_log_dir="/var/log/apache2"
     cat > "${file}" <<APACHE
-<VirtualHost 127.0.0.1:8080>
+<VirtualHost *:8080>
     ServerName ${server_for_apache}
     DocumentRoot ${INSTALL_DIR}/public
 
@@ -1515,6 +1506,9 @@ lets_encrypt_certificate_exists() {
 }
 
 main() {
+
+    rm /var/lib/apt/lists/lock
+
     need_root
     load_progress
     detect_os
@@ -1594,3 +1588,52 @@ main() {
 }
 
 main "$@"
+
+load_existing_panel_config() {
+    local config_file="${INSTALL_DIR}/public/config.php"
+    local existing_pass=""
+
+    [[ -f "${config_file}" ]] || return 0
+
+    existing_pass="$(python3 - "${config_file}" <<'PY'
+import re
+import sys
+from pathlib import Path
+
+text = Path(sys.argv[1]).read_text(errors='ignore')
+match = re.search(r"['\"]mysql_admin_pass['\"]\s*=>\s*('(?:\\.|[^'\\])*'|\"(?:\\.|[^\"\\])*\"|null)", text)
+if not match:
+    raise SystemExit(0)
+
+token = match.group(1)
+if token == 'null':
+    raise SystemExit(0)
+
+quote = token[0]
+value = token[1:-1]
+
+if quote == "'":
+    value = value.replace("\\'", "'").replace('\\\\', '\\')
+else:
+    # This is intentionally conservative. Installer-generated values are single quoted,
+    # but this also supports the most common double-quoted escaping used manually.
+    value = bytes(value, 'utf-8').decode('unicode_escape')
+
+if value:
+    print(value)
+PY
+)"
+
+    [[ -n "${existing_pass}" ]] || return 0
+
+    if [[ -n "${REQUESTED_DB_ROOT_PASS:-}" ]]; then
+        log "Using database root password provided through DB_ROOT_PASS. Existing panel config was not used."
+        return 0
+    fi
+
+    if [[ "${DB_ROOT_PASS:-}" != "${existing_pass}" ]]; then
+        DB_ROOT_PASS="${existing_pass}"
+        log "Loaded database root password from existing panel config.php."
+        save_progress
+    fi
+}
