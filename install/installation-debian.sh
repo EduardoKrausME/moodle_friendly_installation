@@ -604,6 +604,7 @@ deb http://deb.debian.org/debian sid main
 EOF
     fi
 
+    pkg_update
     pkg_install ca-certificates curl wget gnupg lsb-release unzip zip tar git dnsutils cron openssl python3 sed grep gawk coreutils debconf-utils whiptail build-essential imagemagick openjdk-17-jdk
 
     if [[ "${OS_ID}" == "ubuntu" ]]; then
