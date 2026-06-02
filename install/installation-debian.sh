@@ -597,19 +597,16 @@ install_base_packages() {
 
     # Debian 13/Trixie no longer provides software-properties-common in stable.
     # It is only needed on Ubuntu for add-apt-repository/ondrej/php.
-    pkg_install ca-certificates curl wget gnupg lsb-release unzip zip tar git dnsutils cron openssl python3 sed grep gawk coreutils debconf-utils whiptail build-essential imagemagick
 
     if [[ "${OS_ID}" == "debian" ]]; then
-        pkg_install wget apt-transport-https gpg
-        mkdir -p /etc/apt/keyrings
-        wget -qO - https://packages.adoptium.net/artifactory/api/gpg/key/public | gpg --dearmor > /etc/apt/keyrings/adoptium.gpg
-        echo "deb [signed-by=/etc/apt/keyrings/adoptium.gpg] https://packages.adoptium.net/artifactory/deb $(. /etc/os-release; echo $VERSION_CODENAME) main" > /etc/apt/sources.list.d/adoptium.list
-        pkg_update
-        pkg_install temurin-17-jdk
+           tee /etc/apt/sources.list.d/sid.list <<'EOF'
+deb http://deb.debian.org/debian sid main
+EOF
     fi
 
+    pkg_install ca-certificates curl wget gnupg lsb-release unzip zip tar git dnsutils cron openssl python3 sed grep gawk coreutils debconf-utils whiptail build-essential imagemagick openjdk-17-jdk
+
     if [[ "${OS_ID}" == "ubuntu" ]]; then
-        pkg_install openjdk-17-jdk
         pkg_install software-properties-common
     fi
 

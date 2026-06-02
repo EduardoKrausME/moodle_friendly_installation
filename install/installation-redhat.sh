@@ -610,9 +610,10 @@ EOF
 }
 
 install_base_packages() {
+    dnf install adoptium-temurin-java-repository
     local base_packages=(
         ca-certificates curl wget gnupg2 unzip zip tar git bind-utils cronie openssl python3 sed grep gawk coreutils newt
-        make gcc gcc-c++ java-17-openjdk-devel ImageMagick
+        make gcc gcc-c++ temurin-17-jdk ImageMagick
     )
 
     log "Installing base packages"
