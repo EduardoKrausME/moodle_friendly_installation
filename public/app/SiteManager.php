@@ -9,7 +9,8 @@ use Throwable;
 class SiteManager {
     public static function all(): array {
         $sites = [];
-        foreach (self::discoverMoodleDirs() as $moodledir) {
+        $moodledirs = self::discoverMoodleDirs();
+        foreach ($moodledirs as $moodledir) {
             $site = self::buildBasicSite($moodledir);
             if ($site != null) {
                 $sites[] = $site;
@@ -58,9 +59,6 @@ class SiteManager {
 
         $pattern = "/home/*/moodle/config.php";
         $configfiles = glob($pattern) ?: [];
-        echo '<pre>';
-        print_r($configfiles);
-        echo '</pre>';
         foreach ($configfiles as $configfile) {
             $moodledir = dirname($configfile);
             if (is_file($configfile)) {
