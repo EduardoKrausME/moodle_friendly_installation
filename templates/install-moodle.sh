@@ -71,7 +71,7 @@ if [ ! -f "{{BASE_DIR}}/moodledata/.mylearn-installed" ]; then
         --fullname="{{SITE_FULLNAME}}" \
         --lang=pt_br \
         --shortname="{{DOMAIN}}" \
-        --summary="Moodle instalado pelo MyLearn Admin" \
+        --summary="Moodle™ Admin" \
         --adminuser="{{ADMIN_USER}}" \
         --adminpass={{ADMIN_PASS_SH}} \
         --adminemail="{{ADMIN_EMAIL}}"
