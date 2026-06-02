@@ -148,11 +148,23 @@ cat > "{{CRON_FILE}}" <<EOF
 EOF
 
 log "Testing and reloading services"
-httpd -t
-nginx -t
-systemctl reload php-fpm || systemctl restart php-fpm
-systemctl reload httpd   || systemctl restart httpd
-systemctl reload nginx   || systemctl restart nginx
+
+if [ -f /etc/debian_version ]; then
+    apache2ctl -t
+    nginx -t
+
+    PHP_FPM_SERVICE="php$($PHP_BIN -r 'echo PHP_MAJOR_VERSION . "." . PHP_MINOR_VERSION;')-fpm"
+    systemctl reload "$PHP_FPM_SERVICE" || systemctl restart "$PHP_FPM_SERVICE"
+    systemctl reload apache2            || systemctl restart apache2
+    systemctl reload nginx              || systemctl restart nginx
+else
+    httpd -t
+    nginx -t
+
+    systemctl reload php-fpm || systemctl restart php-fpm
+    systemctl reload httpd   || systemctl restart httpd
+    systemctl reload nginx   || systemctl restart nginx
+fi
 
 if [ "{{ISSUE_CERT}}" = "1" ]; then
     log "Issuing Let's Encrypt certificate"
