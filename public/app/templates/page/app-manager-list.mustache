@@ -1,0 +1,50 @@
+<section class="page-title">
+    <div>
+        <span class="eyebrow">{{i18n.app_manager.list_eyebrow}}</span>
+        <h1>{{i18n.app_manager.list_heading}}</h1>
+        <p>{{i18n.app_manager.list_intro}}</p>
+    </div>
+    <a class="button" href="/install.php">{{i18n.actions.install_moodle}}</a>
+</section>
+
+{{#has_flash}}
+    <div class="alert ok">{{flash}}</div>
+{{/has_flash}}
+
+{{^has_apps}}
+    <div class="card empty-state">
+        <div class="empty-icon">A</div>
+        <h2>{{i18n.app_manager.list_empty_heading}}</h2>
+        <p>{{i18n.app_manager.list_empty_intro}}</p>
+        <a class="button" href="/install.php">{{i18n.actions.install_first_moodle}}</a>
+    </div>
+{{/has_apps}}
+
+{{#has_apps}}
+    <section class="site-grid">
+        {{#apps}}
+            <article class="site-card">
+                <div class="site-card-header">
+                    <div>
+                        <span class="eyebrow">{{i18n.index.moodle_label}}</span>
+                        <h2>{{domain}}</h2>
+                    </div>
+                    {{{status_badge}}}
+                </div>
+                <dl class="site-meta">
+                    <div>
+                        <dt>Package UID</dt>
+                        <dd>{{package_uid}}</dd>
+                    </div>
+                    {{#has_latest_job}}
+                        <div>
+                            <dt>{{i18n.app_manager.latest_job}}</dt>
+                            <dd>{{{latest_job_status_badge}}}</dd>
+                        </div>
+                    {{/has_latest_job}}
+                </dl>
+                <a class="button secondary" href="{{manage_url}}">{{i18n.actions.manage_app}}</a>
+            </article>
+        {{/apps}}
+    </section>
+{{/has_apps}}

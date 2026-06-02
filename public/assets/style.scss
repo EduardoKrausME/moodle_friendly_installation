@@ -471,6 +471,9 @@ code {
             color: var(--warning);
         }
     }
+    a {
+        text-decoration: underline;
+    }
 }
 .error,
 .alert.alert-danger {

@@ -542,6 +542,9 @@ code {
 .alert.warning *, .alert.warning {
   color: var(--warning);
 }
+.alert a {
+  text-decoration: underline;
+}
 
 .error,
 .alert.alert-danger {

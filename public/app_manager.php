@@ -8,7 +8,48 @@ use app\SiteManager;
 require_once __DIR__ . '/app/bootstrap.php';
 Auth::requireLogin();
 
-$domain = isset($_GET['domain']) && is_string($_GET['domain']) ? $_GET['domain'] : '';
+$domain = isset($_GET['domain']) && is_string($_GET['domain']) ? trim($_GET['domain']) : '';
+
+if ($domain == '') {
+    $apps = array_map(static function(array $site): array {
+        $domain = $site['domain'] ?? '';
+        $settings = AppManager::getSettings($site);
+        $configured = is_file(AppManager::settingsFile($domain));
+        $buildfiles = AppManager::buildFiles($domain);
+        $latestjob = AppManager::latestJob($domain);
+        $lateststatus = is_array($latestjob) ? ($latestjob['status'] ?? '') : '';
+
+        return [
+            'domain' => $domain,
+            'webroot' => $site['webroot'] ?? '',
+            'moodle_branch' => $site['moodle_branch'] ?? '',
+            'package_uid' => $settings['package_uid'] ?? '',
+            'package_name' => $settings['package_name'] ?? '',
+            'manage_url' => '/app_manager.php?domain=' . rawurlencode($domain),
+            'configured' => $configured,
+            'status_badge' => $configured
+                ? status_badge('ok', t('app_manager.configured'))
+                : status_badge('warning', t('app_manager.not_configured')),
+            'has_build_files' => !empty($buildfiles),
+            'build_files_count' => (string) count($buildfiles),
+            'has_latest_job' => $lateststatus != '',
+            'latest_job_status_badge' => $lateststatus != '' ? status_badge($lateststatus) : '',
+        ];
+    }, SiteManager::all());
+
+    $flash = flash_message();
+
+    render_header(t('app_manager.list_title'));
+    echo render_app_template('page/app-manager-list', [
+        'flash' => $flash,
+        'has_flash' => $flash != null && $flash != '',
+        'has_apps' => !empty($apps),
+        'apps' => $apps,
+    ]);
+    render_footer();
+    exit;
+}
+
 $site = SiteManager::details($domain);
 
 if ($site == null) {
@@ -67,6 +108,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $settings = AppManager::getSettings($site);
             $values = $settings;
             $readiness = AppManager::buildReadiness($settings, $domain);
+            $moodleconfigtest = AppManager::moodleConfigTest($domain);
+            $readiness = AppManager::applyMoodleConfigTestToReadiness($readiness, $moodleconfigtest);
 
             if ($action == 'build_app') {
                 if (!$readiness['valid']) {
@@ -106,6 +149,8 @@ $values['has_icon'] = AppManager::hasIcon($packageuid);
 $values['has_keystore_password'] = AppManager::hasAndroidKeystorePassword($packageuid);
 $values['has_android_key_files'] = AppManager::hasAndroidKeyFiles($packageuid);
 $buildreadiness = AppManager::buildReadiness($values, $domain);
+$moodleconfigtest = AppManager::moodleConfigTest($domain);
+$buildreadiness = AppManager::applyMoodleConfigTestToReadiness($buildreadiness, $moodleconfigtest);
 $buildfiles = AppManager::buildFiles($domain);
 $latestjob = AppManager::latestJob($domain);
 $latestjobcontext = null;
@@ -153,6 +198,10 @@ echo render_app_template('page/app-manager', [
         'has_android_key_files' => AppManager::hasAndroidKeyFiles($packageuid),
     ],
     'app_version' => AppManager::appVersion(),
+    'moodle_config_test' => $moodleconfigtest,
+    'has_moodle_config_test_error' => !empty($moodleconfigtest['has_error']),
+    'has_moodle_config_test_warnings' => !empty($moodleconfigtest['has_warnings']),
+    'moodle_config_test_valid' => !empty($moodleconfigtest['valid']),
     'errors' => [
         'general' => $errors['general'] ?? '',
         'package_uid' => $errors['package_uid'] ?? '',

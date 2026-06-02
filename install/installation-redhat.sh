@@ -422,11 +422,213 @@ pkg_install() {
     pkg_retry "${PKG_MANAGER}" install -y "$@"
 }
 
+
+install_nodejs_22() {
+    log "Installing Node.js 22"
+
+    if command_exists node && node -v 2>/dev/null | grep -qE '^v22\.'; then
+        command_exists npm || die "npm was not found with the current Node.js 22 installation."
+        command_exists npx || die "npx was not found with the current Node.js 22 installation."
+        return 0
+    fi
+
+    if [[ "${PKG_MANAGER}" == "dnf" ]]; then
+        ${PKG_MANAGER} -y module reset nodejs >/dev/null 2>&1 || true
+    fi
+
+    curl -fsSL https://rpm.nodesource.com/setup_22.x -o /tmp/nodesource_setup_22.sh || die "Failed to download NodeSource setup for Node.js 22."
+    bash /tmp/nodesource_setup_22.sh || die "Failed to configure NodeSource repository for Node.js 22."
+    rm -f /tmp/nodesource_setup_22.sh
+
+    pkg_install nodejs
+
+    command_exists node || die "Node.js was not found after installation."
+    command_exists npm || die "npm was not found after Node.js installation."
+    command_exists npx || die "npx was not found after Node.js installation."
+
+    if ! node -v 2>/dev/null | grep -qE '^v22\.'; then
+        die "Node.js 22 was expected, but detected $(node -v 2>/dev/null || printf 'unknown')."
+    fi
+}
+
+install_gradle_8_14_2() {
+    local gradle_version="8.14.2"
+    local gradle_home="/opt/gradle/gradle-${gradle_version}"
+    local gradle_zip="/tmp/gradle-${gradle_version}-bin.zip"
+    local gradle_url="${GRADLE_URL:-https://services.gradle.org/distributions/gradle-${gradle_version}-bin.zip}"
+
+    log "Installing Gradle ${gradle_version}"
+
+    if command_exists gradle && gradle --version 2>/dev/null | grep -q "Gradle ${gradle_version}"; then
+        return 0
+    fi
+
+    mkdir -p /opt/gradle
+    if [[ ! -x "${gradle_home}/bin/gradle" ]]; then
+        curl -fsSL "${gradle_url}" -o "${gradle_zip}" || die "Failed to download Gradle ${gradle_version}."
+        rm -rf "${gradle_home}"
+        unzip -q "${gradle_zip}" -d /opt/gradle || die "Failed to extract Gradle ${gradle_version}."
+        rm -f "${gradle_zip}"
+    fi
+
+    ln -sfn "${gradle_home}/bin/gradle" /usr/local/bin/gradle
+
+    cat > /etc/profile.d/gradle.sh <<EOF
+export GRADLE_HOME="${gradle_home}"
+export PATH="\${GRADLE_HOME}/bin:\${PATH}"
+EOF
+    chmod 0644 /etc/profile.d/gradle.sh
+
+    export GRADLE_HOME="${gradle_home}"
+    export PATH="${GRADLE_HOME}/bin:${PATH}"
+
+    command_exists gradle || die "Gradle command was not found after installation."
+}
+
+configure_java_home() {
+    local javac_path=""
+    local java_home=""
+
+    command_exists javac || die "OpenJDK 17 was not installed correctly because javac was not found."
+
+    javac_path="$(readlink -f "$(command -v javac)")"
+    java_home="$(dirname "$(dirname "${javac_path}")")"
+
+    cat > /etc/profile.d/java-17.sh <<EOF
+export JAVA_HOME="${java_home}"
+export PATH="\${JAVA_HOME}/bin:\${PATH}"
+EOF
+    chmod 0644 /etc/profile.d/java-17.sh
+
+    export JAVA_HOME="${java_home}"
+    export PATH="${JAVA_HOME}/bin:${PATH}"
+
+    java -version >/dev/null 2>&1 || die "Java was not found after setting JAVA_HOME."
+}
+
+ensure_imagemagick_magick_command() {
+    log "Checking ImageMagick magick command"
+
+    if command_exists magick; then
+        return 0
+    fi
+
+    if ! command_exists convert; then
+        die "ImageMagick was installed, but neither magick nor convert was found."
+    fi
+
+    # ImageMagick 6 exposes convert/identify/mogrify instead of the ImageMagick 7 magick entrypoint.
+    # This wrapper keeps Cordova/icon scripts compatible on distributions that still package ImageMagick 6.
+    cat > /usr/local/bin/magick <<'EOF'
+#!/usr/bin/env bash
+set -Eeuo pipefail
+
+subcommand="${1:-}"
+case "${subcommand}" in
+    identify|convert|mogrify|montage|composite|compare|conjure|display|animate|stream|import)
+        if command -v "${subcommand}" >/dev/null 2>&1; then
+            exec "$@"
+        fi
+        ;;
+esac
+
+exec convert "$@"
+EOF
+    chmod 0755 /usr/local/bin/magick
+}
+
+accept_android_sdk_licenses() {
+    local sdkmanager="$1"
+    local code=0
+
+    set +o pipefail
+    yes | "${sdkmanager}" --licenses >/dev/null
+    code=$?
+    set -o pipefail
+
+    return "${code}"
+}
+
+install_android_sdk_packages() {
+    local sdkmanager="$1"
+    local sdk_root="$2"
+    shift 2
+    local code=0
+
+    set +o pipefail
+    yes | "${sdkmanager}" --sdk_root="${sdk_root}" --install "$@"
+    code=$?
+    set -o pipefail
+
+    return "${code}"
+}
+
+install_android_sdk() {
+    local android_sdk_root="${ANDROID_SDK_ROOT:-/opt/android-sdk}"
+    local cmdline_tools_url="${ANDROID_CMDLINE_TOOLS_URL:-https://dl.google.com/android/repository/commandlinetools-linux-14742923_latest.zip}"
+    local cmdline_tools_sha256="${ANDROID_CMDLINE_TOOLS_SHA256:-48833c34b761c10cb20bcd16582129395d121b27a99568fbffa64d887684f38f833}"
+    local cmdline_tools_zip="/tmp/android-commandlinetools.zip"
+    local sdkmanager="${android_sdk_root}/cmdline-tools/latest/bin/sdkmanager"
+
+    log "Installing Android SDK command-line tools and build packages"
+
+    mkdir -p "${android_sdk_root}/cmdline-tools"
+
+    if [[ ! -x "${sdkmanager}" ]]; then
+        curl -fsSL "${cmdline_tools_url}" -o "${cmdline_tools_zip}" || die "Failed to download Android SDK command-line tools."
+
+        if [[ -n "${cmdline_tools_sha256}" ]]; then
+            printf '%s  %s\n' "${cmdline_tools_sha256}" "${cmdline_tools_zip}" | sha256sum -c - || die "Android SDK command-line tools checksum validation failed."
+        fi
+
+        rm -rf "${android_sdk_root}/cmdline-tools/latest" "${android_sdk_root}/cmdline-tools/cmdline-tools"
+        unzip -q "${cmdline_tools_zip}" -d "${android_sdk_root}/cmdline-tools" || die "Failed to extract Android SDK command-line tools."
+        mv "${android_sdk_root}/cmdline-tools/cmdline-tools" "${android_sdk_root}/cmdline-tools/latest"
+        rm -f "${cmdline_tools_zip}"
+    fi
+
+    chown -R root:root "${android_sdk_root}"
+
+    cat > /etc/profile.d/android-sdk.sh <<EOF
+export ANDROID_HOME="${android_sdk_root}"
+export ANDROID_SDK_ROOT="${android_sdk_root}"
+export PATH="\${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin:\${ANDROID_SDK_ROOT}/platform-tools:\${ANDROID_SDK_ROOT}/build-tools/36.0.0:\${PATH}"
+EOF
+    chmod 0644 /etc/profile.d/android-sdk.sh
+
+    export ANDROID_HOME="${android_sdk_root}"
+    export ANDROID_SDK_ROOT="${android_sdk_root}"
+    export PATH="${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin:${ANDROID_SDK_ROOT}/platform-tools:${ANDROID_SDK_ROOT}/build-tools/36.0.0:${PATH}"
+
+    [[ -x "${sdkmanager}" ]] || die "sdkmanager was not found after Android SDK command-line tools installation."
+
+    accept_android_sdk_licenses "${sdkmanager}" || warn "Could not pre-accept all Android SDK licenses before package installation. Continuing with package installation."
+    install_android_sdk_packages "${sdkmanager}" "${ANDROID_SDK_ROOT}" \
+        "platform-tools" \
+        "platforms;android-36" \
+        "build-tools;36.0.0" || die "Failed to install Android SDK platform 36 and build-tools 36.0.0."
+    accept_android_sdk_licenses "${sdkmanager}" || warn "Could not accept all Android SDK licenses after package installation."
+
+    [[ -d "${ANDROID_SDK_ROOT}/platforms/android-36" ]] || die "Android platform android-36 was not installed."
+    [[ -d "${ANDROID_SDK_ROOT}/build-tools/36.0.0" ]] || die "Android build-tools 36.0.0 was not installed."
+}
+
 install_base_packages() {
+    local base_packages=(
+        ca-certificates curl wget gnupg2 unzip zip tar git bind-utils cronie openssl python3 sed grep gawk coreutils newt
+        make gcc gcc-c++ java-17-openjdk-devel ImageMagick
+    )
+
     log "Installing base packages"
     pkg_update
-    pkg_install ca-certificates curl wget gnupg2 unzip tar git bind-utils cronie openssl python3 sed grep gawk coreutils newt policycoreutils-python-utils || pkg_install ca-certificates curl wget gnupg2 unzip tar git bind-utils cronie openssl python3 sed grep gawk coreutils newt
+    pkg_install "${base_packages[@]}" policycoreutils-python-utils || pkg_install "${base_packages[@]}"
     systemctl enable --now crond >/dev/null 2>&1 || true
+
+    configure_java_home
+    install_nodejs_22
+    install_gradle_8_14_2
+    ensure_imagemagick_magick_command
+    install_android_sdk
 }
 
 fetch_moodle_environment() {

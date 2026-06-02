@@ -8,48 +8,98 @@
     <a class="button secondary" href="{{back_url}}">{{i18n.actions.back_to_details}}</a>
 </section>
 
-{{#has_flash}}
-    <div class="alert ok">{{flash}}</div>
-{{/has_flash}}
+<div class="card full-card">
+    <h2>{{i18n.app_manager.moodle_config_heading}}</h2>
 
-{{#has_errors}}
-    <div class="alert danger">{{i18n.app_manager.check_fields}}</div>
-{{/has_errors}}
+    {{#moodle_config_test_valid}}
+        <div class="alert ok compact-alert">{{i18n.app_manager.moodle_config_ok}}</div>
+    {{/moodle_config_test_valid}}
 
-{{#errors.general}}
-    <div class="alert danger">{{.}}</div>
-{{/errors.general}}
+    {{#has_moodle_config_test_error}}
+        <div class="alert danger compact-alert">
+            {{moodle_config_test.error}}
+            {{#moodle_config_test.has_install_url}}
+                <a href="{{moodle_config_test.install_url}}" target="_blank" rel="noopener">{{i18n.app_manager.moodle_config_install_plugin}}</a>
+            {{/moodle_config_test.has_install_url}}
+        </div>
+    {{/has_moodle_config_test_error}}
 
-{{#errors.build}}
-    <div class="alert danger">{{.}}</div>
-{{/errors.build}}
+    {{#has_moodle_config_test_warnings}}
+        <div class="alert warning compact-alert">
+            <strong>{{i18n.app_manager.moodle_config_warning}}</strong>
+            <ul>
+                {{#moodle_config_test.warnings}}
+                    <li>
+                        <div><code>{{key}}</code> {{description}}</div>
+                        <div style="color: #d04646;"><strong>{{i18n.status.error}}:</strong> {{message}}</div>
+                        {{#has_edit_url}}
+                            <a href="{{edit_url}}" target="_blank" rel="noopener">{{i18n.app_manager.moodle_config_edit_link}}</a>
+                        {{/has_edit_url}}
+                    </li>
+                {{/moodle_config_test.warnings}}
+            </ul>
+        </div>
+    {{/has_moodle_config_test_warnings}}
 
-{{#show_keystore_password}}
-        {{#errors.keystore_password}}
-            <small class="alert alert-danger">{{.}}</small>
-        {{/errors.keystore_password}}
-{{/show_keystore_password}}
-{{#values.package_uid_locked}}
-    <small class="alert alert-danger">{{i18n.app_manager.package_uid_locked}}</small>
-{{/values.package_uid_locked}}
-{{#errors.package_uid}}
-    <small class="alert alert-danger">{{.}}</small>
-{{/errors.package_uid}}
-{{#errors.package_name}}
-    <small class="alert alert-danger">{{.}}</small>
-{{/errors.package_name}}
-{{#errors.statusbarbackgroundcolor}}
-    <small class="alert alert-danger">{{.}}</small>
-{{/errors.statusbarbackgroundcolor}}
-{{#errors.icon}}
-    <small class="alert alert-danger">{{.}}</small>
-{{/errors.icon}}
+    {{#moodle_config_test.has_oks}}
+        <div class="alert ok compact-alert">
+            <strong>{{i18n.app_manager.moodle_config_ok_heading}}</strong>
+            <ul>
+                {{#moodle_config_test.oks}}
+                    <li><code>{{key}}</code>: <strong>{{message}}</strong><br> {{description}} </li>
+                {{/moodle_config_test.oks}}
+                {{#moodle_config_test.has_versions}}
+                    <li class="details-table">
+                        {{#moodle_config_test.versions}}
+                            <small><code>{{key}}</code>: <strong>{{value}}</strong></small><br>
+                        {{/moodle_config_test.versions}}
+                    </li>
+                {{/moodle_config_test.has_versions}}
+            </ul>
+        </div>
+    {{/moodle_config_test.has_oks}}
+
+</div>
 
 <div class="details-grid">
     <form method="post" enctype="multipart/form-data" class="card form full-card">
         <input type="hidden" name="csrf_token" value="{{csrf_token}}">
 
         <h2>{{i18n.app_manager.config_heading}}</h2>
+
+        {{#has_flash}}
+            <div class="alert ok">{{flash}}</div>
+        {{/has_flash}}
+
+        {{#has_errors}}
+            <div class="alert danger">{{i18n.app_manager.check_fields}}</div>
+        {{/has_errors}}
+
+        {{#errors.general}}
+            <div class="alert danger">{{.}}</div>
+        {{/errors.general}}
+
+        {{#errors.build}}
+            <div class="alert danger">{{.}}</div>
+        {{/errors.build}}
+
+        {{#show_keystore_password}}
+            {{#errors.keystore_password}}
+                <small class="alert alert-danger">{{.}}</small>
+            {{/errors.keystore_password}}
+        {{/show_keystore_password}}
+        {{#errors.package_uid}}
+            <small class="alert alert-danger">{{.}}</small>
+        {{/errors.package_uid}}
+        {{#errors.package_name}}
+            <small class="alert alert-danger">{{.}}</small>
+        {{/errors.package_name}}
+        {{#errors.statusbarbackgroundcolor}}
+            <small class="alert alert-danger">{{.}}</small>
+        {{/errors.statusbarbackgroundcolor}}
+        {{#errors.icon}}
+            <small class="alert alert-danger">{{.}}</small>
+        {{/errors.icon}}
 
         {{#show_keystore_password}}
             <label class="alert danger">

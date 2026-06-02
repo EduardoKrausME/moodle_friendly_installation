@@ -299,6 +299,109 @@ class AppManager {
         ];
     }
 
+
+    public static function moodleConfigTest(string $domain): array {
+        $url = self::moodleConfigTestUrl($domain);
+        $result = [
+            'url' => $url,
+            'valid' => false,
+            'has_error' => false,
+            'error' => '',
+            'has_install_url' => false,
+            'install_url' => self::moodleConfigInstallUrl(),
+            'warnings' => [],
+            'has_warnings' => false,
+            'oks' => [],
+            'has_oks' => false,
+            'versions' => [],
+            'has_versions' => false,
+        ];
+
+        try {
+            $json = self::fetchMoodleConfigTestUrl($url);
+        } catch (RuntimeException $e) {
+            $result['has_error'] = true;
+            $result['error'] = $e->getMessage();
+            $result['has_install_url'] = $e->getCode() == 404;
+            return $result;
+        }
+
+        $data = json_decode($json, true);
+        if (!is_array($data)) {
+            $result['has_error'] = true;
+            $result['error'] = I18n::get('app_errors.moodle_config_invalid_json', [
+                'message' => json_last_error_msg(),
+            ]);
+            return $result;
+        }
+
+        foreach (self::moodleConfigBooleanChecks() as $key => $description) {
+            if (!array_key_exists($key, $data)) {
+                $result['warnings'][] = [
+                    'key' => $key,
+                    'description' => $description,
+                    'message' => I18n::get('app_errors.moodle_config_missing_key'),
+                    'edit_url' => self::moodleConfigEditUrl($domain, $key),
+                    'has_edit_url' => true,
+                ];
+                continue;
+            }
+
+            if ($data[$key] === true) {
+                $result['oks'][] = [
+                    'key' => $key,
+                    'description' => $description,
+                    'message' => I18n::get('status.ok'),
+                ];
+                continue;
+            }
+
+            $result['warnings'][] = [
+                'key' => $key,
+                'description' => $description,
+                'message' => I18n::get('app_errors.moodle_config_incorrect'),
+                'edit_url' => self::moodleConfigEditUrl($domain, $key),
+                'has_edit_url' => true,
+            ];
+        }
+
+        foreach (self::moodleConfigVersionChecks() as $key => $label) {
+            if (!array_key_exists($key, $data)) {
+                continue;
+            }
+
+            $result['versions'][] = [
+                'key' => $label,
+                'value' => (string) $data[$key],
+            ];
+        }
+
+        $result['has_warnings'] = !empty($result['warnings']);
+        $result['has_oks'] = !empty($result['oks']);
+        $result['has_versions'] = !empty($result['versions']);
+        $result['valid'] = !$result['has_error'] && !$result['has_warnings'];
+        return $result;
+    }
+
+    public static function applyMoodleConfigTestToReadiness(array $readiness, array $configtest): array {
+        if (!empty($configtest['has_error'])) {
+            $readiness['missing'][] = [
+                'message' => I18n::get('app_errors.moodle_config_test_failed', [
+                    'message' => $configtest['error'] ?? '',
+                ]),
+            ];
+        }
+
+        foreach (($configtest['warnings'] ?? []) as $warning) {
+            $readiness['missing'][] = [
+                'message' => ($warning['key'] ?? '') . ': ' . ($warning['message'] ?? ''),
+            ];
+        }
+
+        $readiness['valid'] = empty($readiness['missing']);
+        return $readiness;
+    }
+
     public static function appVersion(): string {
         $configfile = app_config_path('/app-MoodleMobile-V2/config.xml');
         if (!is_readable($configfile)) {
@@ -476,6 +579,133 @@ class AppManager {
                 'message' => $message != '' ? I18n::get('app_errors.keytool_return', ['message' => $message]) : '',
             ]));
         }
+    }
+
+
+    private static function moodleConfigTestUrl(string $domain): string {
+        return self::moodleConfigBaseUrl($domain) . '/local/kopere_mobile/index.php?action=test-config';
+    }
+
+    private static function moodleConfigBaseUrl(string $domain): string {
+        $domain = strtolower(trim($domain));
+        $domain = preg_replace('/[^a-z0-9.-]+/', '', $domain);
+        return 'https://' . $domain;
+    }
+
+    private static function moodleConfigEditUrl(string $domain, string $key): string {
+        $baseurl = self::moodleConfigBaseUrl($domain);
+        $targets = [
+            'is_moodle_cookie_secure' => ['/admin/search.php', ['query' => 'cookiesecure']],
+            'allowframembedding' => ['/admin/search.php', ['query' => 'allowframembedding']],
+            'enablemobilewebservice' => ['/admin/search.php', ['query' => 'enablemobilewebservice']],
+            'external_services_moodle_mobile_app' => ['/admin/settings.php', ['section' => 'externalservices']],
+            'is_chrome' => ['/admin/settings.php', ['section' => 'local_kopere_mobile']],
+            'check_chrome_version_78' => ['/admin/settings.php', ['section' => 'local_kopere_mobile']],
+        ];
+
+        $target = $targets[$key] ?? ['/admin/search.php', ['query' => $key]];
+        $query = !empty($target[1]) ? '?' . http_build_query($target[1]) : '';
+        return $baseurl . $target[0] . $query;
+    }
+
+    private static function moodleConfigInstallUrl(): string {
+        return 'https://moodle.org/plugins/local_kopere_mobile';
+    }
+
+    private static function moodleConfigBooleanChecks(): array {
+        return [
+            'is_moodle_cookie_secure' => I18n::get('app_manager.moodle_config_descriptions.is_moodle_cookie_secure'),
+            'allowframembedding' => I18n::get('app_manager.moodle_config_descriptions.allowframembedding'),
+            'enablemobilewebservice' => I18n::get('app_manager.moodle_config_descriptions.enablemobilewebservice'),
+            'external_services_moodle_mobile_app' => I18n::get('app_manager.moodle_config_descriptions.external_services_moodle_mobile_app'),
+            'is_chrome' => I18n::get('app_manager.moodle_config_descriptions.is_chrome'),
+            'check_chrome_version_78' => I18n::get('app_manager.moodle_config_descriptions.check_chrome_version_78'),
+        ];
+    }
+
+    private static function moodleConfigVersionChecks(): array {
+        return [
+            'local_kopere_mobile_version' => 'local_kopere_mobile',
+        ];
+    }
+
+    private static function fetchMoodleConfigTestUrl(string $url): string {
+        if (function_exists('curl_init')) {
+            $curl = curl_init($url);
+            curl_setopt_array($curl, [
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_FOLLOWLOCATION => true,
+                CURLOPT_MAXREDIRS => 3,
+                CURLOPT_CONNECTTIMEOUT => 5,
+                CURLOPT_TIMEOUT => 10,
+                CURLOPT_SSL_VERIFYPEER => true,
+                CURLOPT_SSL_VERIFYHOST => 2,
+                CURLOPT_USERAGENT => self::moodleConfigUserAgent(),
+                CURLOPT_HTTPHEADER => ['Accept: application/json'],
+            ]);
+
+            $body = curl_exec($curl);
+            $error = curl_error($curl);
+            $status = (int) curl_getinfo($curl, CURLINFO_HTTP_CODE);
+            curl_close($curl);
+
+            if ($body === false) {
+                throw new RuntimeException(I18n::get('app_errors.moodle_config_fetch_failed', ['message' => $error]));
+            }
+            if ($status == 404) {
+                throw new RuntimeException(I18n::get('app_errors.moodle_config_plugin_missing'), 404);
+            }
+            if ($status < 200 || $status >= 300) {
+                throw new RuntimeException(I18n::get('app_errors.moodle_config_http_status', ['status' => (string) $status]), $status);
+            }
+            if (trim((string) $body) == '') {
+                throw new RuntimeException(I18n::get('app_errors.moodle_config_empty_response'));
+            }
+
+            return (string) $body;
+        }
+
+        $context = stream_context_create([
+            'http' => [
+                'method' => 'GET',
+                'timeout' => 10,
+                'ignore_errors' => true,
+                'header' => "Accept: application/json\r\nUser-Agent: " . self::moodleConfigUserAgent() . "\r\n",
+            ],
+            'ssl' => [
+                'verify_peer' => true,
+                'verify_peer_name' => true,
+            ],
+        ]);
+
+        $body = @file_get_contents($url, false, $context);
+        $headers = $http_response_header ?? [];
+        $status = 0;
+        foreach ($headers as $header) {
+            if (preg_match('/^HTTP\/\S+\s+(\d+)/', $header, $matches)) {
+                $status = (int) $matches[1];
+            }
+        }
+
+        if ($body === false) {
+            throw new RuntimeException(I18n::get('app_errors.moodle_config_fetch_failed', ['message' => 'file_get_contents']));
+        }
+        if ($status == 404) {
+            throw new RuntimeException(I18n::get('app_errors.moodle_config_plugin_missing'), 404);
+        }
+        if ($status != 0 && ($status < 200 || $status >= 300)) {
+            throw new RuntimeException(I18n::get('app_errors.moodle_config_http_status', ['status' => (string) $status]), $status);
+        }
+        if (trim((string) $body) == '') {
+            throw new RuntimeException(I18n::get('app_errors.moodle_config_empty_response'));
+        }
+
+        return (string) $body;
+    }
+
+    private static function moodleConfigUserAgent(): string {
+        return 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 ' .
+            '(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
     }
 
     private static function ensureDir(string $dir, int $mode): void {

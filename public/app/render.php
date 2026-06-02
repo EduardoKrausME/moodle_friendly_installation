@@ -45,6 +45,12 @@ function render_navigation_items(): array {
             'active_on' => ['index.php', 'details.php'],
         ],
         [
+            'url' => '/app_manager.php',
+            'label' => t('navigation.app_mobile'),
+            'icon' => 'A',
+            'active_on' => ['app_manager.php'],
+        ],
+        [
             'url' => '/install.php',
             'label' => t('navigation.install_moodle'),
             'icon' => '+',
