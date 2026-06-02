@@ -1567,7 +1567,7 @@ final_check() {
     final_banner_animate "██║╚██╔╝██║██║   ██║██║   ██║██║  ██║██║     ██╔══╝  " "${green}"
     final_banner_animate "██║ ╚═╝ ██║╚██████╔╝╚██████╔╝██████╔╝███████╗███████╗" "${white}"
     final_banner_animate "╚═╝     ╚═╝ ╚═════╝  ╚═════╝ ╚═════╝ ╚══════╝╚══════╝" "${white}"
-    printf '%b\n' "${reset}"
+    printf '%b' "${reset}"
 
     final_banner_points
     final_banner_line
