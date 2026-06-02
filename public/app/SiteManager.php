@@ -55,10 +55,13 @@ class SiteManager {
 
     private static function discoverMoodleDirs(): array {
         $dirs = [];
-        $homebase = rtrim(app_config('home_base_dir') ?: '/home', '/');
 
-        $pattern = "{$homebase}/*/moodle/config.php";
-        foreach (glob($pattern) ?: [] as $configfile) {
+        $pattern = "/home/*/moodle/config.php";
+        $configfiles = glob($pattern) ?: [];
+        echo '<pre>';
+        print_r($configfiles);
+        echo '</pre>';
+        foreach ($configfiles as $configfile) {
             $moodledir = dirname($configfile);
             if (is_file($configfile)) {
                 $dirs[realpath($moodledir) ?: $moodledir] = true;
@@ -109,7 +112,7 @@ class SiteManager {
 
         if (isset($config["dbname"])) {
             $time = time();
-            $signature = hash_hmac('sha256',$time, $config["dbname"]);
+            $signature = hash_hmac('sha256', $time, $config["dbname"]);
             $hash = "time={$time}&signature={$signature}&dbname={$config["dbname"]}";
             $return['sso_url'] =
                 ($wwwroot != '' ? rtrim($wwwroot, '/') : 'https://' . $domain) . "/moodle-logar-admin.php?{$hash}";
@@ -257,7 +260,7 @@ class SiteManager {
         }
 
         $hasDomain = stripos($content, $domain) != false;
-        $hasRoot = !empty($site['webroot']) && stripos($content,$site['webroot']) != false;
+        $hasRoot = !empty($site['webroot']) && stripos($content, $site['webroot']) != false;
 
         if ($hasDomain) {
             return [
@@ -371,10 +374,10 @@ class SiteManager {
             if (is_array($dns)) {
                 foreach ($dns as $record) {
                     if (($record['type'] ?? '') == 'A' && !empty($record['ip'])) {
-                        $records['A'][] =$record['ip'];
+                        $records['A'][] = $record['ip'];
                     }
                     if (($record['type'] ?? '') == 'AAAA' && !empty($record['ipv6'])) {
-                        $records['AAAA'][] =$record['ipv6'];
+                        $records['AAAA'][] = $record['ipv6'];
                     }
                 }
             }
@@ -397,12 +400,12 @@ class SiteManager {
 
         foreach (['SERVER_ADDR', 'LOCAL_ADDR'] as $key) {
             if (!empty($_SERVER[$key])) {
-                $ips[] =$_SERVER[$key];
+                $ips[] = $_SERVER[$key];
             }
         }
 
         if (!empty($_SERVER['HTTP_HOST'])) {
-            $host = preg_replace('/:\d+$/', '',$_SERVER['HTTP_HOST']);
+            $host = preg_replace('/:\d+$/', '', $_SERVER['HTTP_HOST']);
             $hostIps = @gethostbynamel($host);
             if (is_array($hostIps)) {
                 $ips = array_merge($ips, $hostIps);
@@ -546,10 +549,10 @@ class SiteManager {
 
     private static function certName(array $data): string {
         if (!empty($data['CN'])) {
-            return$data['CN'];
+            return $data['CN'];
         }
         if (!empty($data['O'])) {
-            return$data['O'];
+            return $data['O'];
         }
         return '';
     }
@@ -748,7 +751,7 @@ class SiteManager {
     private static function checkFeatureFlags(array $site): array {
         $items = [];
         foreach (self::featureFlagDefinitions() as $key => $definition) {
-            $file = self::featureFlagFile($site,$definition['file']);
+            $file = self::featureFlagFile($site, $definition['file']);
             $enabled = $file != '' && is_file($file);
             $value = '';
 

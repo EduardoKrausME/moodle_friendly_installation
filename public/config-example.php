@@ -16,7 +16,6 @@ return [
     // Target server layout.
     "default_moodle_branch" => "MOODLE_502_STABLE",
     "db_engine" => "mysql",
-    "home_base_dir" => "/home",
     "apache_user" => "apache",
     "apache_group" => "apache",
     "php_bin" => "/usr/bin/php",
