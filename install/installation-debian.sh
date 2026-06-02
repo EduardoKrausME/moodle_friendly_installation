@@ -1351,9 +1351,9 @@ final_check() {
     local yellow="\033[1;33m"
     local red="\033[1;31m"
     local blue="\033[1;34m"
+    local purple="\033[1;35m"
     local cyan="\033[1;36m"
     local white="\033[1;37m"
-    local dim="\033[2m"
 
     local sep="------------------------------------------------------------"
 
@@ -1369,15 +1369,52 @@ final_check() {
     fi
 
     printf '\n'
-    printf '%b%s%b\n' "${cyan}" "${sep}" "${reset}"
-    printf '%b        .-.-.  .-.-.  .-.-.  .-.  .----.  .----.%b\n' "${blue}" "${reset}"
-    printf '%b        | M |--| O |--| O |--| D |--| L  |--| E  |%b\n' "${blue}" "${reset}"
-    printf '%b        `-.-´  `-.-´  `-.-´  `-´  `----´  `----´%b\n' "${blue}" "${reset}"
-    printf '%b          . . . Moodle Friendly Installation . . .%b\n' "${dim}" "${reset}"
-    printf '%b%s%b\n' "${cyan}" "${sep}" "${reset}"
+
+    final_banner_line() {
+        printf '%b------------------------------------------------------------%b\n' "${cyan}" "${reset}"
+    }
+
+    final_banner_points() {
+        printf '%b. . . . . . . . . . . . . . . . . . . . . . . . . . . .%b\n' "${yellow}" "${reset}"
+    }
+
+    final_banner_animate() {
+        local text="$1"
+        local color="$2"
+        local i
+
+        for ((i = 0; i < ${#text}; i++)); do
+            printf '%b%s%b' "${color}" "${text:${i}:1}" "${reset}"
+            sleep 0.01
+        done
+        printf '\n'
+    }
+
+    final_banner_line
+    final_banner_points
+    printf '%b' "${bold}${purple:-${red}}"
+    final_banner_animate "███╗   ███╗ ██████╗  ██████╗ ██████╗ ██╗     ███████╗" "${purple:-${red}}"
+    final_banner_animate "████╗ ████║██╔═══██╗██╔═══██╗██╔══██╗██║     ██╔════╝" "${blue}"
+    final_banner_animate "██╔████╔██║██║   ██║██║   ██║██║  ██║██║     █████╗  " "${cyan}"
+    final_banner_animate "██║╚██╔╝██║██║   ██║██║   ██║██║  ██║██║     ██╔══╝  " "${green}"
+    final_banner_animate "██║ ╚═╝ ██║╚██████╔╝╚██████╔╝██████╔╝███████╗███████╗" "${yellow}"
+    final_banner_animate "╚═╝     ╚═╝ ╚═════╝  ╚═════╝ ╚═════╝ ╚══════╝╚══════╝" "${red}"
+    printf '%b\n' "${reset}"
+
+    final_banner_points
+    final_banner_line
+
+    printf '\n'
+    printf '%b        .-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.%b\n' "${bold}${white}" "${reset}"
+    printf '%b        |     MOODLE ADMIN ONLINE AND READY TO USE    |%b\n' "${bold}${green}" "${reset}"
+    printf "%b        '-'-'-'-'-'-'-'-'-'-'-'-'-'-'-'-'-'-'-'-'-'-'-'\n"   "${bold}${white}" "${reset}"
+    printf '\n'
 
     if [[ "${curl_ok}" == "1" ]]; then
-        printf '%b%s%b\n' "${green}" "Installation completed successfully." "${reset}"
+        sleep 0.5
+        printf '%b        ... System started successfully. ...%b\n' "${green}" "${reset}"
+        printf '\n'
+        final_banner_line
     else
         printf '%b%s%b\n' "${yellow}" "Installation completed, but the final HTTP test needs attention." "${reset}"
     fi
