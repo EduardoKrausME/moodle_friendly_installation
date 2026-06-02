@@ -242,10 +242,6 @@ a:hover {
   margin-top: 18px;
 }
 
-.grid-form {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
 label {
   display: grid;
   gap: 8px;
@@ -793,8 +789,7 @@ small {
     flex-direction: column;
   }
   .details-grid,
-  .flag-grid,
-  .grid-form {
+  .flag-grid {
     grid-template-columns: 1fr;
   }
   .hero-actions,
