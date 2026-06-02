@@ -5,8 +5,7 @@ IFS=$'\n\t'
 # Moodle Friendly Installation bootstrap.
 # Clones the full project into /home/admin.moodle and delegates the installation
 # to the local Debian/Ubuntu or RedHat/Fedora installer.
-# Usage:
-#   curl -fsSL https://raw.githubusercontent.com/EduardoKrausME/moodle_friendly_installation/refs/heads/master/install/installation.sh | sudo bash
+#   curl -fsSL https://raw.githubusercontent.com/EduardoKrausME/moodle_friendly_installation/refs/heads/master/install/installation.sh -o i.sh && chmod +x i.sh && ./i.sh
 
 REPO_URL="${REPO_URL:-https://github.com/EduardoKrausME/moodle_friendly_installation.git}"
 REPO_BRANCH="${1:-${REPO_BRANCH:-master}}"
