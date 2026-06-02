@@ -1820,8 +1820,12 @@ PY
 
 main() {
 
-    rm /var/lib/apt/lists/lock
-    rm /var/lib/dpkg/lock-frontend
+    if [ -e /var/lib/apt/lists/lock ]; then
+        rm /var/lib/apt/lists/lock
+    fi
+    if [ -e /var/lib/dpkg/lock-frontend ]; then
+        rm /var/lib/dpkg/lock-frontend
+    fi
 
     need_root
     load_progress
