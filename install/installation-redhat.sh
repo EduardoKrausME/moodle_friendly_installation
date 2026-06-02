@@ -1418,6 +1418,55 @@ lets_encrypt_certificate_exists() {
     return 0
 }
 
+load_existing_panel_config() {
+    local config_file="${INSTALL_DIR}/public/config.php"
+    local existing_pass=""
+
+    [[ -f "${config_file}" ]] || return 0
+
+    existing_pass="$(python3 - "${config_file}" <<'PY'
+import re
+import sys
+from pathlib import Path
+
+text = Path(sys.argv[1]).read_text(errors='ignore')
+match = re.search(r"['\"]mysql_admin_pass['\"]\s*=>\s*('(?:\\.|[^'\\])*'|\"(?:\\.|[^\"\\])*\"|null)", text)
+if not match:
+    raise SystemExit(0)
+
+token = match.group(1)
+if token == 'null':
+    raise SystemExit(0)
+
+quote = token[0]
+value = token[1:-1]
+
+if quote == "'":
+    value = value.replace("\\'", "'").replace('\\\\', '\\')
+else:
+    # This is intentionally conservative. Installer-generated values are single quoted,
+    # but this also supports the most common double-quoted escaping used manually.
+    value = bytes(value, 'utf-8').decode('unicode_escape')
+
+if value:
+    print(value)
+PY
+)"
+
+    [[ -n "${existing_pass}" ]] || return 0
+
+    if [[ -n "${REQUESTED_DB_ROOT_PASS:-}" ]]; then
+        log "Using database root password provided through DB_ROOT_PASS. Existing panel config was not used."
+        return 0
+    fi
+
+    if [[ "${DB_ROOT_PASS:-}" != "${existing_pass}" ]]; then
+        DB_ROOT_PASS="${existing_pass}"
+        log "Loaded database root password from existing panel config.php."
+        save_progress
+    fi
+}
+
 main() {
     need_root
     load_progress
@@ -1499,52 +1548,3 @@ main() {
 }
 
 main "$@"
-
-load_existing_panel_config() {
-    local config_file="${INSTALL_DIR}/public/config.php"
-    local existing_pass=""
-
-    [[ -f "${config_file}" ]] || return 0
-
-    existing_pass="$(python3 - "${config_file}" <<'PY'
-import re
-import sys
-from pathlib import Path
-
-text = Path(sys.argv[1]).read_text(errors='ignore')
-match = re.search(r"['\"]mysql_admin_pass['\"]\s*=>\s*('(?:\\.|[^'\\])*'|\"(?:\\.|[^\"\\])*\"|null)", text)
-if not match:
-    raise SystemExit(0)
-
-token = match.group(1)
-if token == 'null':
-    raise SystemExit(0)
-
-quote = token[0]
-value = token[1:-1]
-
-if quote == "'":
-    value = value.replace("\\'", "'").replace('\\\\', '\\')
-else:
-    # This is intentionally conservative. Installer-generated values are single quoted,
-    # but this also supports the most common double-quoted escaping used manually.
-    value = bytes(value, 'utf-8').decode('unicode_escape')
-
-if value:
-    print(value)
-PY
-)"
-
-    [[ -n "${existing_pass}" ]] || return 0
-
-    if [[ -n "${REQUESTED_DB_ROOT_PASS:-}" ]]; then
-        log "Using database root password provided through DB_ROOT_PASS. Existing panel config was not used."
-        return 0
-    fi
-
-    if [[ "${DB_ROOT_PASS:-}" != "${existing_pass}" ]]; then
-        DB_ROOT_PASS="${existing_pass}"
-        log "Loaded database root password from existing panel config.php."
-        save_progress
-    fi
-}
