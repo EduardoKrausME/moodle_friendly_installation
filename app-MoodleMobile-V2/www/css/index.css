@@ -1,0 +1,276 @@
+#page-login .page__content {
+    background-image: linear-gradient(to bottom, var(--primary-color, #0088DF), var(--primary-color-2, #069CFC));
+}
+
+#page-login .page__content .icon-user {
+    margin-top: 37px;
+    margin-bottom: 37px;
+    color: #FFFFFF;
+    transition: all 0.25s linear;
+}
+
+@media (orientation: landscape) {
+    #page-login .page__content .icon-user {
+        margin-top: 17px;
+        margin-bottom: 7px;
+    }
+}
+
+#page-login .page__content .icon-user img {
+    max-width: 70%;
+    max-height: 105px;
+    transition: all 0.25s linear;
+}
+
+@media (orientation: landscape) {
+    #page-login .page__content .icon-user img {
+        max-height: 50px;
+    }
+}
+
+#page-login .page__content .icon-user .text {
+    font-size: 21px;
+}
+
+#page-login .page__content ons-input {
+    width: 100%;
+}
+
+#page-login .page__content ons-input input,
+#page-login .page__content ons-input .text-input__label {
+    padding: 9px;
+    border-radius: 17px;
+    font-size: 17px;
+}
+
+#page-login .page__content ons-input input {
+    background: #FFFFFF;
+    margin-bottom: 18px;
+    height: auto;
+    width: 80%;
+    font-size: 22px;
+    padding: 13px 13px;
+}
+
+#page-login .page__content ons-input .text-input__label {
+    display: none;
+}
+
+#page-login .page__content ons-button {
+    min-width: 170px;
+    border-radius: 17px;
+    background: #081944;
+    color: #FFFFFF;
+    padding: 5px 13px;
+}
+
+#page-login .page__content .recuperar-senha {
+    color: #FFFFFF;
+    margin: 18px 0 14px;
+    background: transparent;
+    box-shadow: none;
+    text-decoration: underline;
+}
+
+#page-login .page__content .status-login-submit .erro-login {
+    background: #F44336;
+    font-size: 18px;
+    padding: 8px;
+    color: #FFFFFF;
+    margin: 0 13%;
+    border-radius: 8px;
+}
+
+#page-login .page__content .versao {
+    text-align: center;
+    width: 100%;
+    font-size: 12px;
+    color: #FFFFFF;
+    margin-top: 10px;
+}
+
+.platform-ios #page-login .page__content .versao {
+    bottom: 16px;
+}
+
+ons-toolbar.toolbar {
+    position: relative;
+}
+
+ons-toolbar.toolbar * {
+    z-index: 2;
+}
+
+ons-toolbar.toolbar .background {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    opacity: 0;
+    box-shadow: 0 1px 5px rgba(0, 0, 0, 0.3);
+}
+
+.platform-android ons-toolbar.toolbar, .platform-android ons-toolbar.toolbar .background {
+    background: var(--primary-color, #0088DF);
+    background-image: linear-gradient(to bottom, var(--primary-color, #0088DF), var(--primary-color-2, #069CFC));
+}
+
+.platform-android ons-toolbar.toolbar .toolbar__title,
+.platform-android ons-toolbar.toolbar ons-back-button {
+    color: #FFFFFF;
+}
+
+.platform-android ons-toolbar.toolbar ons-back-button .back-button__icon {
+    fill: #FFFFFF;
+}
+
+.platform-ios ons-toolbar.toolbar, .platform-ios ons-toolbar.toolbar .background {
+    background: var(--toolbar-background-color);
+    background-image: linear-gradient(0deg, var(--toolbar-background-color), var(--toolbar-background-color) 100%);
+    box-shadow: var(--toolbar-box-shadow);
+}
+
+.platform-ios ons-toolbar.toolbar .toolbar__title {
+    width: 100%;
+}
+
+.platform-ios ons-toolbar.toolbar .toolbar__left .back-button__label {
+    margin-right: 10px;
+}
+
+.platform-ios ons-toolbar.toolbar .toolbar__left .back-button__label:empty {
+    display: none;
+}
+
+.platform-ios ons-toolbar.toolbar .toolbar__right {
+    width: auto;
+}
+
+body.size-fixed {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+ons-page .content .zmdi-spinner {
+    font-size: 45px;
+    margin: 80px auto 0;
+    text-align: center;
+    width: 100%;
+}
+
+.alert {
+    padding: 7px 13px;
+    border-radius: 5px;
+}
+
+.alert.alert-warning {
+    background: #FFD54F;
+    color: #3F3A3A;
+}
+
+.alert.alert-error {
+    background: #CF5880;
+    color: #FFFFFF;
+}
+
+.alert.alert-margin {
+    margin: 20px;
+}
+
+.alert.alert-primary {
+    background-color: #cfe2ff;
+    color: #084298;
+}
+
+.alert.alert-primary a {
+    color: #06357a;
+    font-weight: 600;
+    text-decoration: underline;
+}
+
+.alert.alert-primary a:hover {
+    color: #041f4a;
+}
+
+.alert.alert-secondary {
+    background-color: #e2e3e5;
+    color: #41464b;
+}
+
+.alert.alert-secondary a {
+    color: #2c3034;
+    font-weight: 600;
+    text-decoration: underline;
+}
+
+.alert.alert-secondary a:hover {
+    color: #1a1d20;
+}
+
+.alert.alert-success {
+    background-color: #d1e7dd;
+    color: #0f5132;
+}
+
+.alert.alert-success a {
+    color: #0c3e26;
+    font-weight: 600;
+    text-decoration: underline;
+}
+
+.alert.alert-success a:hover {
+    color: #082216;
+}
+
+.alert.alert-info {
+    background-color: #cff4fc;
+    color: #055160;
+}
+
+.alert.alert-info a {
+    color: #033c47;
+    font-weight: 600;
+    text-decoration: underline;
+}
+
+.alert.alert-info a:hover {
+    color: #02242a;
+}
+
+.alert.alert-warning {
+    background-color: #fff3cd;
+    color: #664d03;
+}
+
+.alert.alert-warning a {
+    color: #4d3902;
+    font-weight: 600;
+    text-decoration: underline;
+}
+
+.alert.alert-warning a:hover {
+    color: #332501;
+}
+
+.alert.alert-danger {
+    background-color: #f8d7da;
+    color: #842029;
+}
+
+.alert.alert-danger a {
+    color: #5c141b;
+    font-weight: 600;
+    text-decoration: underline;
+}
+
+.alert.alert-danger a:hover {
+    color: #3c0c11;
+}
+
+.d-flex {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/*# sourceMappingURL=index.css.map */

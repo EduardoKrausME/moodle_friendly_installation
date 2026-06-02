@@ -1,0 +1,70 @@
+<?xml version='1.0' encoding='utf-8'?>
+<widget android-packageName="com.eduardokraus.aulaemvideo"
+        version="4.2.13"
+        xmlns="http://www.w3.org/ns/widgets"
+        xmlns:android="http://schemas.android.com/apk/res/android">
+    <preference name="AppendUserAgent" value=" AppMoodleMobileV2\/4.2.13" />
+    <name>Aula em Vídeo</name>
+    <description>Kraus Moodle™ Mobile</description>
+    <author email="kraus@eduardokraus.com" href="https://eduardokraus.com">
+        Eduardo Kraus ME
+    </author>
+    <content src="index.html" />
+    <platform name="android">
+        <preference name="AndroidEdgeToEdge" value="false" />
+        <preference name="SplashScreenBackgroundColor" value="#12284C" />
+        <preference name="AndroidWindowSplashScreenIconBackgroundColor" value="#12284C" />
+        <preference name="ShowSplashScreenSpinner" value="false" />
+        <preference name="SplashScreenDelay" value="4000" />
+        <preference name="SplashMaintainAspectRatio" value="true" />
+
+        <icon density="ldpi" src="res/mylearn.corp/android/36x36.png" />
+        <icon density="mdpi" src="res/mylearn.corp/android/48x48.png" />
+        <icon density="hdpi" src="res/mylearn.corp/android/72x72.png" />
+        <icon density="xhdpi" src="res/mylearn.corp/android/96x96.png" />
+        <icon density="xxhdpi" src="res/mylearn.corp/android/144x144.png" />
+        <icon density="xxxhdpi" src="res/mylearn.corp/android/192x192.png" />
+
+        <splash src="res/mylearn.corp/splash.png" />
+
+        <resource-file src="res/mylearn.corp/android-notification/48x48.png" target="app/src/main/res/drawable-mdpi/ic_stat_onesignal_default.png" />
+        <resource-file src="res/mylearn.corp/android-notification/72x72.png" target="app/src/main/res/drawable-hdpi/ic_stat_onesignal_default.png" />
+        <resource-file src="res/mylearn.corp/android-notification/96x96.png" target="app/src/main/res/drawable-xhdpi/ic_stat_onesignal_default.png" />
+        <resource-file src="res/mylearn.corp/android-notification/144x144.png" target="app/src/main/res/drawable-xxhdpi/ic_stat_onesignal_default.png" />
+        <resource-file src="res/mylearn.corp/android-notification/192x192.png" target="app/src/main/res/drawable-xxxhdpi/ic_stat_onesignal_default.png" />
+        <resource-file src="src/img/icon/ic_menu_share_48x48.png" target="app/src/main/res/drawable-mdpi/ic_menu_share.png" />
+        <resource-file src="src/img/icon/ic_menu_share_72x72.png" target="app/src/main/res/drawable-hdpi/ic_menu_share.png" />
+        <resource-file src="src/img/icon/ic_menu_share_96x96.png" target="app/src/main/res/drawable-xhdpi/ic_menu_share.png" />
+        <resource-file src="src/img/icon/ic_menu_share_144x144.png" target="app/src/main/res/drawable-xxhdpi/ic_menu_share.png" />
+        <resource-file src="src/img/icon/ic_menu_share_192x192.png" target="app/src/main/res/drawable-xxxhdpi/ic_menu_share.png" />
+
+        <edit-config file="app/src/main/AndroidManifest.xml" mode="merge" target="/manifest/application/activity[@android:name='MainActivity']">
+            <activity android:exported="true" />
+        </edit-config>
+    </platform>
+
+    <preference name="StatusBarOverlaysWebView" value="false" />
+    <preference name="StatusBarBackgroundColor" value="#12284C" />
+    <preference name="StatusBarStyle" value="lightcontent" />
+    <preference name="android-minSdkVersion" value="24" />
+    <preference name="android-targetSdkVersion" value="36" />
+    <preference name="MediaPlaybackRequiresUserAction" value="false" />
+    <preference name="AndroidXEnabled" value="true" />
+    <preference name="DisallowOverscroll" value="true" />
+    <preference name="AllowInlineMediaPlayback" value="true" />
+    <preference name="KeyboardDisplayRequiresUserAction" value="true" />
+    <preference name="AndroidLaunchMode" value="singleInstance" />
+
+    <access origin="*" />
+
+    <allow-navigation href="*" />
+
+    <allow-intent href="itms-apps:*" />
+    <allow-intent href="market:*" />
+    <allow-intent href="http://*/*" />
+    <allow-intent href="https://*/*" />
+    <allow-intent href="tel:*" />
+    <allow-intent href="sms:*" />
+    <allow-intent href="mailto:*" />
+    <allow-intent href="geo:*" />
+</widget>

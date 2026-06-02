@@ -1,0 +1,29 @@
+{
+    "dependencies": {
+        "xml": "^1.0.1",
+        "xml-js": "^1.6.11"
+    },
+    "cordova": {
+        "plugins": {
+            "cordova-plugin-device": {},
+            "cordova-plugin-file": {
+                "ANDROIDX_WEBKIT_VERSION": "1.4.0"
+            },
+            "cordova-plugin-inappbrowser": {},
+            "cordova-plugin-ionic-webview": {},
+            "cordova-plugin-splashscreen": {},
+            "cordova-plugin-file-transfer": {},
+            "cordova-plugin-zip": {}
+        },
+        "platforms": []
+    },
+    "devDependencies": {
+        "cordova-plugin-device": "^3.0.0",
+        "cordova-plugin-file": "^8.1.3",
+        "cordova-plugin-file-transfer": "^2.0.0",
+        "cordova-plugin-inappbrowser": "^6.0.0",
+        "cordova-plugin-ionic-webview": "^5.0.1",
+        "cordova-plugin-splashscreen": "^6.0.1",
+        "cordova-plugin-zip": "github:EduardoKrausME/cordova-plugin-zip"
+    }
+}

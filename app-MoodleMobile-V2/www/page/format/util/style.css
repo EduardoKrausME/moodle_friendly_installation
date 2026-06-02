@@ -1,0 +1,131 @@
+.moodle4 .mod_purpose {
+  padding: 10px 5px 5px 10px;
+}
+.moodle4 .mod_purpose.mod_purpose-icon--administration {
+  background: #5D63F6;
+}
+.moodle4 .mod_purpose.mod_purpose-icon--assessment {
+  background: #EB66A2;
+}
+.moodle4 .mod_purpose.mod_purpose-icon--collaboration {
+  background: #F7634D;
+}
+.moodle4 .mod_purpose.mod_purpose-icon--communication {
+  background: #11A676;
+}
+.moodle4 .mod_purpose.mod_purpose-icon--content {
+  background: #399BE2;
+}
+.moodle4 .mod_purpose.mod_purpose-icon--interface {
+  background: #A378FF;
+}
+.moodle4 .mod_purpose.mod_purpose-icon img {
+  filter: brightness(0) invert(1);
+}
+
+.page-format ons-toolbar.toolbar {
+  background: transparent;
+  box-shadow: none;
+}
+.page-format ons-toolbar.toolbar .toolbar__center,
+.page-format ons-toolbar.toolbar .toolbar__right {
+  opacity: 0;
+}
+.page-format .page__content {
+  top: 0 !important;
+  background: linear-gradient(to bottom, color-mix(in srgb, var(--material-background-color) 71%, transparent), white), var(--page-content-background-image);
+  background-size: contain;
+  background-position: top;
+  background-repeat: no-repeat;
+}
+#course-top {
+  margin: 70px 26px 18px;
+  color: #FFFFFF;
+}
+#course-top .titles {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+#course-top div {
+  width: 100%;
+}
+#course-top h3 {
+  font-weight: 800;
+  margin-bottom: 2px;
+}
+#course-top .course-shortname {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+#course-top .course-shortname h4 {
+  font-size: 16px;
+  font-weight: 400;
+  margin: 0;
+}
+#course-top .progress-area {
+  width: 100%;
+  margin-top: 20px;
+}
+#course-top .progress-area ons-progress-bar {
+  display: flex;
+  flex-direction: row-reverse;
+  align-items: center;
+  font-size: 13px;
+  width: 100%;
+}
+#course-top .progress-area ons-progress-bar .progress-bar {
+  height: 100%;
+  background: #E5E5E5;
+}
+#course-top .progress-area ons-progress-bar .progress-bar .progress-bar__primary {
+  margin: 0;
+}
+#course-top .progress-area span {
+  width: 100%;
+  display: inline-block;
+  text-align: right;
+  margin-bottom: 6px;
+  font-weight: 500;
+  font-size: 17px;
+}
+#course-top .progress-area ons-progress-bar {
+  margin-top: 2px;
+}
+#course-top .progress-area ons-progress-bar .progress-bar {
+  background: rgba(0, 0, 0, 0.4117647059);
+  border-radius: 5px;
+  height: 10px;
+}
+#course-top .progress-area ons-progress-bar .progress-bar__primary {
+  background: var(--primary-color, #0088DF);
+  border-radius: 4px;
+}
+#course-top .status-download {
+  text-align: right;
+  font-weight: 500;
+  font-size: 17px;
+  width: fit-content;
+  white-space: nowrap;
+}
+#course-top .status-download .download-course {
+  display: none;
+}
+#course-top .status-download .course-progress {
+  display: none;
+}
+#course-top .status-download .course-done {
+  display: none;
+}
+#course-top .status-download.download-course .download-course {
+  display: block;
+}
+#course-top .status-download.course-progress .course-progress {
+  display: block;
+}
+#course-top .status-download.course-done .course-done {
+  display: block;
+}
+
+/*# sourceMappingURL=style.css.map */

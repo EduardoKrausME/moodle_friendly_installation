@@ -1,0 +1,25 @@
+#page-mod-external_iframe #page-mod-external_iframe-content {
+    position: fixed;
+    top: var(--toolbar-material-height);
+    left: 0;
+    right: 0;
+    bottom: 0;
+}
+
+#page-mod-external_iframe #page-mod-external_iframe-content #page-mod-external_iframe_iframe-content {
+    max-width: 100%;
+    height: 100%;
+}
+
+#page-mod-external_iframe #page-mod-external_iframe-content #page-mod-external_iframe_iframe-content iframe {
+    max-width: 100%;
+    height: 99%;
+    width: 100%;
+}
+
+#page-mod-external_iframe #page-mod-external_iframe-content #page-mod-external_iframe-spinner {
+    position: absolute;
+    z-index: 2;
+}
+
+/*# sourceMappingURL=style.css.map */

@@ -1,0 +1,46 @@
+<ons-page id="page-mod-folder">
+
+    <ons-toolbar>
+        <div class="left">
+            <ons-back-button>
+                <span data-i18n-html="course.course"></span>
+            </ons-back-button>
+        </div>
+        <div class="center"></div>
+    </ons-toolbar>
+
+    <div class="content">
+        <div class="xpull">
+            <div class="xpull__start-msg">
+                <div class="xpull__arrow"></div>
+            </div>
+            <div class="xpull__spinner">
+                <div class="xpull__spinner-circle"></div>
+            </div>
+        </div>
+
+        <div id="page-mod-folder-content">
+            <ons-icon icon="md-spinner" spin></ons-icon>
+        </div>
+    </div>
+
+    <ons-dialog id="folder-erro-carregar-arquivo">
+        <div style="text-align:center; padding: 10px;">
+            <p class="title"></p>
+            <p>
+                <ons-button onclick="PageOpen.hideDialog()" data-i18n-html="common.ok"></ons-button>
+            </p>
+        </div>
+    </ons-dialog>
+
+    <script>
+        $('#page-mod-folder .content').xpull({
+            'callback': function () {
+                ModFolder.show_module_load();
+            }
+        });
+    </script>
+
+    <link href="page/mod/folder/style.css" rel="stylesheet"/>
+
+</ons-page>

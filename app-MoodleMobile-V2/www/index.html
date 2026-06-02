@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="msapplication-tap-highlight" content="no">
+    <meta name="viewport"
+          content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, viewport-fit=cover">
+    <meta http-equiv="Content-Security-Policy"
+          content="default-src *;
+                   style-src  * 'self' http: https: 'unsafe-inline' 'unsafe-eval';
+                   script-src * 'self' http: https: 'unsafe-inline' 'unsafe-eval';
+                   object-src * 'self' http: https: data: blob:;
+                   font-src   * 'self' http: https: data: blob:;
+                   media-src  * 'self' http: https: data: blob:;
+                   img-src    * 'self' http: https: data:;">
+    <title>Moodle Mobile</title>
+
+    <script src="vendor/jquery/jquery.js"></script>
+    <script src="https://www.youtube.com/iframe_api?player.js"></script>
+    <script src="https://player.vimeo.com/api/player.js"></script>
+
+    <script src="players/plyr/plyr.js"></script>
+    <link href="players/plyr/plyr.css" rel="stylesheet"/>
+
+    <link href="css/xpull.css" rel="stylesheet">
+
+    <link href="css/layout.css" rel="stylesheet">
+    <link href="css/fonts/FontAwesome/style.css" rel="stylesheet">
+    <link href="css/fonts/MaterialDesign/style.css" rel="stylesheet">
+    <link href="css/fonts/ionicons/style.css" rel="stylesheet">
+    <link href="css/fonts/Gotham/style.css" rel="stylesheet">
+    <link href="css/fonts/Roboto/style.css" rel="stylesheet">
+    <link href="css/index.css" rel="stylesheet">
+
+    <link href="css/custom.css" rel="stylesheet">
+
+    <script src="cordova.js"></script>
+         <script src="js/index.js"></script>
+</head>
+
+<body>
+<div id="root-app" style="display:none;">
+
+    <ons-navigator id="page-login" style="display:none"
+                   swipeable swipe-target-width="80px">
+        <ons-page>
+            <div style="text-align: center;margin-bottom: 45px;">
+                <div class="icon-user">
+                    <img id="logo-login" src="img/login/user.svg" alt="logo">
+                </div>
+                <div>
+                    <ons-input class="input-username"
+                               data-i18n-placeholder="login.username"
+                               type="text" modifier="underbar"
+                               autocorrect="off"
+                               autocapitalize="off"
+                               spellcheck="false"></ons-input>
+                </div>
+                <div>
+                    <ons-input class="input-password"
+                               data-i18n-placeholder="login.password"
+                               type="password"
+                               modifier="underbar"></ons-input>
+                </div>
+                <div>
+                    <ons-button class="button-login-submit"
+                                onclick="Login.login()"
+                                data-i18n="login.submit"></ons-button>
+                </div>
+
+                <div>
+                    <ons-button class="recuperar-senha"
+                                onclick="Login.open_forgot()"
+                                data-i18n-html="login.forgot"></ons-button>
+                </div>
+                <div id="htmllogin"></div>
+
+                <div class="status-login-submit"></div>
+
+                <ons-modal id="login-wait">
+                    <div style="text-align: center">
+                        <ons-progress-circular style="width:60px;height:60px" indeterminate></ons-progress-circular>
+                    </div>
+                </ons-modal>
+                <div id="data-versao" class="versao"
+                     data-package_uid="4.2.13"
+                     data-package_name="4.2.13"
+                     data-onesignalappid="c6eb35bc-b481-4e4c-a305-978c5ce17333"
+                     data-wwwroot_web="https://dev.luminusead.com.br">
+                    <span data-i18n-html="profile.appversion"></span>:
+                    <span id="config-package_version">4.2.13</span>
+                </div>
+            </div>
+        </ons-page>
+    </ons-navigator>
+
+    <ons-navigator id="page-home" style="display:none" swipeable swipe-target-width="80px"></ons-navigator>
+
+</div>
+
+<template id="dialog.html">
+    <ons-dialog id="error-dialog">
+        <div style="text-align: center; padding: 10px;">
+            <p id="error-dialog-text"></p>
+            <p><ons-button onclick="PageOpen.hideDialog()"
+                           data-i18n-html="common.ok"></ons-button></p>
+        </div>
+    </ons-dialog>
+</template>
+
+<!--
+    <div id="login-ios-idfa" style="display:none">
+        <div id="obrigatorio-tracking">
+            <p data-i18n-html="tracking.required"></p>
+            <p onclick="ShowIdfa.applicationDetails()"><span data-i18n-html="tracking.opensettings"></span></p>
+        </div>
+        <p data-i18n-html="tracking.description"></p>
+        <p data-i18n-html="tracking.loginsave"></p>
+        <p data-i18n-html="tracking.privacy"></p>
+        <p data-i18n-html="tracking.use"></p>
+        <p id="openRetencaoDados" onclick="ShowIdfa.openRetencaoDados()">
+            <a href="#" data-i18n-html="tracking.retention"></a></p>
+        <p data-i18n-html="tracking.disagree"></p>
+    </div>
+-->
+
+</body>
+</html>

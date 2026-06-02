@@ -1,0 +1,28 @@
+<ons-page id="page-notas">
+    <div class="content">
+
+        <div class="xpull">
+            <div class="xpull__start-msg">
+                <div class="xpull__arrow"></div>
+            </div>
+            <div class="xpull__spinner">
+                <div class="xpull__spinner-circle"></div>
+            </div>
+        </div>
+
+        <div id="lista-notas">
+            <ons-icon icon="md-spinner" spin></ons-icon>
+        </div>
+    </div>
+
+    <script>
+        $('#page-notas .content').xpull({
+            'callback': function () {
+                Notas.show_notas();
+            }
+        });
+    </script>
+
+    <link href="page/home/notas/style.css" rel="stylesheet"/>
+
+</ons-page>

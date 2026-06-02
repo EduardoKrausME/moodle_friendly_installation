@@ -1,0 +1,45 @@
+<ons-page id="page-format-cards" class="page-format">
+
+    <ons-toolbar>
+        <div class="left">
+            <ons-back-button>
+                <span data-i18n-html="format.cards"></span>
+            </ons-back-button>
+        </div>
+        <div class="center"></div>
+    </ons-toolbar>
+
+    <div class="content">
+        <div class="xpull">
+            <div class="xpull__start-msg">
+                <div class="xpull__arrow"></div>
+            </div>
+            <div class="xpull__spinner">
+                <div class="xpull__spinner-circle"></div>
+            </div>
+        </div>
+
+        <div id="course-cards-content">
+            <div class="topo-cards-content"></div>
+            <div class="headerdisplaymultipage">
+                <ons-icon icon="md-spinner" spin></ons-icon>
+            </div>
+            <div class="not-headerdisplaymultipage"></div>
+        </div>
+    </div>
+
+
+    <script>
+        $('#page-format-cards .content').xpull({
+            'callback': function () {
+                FormatCards.load_course_detalhe();
+            }
+        });
+    </script>
+
+    <link href="page/format/cards/style.css" rel="stylesheet"/>
+    <link href="page/format/util/style.css" rel="stylesheet"/>
+
+</ons-page>
+
+

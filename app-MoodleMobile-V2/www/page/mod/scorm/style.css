@@ -1,0 +1,13 @@
+#page-mod-scorm #page-mod-scorm-content {
+    overflow: auto;
+    height: 100%;
+    width: 100%;
+}
+
+#page-mod-scorm #page-mod-scorm-content iframe {
+    min-height: 680px;
+    height: 100%;
+    width: 100%;
+}
+
+/*# sourceMappingURL=style.css.map */

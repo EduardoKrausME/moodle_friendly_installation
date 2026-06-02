@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+
+<div id='h5p-container'></div>
+<script type="text/javascript" src="main.bundle.js"></script>
+
+<script>
+    const el = document.getElementById( 'h5p-container' );
+
+    const options = {
+        frameJs         : 'frame.bundle.js',
+        frameCss        : 'styles/h5p.css',
+        h5pJsonPath     : 'course-presentation-21-21180',
+        frame           : false, //required to display copyright,  embed, & export buttons
+        copyright       : false,
+        export          : false,
+        icon            : false,
+        fullScreen      : true,
+        embed           : true,
+    };
+
+    new H5PStandalone.H5P( el, options );
+</script>
+
+
+</body>
+</html>

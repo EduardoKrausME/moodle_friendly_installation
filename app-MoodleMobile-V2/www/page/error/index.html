@@ -1,0 +1,60 @@
+<ons-page id="page-error">
+
+    <ons-toolbar>
+        <div class="left">
+            <ons-back-button>
+                <span data-i18n-html="error.error"></span>
+            </ons-back-button>
+        </div>
+        <div class="center"></div>
+    </ons-toolbar>
+
+
+    <ons-card>
+
+        <h2 class="title" data-i18n-html="util.dataload.loaderror"></h2>
+
+        <div class="content">
+
+            <p data-i18n-html="error.loaddescription"></p>
+            <ol>
+                <li>
+                    <strong data-i18n-html="error.connectiontitle"></strong>
+                    <span data-i18n-html="error.connectiondescription"></span>
+                </li>
+                <li>
+                    <strong data-i18n-html="error.servertitle"></strong>
+                    <span data-i18n-html="error.serverdescription"></span>
+                </li>
+
+                <li>
+                    <strong data-i18n-html="error.maintenancetitle"></strong>
+                    <span data-i18n-html="error.maintenancedescription"></span>
+                </li>
+
+                <li>
+                    <strong data-i18n-html="error.apptitle"></strong>
+                    <span data-i18n-html="error.appdescription"></span>
+                </li>
+            </ol>
+
+            <div class="button-center">
+                <ons-button onclick="location.reload()"
+                            modifier="large"
+                            data-i18n-html="error.retry"></ons-button>
+
+                <p data-i18n-html="error.retrysupport"></p>
+            </div>
+
+        </div>
+
+    </ons-card>
+
+    <script>
+        I18n.apply();
+        $("#page-error .toolbar__title").html(I18n.t("error.error"));
+    </script>
+
+    <link href="page/error/style.css" rel="stylesheet"/>
+
+</ons-page>

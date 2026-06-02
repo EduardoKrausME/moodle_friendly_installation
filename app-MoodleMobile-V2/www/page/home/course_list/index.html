@@ -1,0 +1,32 @@
+<ons-page id="page-course-list">
+
+    <div class="content">
+        <div id="user-info"></div>
+
+        <div class="xpull-content">
+            <div class="xpull">
+                <div class="xpull__start-msg">
+                    <div class="xpull__arrow"></div>
+                </div>
+                <div class="xpull__spinner">
+                    <div class="xpull__spinner-circle"></div>
+                </div>
+            </div>
+
+            <div id="page-course-list-content">
+                <ons-icon icon="md-spinner" spin></ons-icon>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        $('#page-course-list .xpull-content').xpull({
+            'callback': function () {
+                CourseList.loadCursos();
+            }
+        });
+    </script>
+
+    <link href="page/home/course_list/style.css" rel="stylesheet"/>
+
+</ons-page>

@@ -1,0 +1,49 @@
+<ons-page>
+    <ons-splitter id="appSplitter">
+        <!--
+        <script src="modulos/menu.js"></script>
+        <ons-splitter-side page="modulos/menu.html" swipeable side="right" collapse=""></ons-splitter-side>
+        -->
+        <ons-splitter-content>
+            <ons-page id="tabbar-page">
+                <ons-toolbar>
+                    <div class="center text-center title-my-courses"
+                         data-i18n-html="home.mycourses"></div>
+                    <!--
+                        <div class="right">
+                            <ons-toolbar-button onclick="Menu.toggleMenu()">
+                                <ons-icon icon="ion-ios-menu, material:md-menu"></ons-icon>
+                            </ons-toolbar-button>
+                        </div>
+                    -->
+                </ons-toolbar>
+                <ons-tabbar swipeable id="home-tabbar" position="auto">
+                    <ons-tab data-tab="1"
+                             data-i18n-label="home.mycourses"
+                             icon="ion-ios-school" class="label-my-courses"
+                             page="page/home/course_list/index.html"
+                             active></ons-tab>
+                    <ons-tab data-tab="2"
+                             data-i18n-label="home.mygrades"
+                             icon="ion-ios-trending-up"
+                             page="page/home/notas/index.html"></ons-tab>
+                    <ons-tab data-tab="3"
+                             data-i18n-label="home.profile"
+                             icon="ion-md-person"
+                             page="page/home/perfil/index.html"></ons-tab>
+
+                    <!--
+                    ion-ios-contact
+                    ion-ios-person
+                    ion-md-person
+                    -->
+
+
+                </ons-tabbar>
+            </ons-page>
+        </ons-splitter-content>
+    </ons-splitter>
+
+    <link href="page/home/index/style.css" rel="stylesheet"/>
+
+</ons-page>

@@ -1,0 +1,61 @@
+#map-visualization {
+  margin: 5px 0;
+  background: rgba(206, 206, 206, 0.5);
+  padding: 1px;
+  width: 100%;
+  position: relative;
+}
+#map-visualization .map,
+#map-visualization .click {
+  display: flex;
+  width: 100%;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+}
+#map-visualization .map div,
+#map-visualization .click div {
+  height: 100%;
+  background: #E60076;
+  width: 100%;
+  opacity: 0;
+  transition: opacity 200ms;
+}
+#map-visualization .click {
+  z-index: 3;
+}
+#map-visualization .click div {
+  cursor: pointer;
+  background: rgba(0, 0, 0, 0);
+}
+#map-visualization .click div:hover {
+  background: rgba(0, 0, 0, 0.2);
+  opacity: 1;
+}
+#map-visualization #your-map-view {
+  font-size: 15px;
+  margin: 3px 0 !important;
+  padding-bottom: 0;
+  position: relative;
+  z-index: 2;
+  color: #000000;
+  text-align: center;
+  transition: all ease 0.3s;
+}
+#map-visualization #your-map-view span {
+  font-weight: 700;
+}
+#map-visualization.report {
+  display: flex;
+  width: 100%;
+  margin: 6px 0;
+  height: 20px;
+}
+#map-visualization.report div {
+  opacity: 0;
+  background: #E60076;
+  width: 100%;
+  height: 19px;
+}
+
+/*# sourceMappingURL=style.css.map */

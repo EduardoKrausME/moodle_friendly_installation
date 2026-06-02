@@ -1,0 +1,41 @@
+<ons-page id="page-format-topics" class="page-format">
+
+    <ons-toolbar>
+        <div class="left">
+            <ons-back-button>
+                <span data-i18n-html="format.topics"></span>
+            </ons-back-button>
+        </div>
+        <div class="center"></div>
+    </ons-toolbar>
+
+    <div class="content">
+        <div class="xpull">
+            <div class="xpull__start-msg">
+                <div class="xpull__arrow"></div>
+            </div>
+            <div class="xpull__spinner">
+                <div class="xpull__spinner-circle"></div>
+            </div>
+        </div>
+
+        <div id="course-topics-content">
+            <ons-icon icon="md-spinner" spin></ons-icon>
+        </div>
+    </div>
+
+
+    <script>
+        $('#page-format-topics .content').xpull({
+            'callback': function () {
+                FormatTopics.load_course_detalhe();
+            }
+        });
+    </script>
+
+    <link href="page/format/topics/style.css" rel="stylesheet"/>
+    <link href="page/format/util/style.css" rel="stylesheet"/>
+
+</ons-page>
+
+

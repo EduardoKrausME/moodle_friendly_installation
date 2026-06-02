@@ -1,0 +1,171 @@
+#page-course-list .card--category {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  margin: 0;
+  padding: 0 8px;
+}
+#page-course-list .card--category h3 {
+  color: #888888;
+  background: url(../../../img/course/expanded.svg) no-repeat center left;
+  padding-left: 20px;
+  margin: 10px 0 0;
+}
+#page-course-list .card--category .course-itens {
+  width: 100% !important;
+}
+#page-course-list .card--category.collapsed h3 {
+  background: url(../../../img/course/collapsed.svg) no-repeat center left;
+}
+#page-course-list .course-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+#page-course-list .course-item img {
+  width: 21%;
+  max-width: 150px;
+  margin-right: 10px;
+  border-radius: 4px;
+}
+#page-course-list .course-item:after {
+  top: calc(50% - 5px);
+  position: absolute;
+  right: 7px;
+  content: "";
+  min-width: 8px;
+  min-height: 8px;
+  transform: translateY(-50%) rotate(-45deg);
+  border-right: 2px solid #c7c7cc;
+  border-bottom: 2px solid #c7c7cc;
+  margin-top: 10px;
+  margin-left: 2px;
+}
+#page-course-list .course-item .course-title {
+  font-family: "Gotham Rounded A", "Gotham Rounded B", "Gotham Rounded", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  color: #40484a;
+  font-weight: 500;
+  line-height: 1.1;
+  text-rendering: optimizeLegibility;
+  font-size: 23px;
+}
+#page-course-list .course-item .course-title div {
+  font-size: 14px;
+}
+#page-course-list .course-item .course-title .progress-start {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  align-items: center;
+}
+#page-course-list .course-item .course-title .progress-start .start-course {
+  display: inline-block;
+  padding: 8px 18px;
+  background: #1e63d1;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  transition: all 0.25s ease;
+}
+@media all and (min-width: 800px) {
+  #page-course-list .course-item {
+    display: flex;
+    flex-wrap: wrap;
+  }
+  #page-course-list .course-item .course-item {
+    width: calc(50% - 16px);
+  }
+}
+@media all and (min-width: 1200px) {
+  #page-course-list .course-item .course-item {
+    width: calc(33.333% - 16px);
+  }
+}
+#page-course-list .progress-area {
+  display: flex;
+  white-space: nowrap;
+  align-items: center;
+  gap: 10px;
+}
+#page-course-list .progress-area ons-progress-bar {
+  display: flex;
+  flex-direction: row-reverse;
+  align-items: center;
+  font-size: 13px;
+  width: 100%;
+}
+#page-course-list .progress-area ons-progress-bar .progress-bar {
+  height: 100%;
+  background: #E5E5E5;
+}
+#page-course-list .progress-area ons-progress-bar .progress-bar .progress-bar__primary {
+  margin: 0;
+}
+#page-course-list .progress-area span {
+  display: block;
+}
+#page-course-list .progress-area ons-progress-bar {
+  height: 10px;
+}
+#page-course-list .progress-area ons-progress-bar .progress-bar {
+  border-radius: 5px;
+}
+#page-course-list .progress-area ons-progress-bar .progress-bar__primary {
+  background: var(--primary-color, #0088df);
+}
+#page-course-list #user-info.background-topo {
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  padding-top: 39%;
+}
+#page-course-list #user-info.background-topo .user-info-space {
+  display: none;
+}
+#page-course-list #user-info .app-hero {
+  position: relative;
+  isolation: isolate;
+  color: #232b32;
+  font-family: "Gotham Rounded A", "Gotham Rounded B", "Gotham Rounded", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  display: grid;
+  align-items: end;
+  padding: clamp(48px, 6vw, 72px) clamp(16px, 5vw, 40px) clamp(16px, 3vw, 24px);
+}
+#page-course-list #user-info .app-hero .app-hero__inner {
+  position: relative;
+  z-index: 1;
+  max-width: 1200px;
+  width: 100%;
+  margin-inline: auto;
+}
+#page-course-list #user-info .app-hero .app-hero__title {
+  margin: 0 0 4px 0;
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  font-size: clamp(32px, 4.2vw, 47px);
+}
+#page-course-list #user-info .app-hero .app-hero__title span {
+  opacity: 0.85;
+}
+#page-course-list #user-info .app-hero .app-hero__subtitle {
+  margin: 0;
+  font-size: clamp(25px, 1.6vw, 18px);
+  /* opacity: 0.9; */
+  padding-top: 22px;
+  font-weight: 500;
+}
+#page-course-list #user-info .app-hero #app-hero__wave {
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+#page-course-list #user-info .app-hero #app-hero__wave path {
+  fill: var(--primary-color, #0088df);
+}
+
+/*# sourceMappingURL=style.css.map */

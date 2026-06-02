@@ -1,0 +1,93 @@
+<ons-page id="page-perfil">
+    <div class="content">
+
+        <div class="xpull">
+            <div class="xpull__start-msg">
+                <div class="xpull__arrow"></div>
+            </div>
+            <div class="xpull__spinner">
+                <div class="xpull__spinner-circle"></div>
+            </div>
+        </div>
+
+        <div id="lista-perfil">
+
+            <ons-list>
+                <ons-list-item id="perfil-info">
+                    <div class="perfil-info-text-center">
+                        <img id="perfil-info-imagem" class="image-cache" alt="profile image">
+                        <div id="perfil-info-nome">...</div>
+                        <div>
+                            <ons-icon icon="ion-md-locate"></ons-icon>
+                            <span class="perfil-info-text-2" id="perfil-info-locale">...</span>
+                        </div>
+                    </div>
+                </ons-list-item>
+            </ons-list>
+
+            <ons-list style="margin-top: 16px;">
+                <ons-list-header data-i18n-html="profile.userdata"></ons-list-header>
+                <ons-list-item>
+                    <div class="perfil-info-w100">
+                        <div data-i18n-html="profile.email"></div>
+                        <div class="perfil-info-text-2" id="perfil-info-email">...</div>
+                    </div>
+                </ons-list-item>
+                <ons-list-item>
+                    <div class="perfil-info-w100">
+                        <div data-i18n-html="profile.city"></div>
+                        <div class="perfil-info-text-2" id="perfil-info-city">...</div>
+                    </div>
+                </ons-list-item>
+            </ons-list>
+
+            <ons-list style="margin-top: 16px;">
+                <ons-list-header data-i18n-html="profile.appdata"></ons-list-header>
+                <ons-list-item>
+                    <div class="perfil-info-w100">
+                        <div data-i18n-html="profile.platform">Plataforma</div>
+                        <div class="perfil-info-text-2" id="perfil-platform_name">...</div>
+                    </div>
+                </ons-list-item>
+                <ons-list-item>
+                    <div class="perfil-info-w100">
+                        <div data-i18n-html="profile.manufacturer">Fabricante</div>
+                        <div class="perfil-info-text-2" id="perfil-platform_manufacturer">...</div>
+                    </div>
+                </ons-list-item>
+                <ons-list-item>
+                    <div class="perfil-info-w100">
+                        <div data-i18n-html="profile.appuid">UID do APP</div>
+                        <div class="perfil-info-text-2" id="perfil-package_uid">...</div>
+                    </div>
+                </ons-list-item>
+                <ons-list-item>
+                    <div class="perfil-info-w100">
+                        <div data-i18n-html="profile.appversion"></div>
+                        <div class="perfil-info-text-2" id="perfil-package_version">...</div>
+                    </div>
+                </ons-list-item>
+            </ons-list>
+
+
+            <ons-list style="margin-top: 16px;">
+                <ons-list-item>
+                    <div class="perfil-info-w100" id="perfil-info-logout"
+                         data-i18n-html="profile.logout"></div>
+                </ons-list-item>
+            </ons-list>
+
+        </div>
+    </div>
+
+    <script>
+        $('#page-perfil .content').xpull({
+            'callback': function () {
+                Perfil.show_perfil();
+            }
+        });
+    </script>
+
+    <link href="page/home/perfil/style.css" rel="stylesheet"/>
+
+</ons-page>

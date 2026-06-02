@@ -1,0 +1,49 @@
+#page-notas .grade-table-item.agg_sum {
+    background: #D3D2D3;
+    border-radius: 5px;
+}
+
+#page-notas .grade-table-item.agg_sum .list-item__center {
+    background-image: none !important;
+}
+
+#page-notas .grade-table-item .list-item__center {
+    padding-top: 6px;
+    padding-bottom: 6px;
+}
+
+#page-notas .grade-table-item .d-flex {
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+#page-notas .grade-table-item .d-flex .itemname {
+    width: 100%;
+}
+
+#page-notas .grade-table-item .d-flex .itemname a,
+#page-notas .grade-table-item .d-flex .itemname span {
+    display: flex;
+    align-items: center;
+    font-size: 15px;
+}
+
+#page-notas .grade-table-item .d-flex .itemname img {
+    height: 20px;
+    margin-right: 5px;
+}
+
+#page-notas .grade-table-item .d-flex .grade {
+    background: rgba(80, 91, 102, 0.1);
+    min-width: 34px;
+    white-space: nowrap;
+    padding: 1px 7px 3px;
+    text-align: left;
+    height: 17px;
+    border-radius: 6px;
+    font-size: 15px;
+    text-align: center;
+}
+
+/*# sourceMappingURL=style.css.map */

@@ -1,0 +1,15 @@
+#page-mod-page iframe,
+#page-mod-page img {
+    max-width: 100%;
+}
+
+#page-mod-page img {
+    height: auto;
+}
+
+#page-mod-page .embed-responsive .youtube-embed {
+    width: 100%;
+    aspect-ratio: 16/9;
+}
+
+/*# sourceMappingURL=style.css.map */

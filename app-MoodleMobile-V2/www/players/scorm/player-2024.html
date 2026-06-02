@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8">
+    <title>SCORM 2004 Player</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <script src="scorm-again.js"></script>
+    <script src="scorm2004.js"></script>
+
+    <style>
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f5f5f5;
+        }
+
+        .player-header {
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 16px;
+            background: #fff;
+            border-bottom: 1px solid #ddd;
+            box-sizing: border-box;
+        }
+
+        .player-title {
+            font-size: 15px;
+            font-weight: 600;
+        }
+
+        .player-status {
+            font-size: 12px;
+            color: #555;
+        }
+
+        .player-error {
+            padding: 16px;
+            color: #a40000;
+            background: #fff3f3;
+            border-bottom: 1px solid #ffd0d0;
+            display: none;
+        }
+
+        .player-frame {
+            width: 100%;
+            height: 100%;
+            border: 0;
+            display: block;
+            background: #fff;
+        }
+    </style>
+</head>
+<body>
+
+<div class="player-header">
+    <div class="player-title">SCORM 2004</div>
+    <div id="status" class="player-status">Inicializando...</div>
+</div>
+
+<div id="error" class="player-error"></div>
+
+<iframe
+        id="scorm-frame"
+        class="player-frame"
+        allow="fullscreen; autoplay"
+        allowfullscreen>
+</iframe>
+
+<script>
+    (function () {
+        "use strict";
+
+        var params = new URLSearchParams(window.location.search);
+
+        var scormUrl = params.get("file");
+        var commitUrl = params.get("commit"); // Optional endpoint to save data on your server.
+
+        var statusEl = document.getElementById("status");
+        var errorEl = document.getElementById("error");
+        var frameEl = document.getElementById("scorm-frame");
+
+        function showError(message) {
+            errorEl.style.display = "block";
+            errorEl.textContent = message;
+            statusEl.textContent = "Erro";
+        }
+
+        if (!scormUrl) {
+            showError("Informe a URL do SCORM no parâmetro ?url=. Exemplo: scorm2004-player.html?url=/scorm/index_lms.html");
+            return;
+        }
+
+        var launchUrl;
+
+        try {
+            launchUrl = new URL(scormUrl, window.location.href).toString();
+        } catch (e) {
+            showError("URL inválida: " + scormUrl);
+            return;
+        }
+
+        if (typeof Scorm2004API === "undefined") {
+            showError("A biblioteca scorm-again para SCORM 2004 não foi carregada.");
+            return;
+        }
+
+        var storageKey = "scorm2004:" + launchUrl;
+
+        function loadPreviousData() {
+            try {
+                var raw = localStorage.getItem(storageKey);
+
+                if (!raw) {
+                    return {};
+                }
+
+                return JSON.parse(raw);
+            } catch (e) {
+                return {};
+            }
+        }
+
+        function saveLocalData(commitObject) {
+            try {
+                if (commitObject) {
+                    localStorage.setItem(storageKey, JSON.stringify(commitObject));
+                }
+            } catch (e) {
+                console.warn("Não foi possível salvar localmente os dados SCORM 2004.", e);
+            }
+        }
+
+        function sendToServer(commitObject) {
+            if (!commitUrl) {
+                return;
+            }
+
+            fetch(commitUrl, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(commitObject),
+                credentials: "include"
+            }).catch(function (e) {
+                console.warn("Falha ao enviar commit SCORM 2004 para o servidor.", e);
+            });
+        }
+
+        var settings = {
+            autocommit: true,
+            autocommitSeconds: 10,
+            logLevel: 2,
+            autoProgress: false,
+
+            requestHandler: function (commitObject) {
+                saveLocalData(commitObject);
+                sendToServer(commitObject);
+
+                console.log("SCORM 2004 commit:", commitObject);
+
+                return commitObject;
+            }
+        };
+
+        if (commitUrl) {
+            settings.lmsCommitUrl = commitUrl;
+        }
+
+        window.API_1484_11 = new Scorm2004API(settings);
+
+        var previousData = loadPreviousData();
+
+        if (previousData && Object.keys(previousData).length) {
+            try {
+                window.API_1484_11.loadFromFlattenedJSON(previousData);
+            } catch (e) {
+                console.warn("Não foi possível restaurar os dados SCORM 2004 salvos.", e);
+            }
+        } else {
+            window.API_1484_11.loadFromFlattenedJSON({
+                "cmi.learner_id": params.get("learnerid") || params.get("studentid") || "1",
+                "cmi.learner_name": params.get("learnername") || params.get("studentname") || "Aluno Teste",
+                "cmi.entry": "ab-initio",
+                "cmi.completion_status": "incomplete",
+                "cmi.success_status": "unknown"
+            });
+        }
+
+        window.API_1484_11.on("Initialize", function () {
+            statusEl.textContent = "SCORM 2004 iniciado";
+        });
+
+        window.API_1484_11.on("SetValue.*", function (element, value) {
+            console.log("SetValue:", element, value);
+        });
+
+        window.API_1484_11.on("SetValue.cmi.completion_status", function (element, value) {
+            statusEl.textContent = "Status: " + value;
+        });
+
+        window.API_1484_11.on("Commit", function () {
+            statusEl.textContent = "Dados salvos";
+        });
+
+        window.API_1484_11.on("Terminate", function () {
+            statusEl.textContent = "SCORM 2004 finalizado";
+        });
+
+        window.addEventListener("beforeunload", function () {
+            try {
+                if (
+                    window.API_1484_11 &&
+                    window.API_1484_11.isInitialized &&
+                    window.API_1484_11.isInitialized()
+                ) {
+                    window.API_1484_11.Commit("");
+                    window.API_1484_11.Terminate("");
+                }
+            } catch (e) {
+                // Ignore unload errors.
+            }
+        });
+
+        frameEl.src = launchUrl;
+        statusEl.textContent = "Carregando SCORM 2004...";
+    })();
+</script>
+
+</body>
+</html>

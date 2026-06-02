@@ -1,0 +1,42 @@
+#page-perfil ons-list-item {
+    padding: 0;
+}
+
+#page-perfil #lista-perfil #perfil-info-nome {
+    color: #FFFFFF;
+}
+
+#page-perfil #lista-perfil #perfil-info-locale,
+#page-perfil #lista-perfil .ons-icon {
+    color: #DADADA;
+}
+
+#page-perfil .perfil-info-text-2 {
+    color: #727070;
+    font-size: 14px;
+}
+
+#page-perfil .perfil-info-w100 {
+    width: 100%;
+    display: block;
+    padding-right: 16px;
+    padding-left: 31px;
+}
+
+#page-perfil .perfil-info-text-center {
+    text-align: center;
+    display: block;
+    width: 100%;
+}
+
+#page-perfil #perfil-info-imagem {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+}
+
+#page-perfil #perfil-info-logout {
+    color: #2196F3;
+}
+
+/*# sourceMappingURL=style.css.map */
