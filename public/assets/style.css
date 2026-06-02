@@ -740,6 +740,9 @@ small {
   color: #e2e8f0;
   white-space: break-spaces;
 }
+.job-log.running {
+  max-height: 800px;
+}
 
 @media (max-width: 1100px) {
   .app-shell {

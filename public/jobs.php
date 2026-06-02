@@ -35,6 +35,7 @@ foreach (JobManager::all() as $job) {
         'domain' => $job['domain'] ?? '',
         'status_class' => $statusclass,
         'status_badge' => status_badge($status),
+        'status' => $status,
         'created_at' => $createdat,
         'has_error' => !empty($job['error']),
         'error' => $job['error'] ?? '',
