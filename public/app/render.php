@@ -37,38 +37,40 @@ function render_header(string $title): void {
 function render_navigation_items(): array {
     $current = basename(($_SERVER['SCRIPT_NAME'] ?? ''));
 
-    $items = [
-        [
-            'url' => '/',
-            'label' => t('navigation.sites'),
-            'icon' => 'S',
-            'active_on' => ['index.php', 'details.php'],
-        ],
-        [
-            'url' => '/app_manager.php',
-            'label' => t('navigation.app_mobile'),
-            'icon' => 'A',
-            'active_on' => ['app_manager.php'],
-        ],
-        [
+    $items = [];
+
+    $items[] = [
+        'url' => '/',
+        'label' => t('navigation.sites'),
+        'icon' => 'S',
+        'active_on' => ['index.php', 'details.php'],
+    ];
+    $items[] = [
+        'url' => '/app_manager.php',
+        'label' => t('navigation.app_mobile'),
+        'icon' => 'A',
+        'active_on' => ['app_manager.php'],
+    ];
+    if ($_SERVER["REQUEST_URI"] == '/install.php') {
+        $items[] = [
             'url' => '/install.php',
             'label' => t('navigation.install_moodle'),
             'icon' => '+',
             'active_on' => ['install.php'],
-        ],
-        [
-            'url' => '/jobs.php',
-            'label' => t('navigation.jobs'),
-            'icon' => 'F',
-            'active_on' => ['jobs.php'],
-        ],
-        [
-            'url' => '/logout.php',
-            'label' => t('navigation.logout'),
-            'icon' => '×',
-            'active_on' => [],
-            'extra_class' => 'logout-link',
-        ],
+        ];
+    }
+    $items[] = [
+        'url' => '/jobs.php',
+        'label' => t('navigation.jobs'),
+        'icon' => 'F',
+        'active_on' => ['jobs.php'],
+    ];
+    $items[] = [
+        'url' => '/logout.php',
+        'label' => t('navigation.logout'),
+        'icon' => '×',
+        'active_on' => [],
+        'extra_class' => 'logout-link',
     ];
 
     foreach ($items as $index => $item) {
@@ -77,7 +79,7 @@ function render_navigation_items(): array {
             $classes[] = 'is-active';
         }
         if (!empty($item['extra_class'])) {
-            $classes[] =$item['extra_class'];
+            $classes[] = $item['extra_class'];
         }
 
         $items[$index]['class'] = implode(' ', $classes);
@@ -135,7 +137,7 @@ function status_badge(string $status, $label = null): string {
 
     return render_app_template('status-badge', [
         'class' => $class,
-        'label' =>$label,
+        'label' => $label,
     ]);
 }
 
@@ -150,7 +152,7 @@ function flash_message(): ?string {
     }
     $message = $_SESSION['flash'];
     unset($_SESSION['flash']);
-    return$message;
+    return $message;
 }
 
 /**
