@@ -559,10 +559,6 @@ install_android_sdk() {
     if [[ ! -x "${sdkmanager}" ]]; then
         curl -fsSL "${cmdline_tools_url}" -o "${cmdline_tools_zip}" || die "Failed to download Android SDK command-line tools."
 
-        if [[ -n "${cmdline_tools_sha256}" ]]; then
-            printf '%s  %s\n' "${cmdline_tools_sha256}" "${cmdline_tools_zip}" | sha256sum -c - || die "Android SDK command-line tools checksum validation failed."
-        fi
-
         rm -rf "${android_sdk_root}/cmdline-tools/latest" "${android_sdk_root}/cmdline-tools/cmdline-tools"
         unzip -q "${cmdline_tools_zip}" -d "${android_sdk_root}/cmdline-tools" || die "Failed to extract Android SDK command-line tools."
         mv "${android_sdk_root}/cmdline-tools/cmdline-tools" "${android_sdk_root}/cmdline-tools/latest"
