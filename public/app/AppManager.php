@@ -116,7 +116,7 @@ class AppManager {
         }
 
         $info = @getimagesize($tmp);
-        if (!$info || $info[0] ?? 0 != 1024 || $info[1] ?? 0 != 1024) {
+        if (!$info || $info[0]  != 1024 || $info[1] != 1024) {
             return [
                 'valid' => false,
                 'error' => I18n::get('validation.icon_size'),
