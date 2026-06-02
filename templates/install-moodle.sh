@@ -150,8 +150,6 @@ EOF
 log "Testing and reloading services"
 
 if [ -f /etc/debian_version ]; then
-    nginx -t
-
     PHP_FPM_SERVICE="php$({{PHP_BIN}} -r 'echo PHP_MAJOR_VERSION . "." . PHP_MINOR_VERSION;')-fpm"
     systemctl reload "$PHP_FPM_SERVICE" || systemctl restart "$PHP_FPM_SERVICE"
     systemctl reload apache2            || systemctl restart apache2
