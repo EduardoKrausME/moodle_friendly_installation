@@ -41,13 +41,13 @@ function render_navigation_items(): array {
 
     $items[] = [
         'url' => '/',
-        'label' => t('navigation.sites'),
+        'label' => t('index.title'),
         'icon' => 'S',
         'active_on' => ['index.php', 'details.php'],
     ];
     $items[] = [
         'url' => '/app_manager.php',
-        'label' => t('navigation.app_mobile'),
+        'label' => t('app_manager.list_heading'),
         'icon' => 'A',
         'active_on' => ['app_manager.php'],
     ];
@@ -61,7 +61,7 @@ function render_navigation_items(): array {
     }
     $items[] = [
         'url' => '/jobs.php',
-        'label' => t('navigation.jobs'),
+        'label' => t('jobs.title'),
         'icon' => 'F',
         'active_on' => ['jobs.php'],
     ];
