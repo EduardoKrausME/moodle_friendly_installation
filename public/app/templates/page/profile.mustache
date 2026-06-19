@@ -1,0 +1,47 @@
+<section class="page-title">
+    <div>
+        <h1>{{i18n.profile.heading}}</h1>
+        <p>{{i18n.profile.intro}}</p>
+    </div>
+</section>
+
+{{#force_password_change}}
+    <div class="alert warning">{{i18n.profile.force_change_warning}}</div>
+{{/force_password_change}}
+
+{{#has_flash}}
+    <div class="alert ok">{{flash}}</div>
+{{/has_flash}}
+
+{{#has_errors}}
+    <div class="alert danger">
+        <strong>{{i18n.profile.check_fields}}</strong>
+        <ul>
+            {{#errors}}
+                <li>{{message}}</li>
+            {{/errors}}
+        </ul>
+    </div>
+{{/has_errors}}
+
+<form method="post" class="card form">
+    <input type="hidden" name="csrf_token" value="{{csrf_token}}">
+
+    <label>
+        {{i18n.profile.username}}
+        <input type="text" name="username" value="{{username}}" autocomplete="username" required>
+    </label>
+
+    <label>
+        {{i18n.profile.name}}
+        <input type="text" name="name" value="{{name}}" autocomplete="name" required>
+    </label>
+
+    <label>
+        {{#force_password_change}}{{i18n.profile.new_password_required}}{{/force_password_change}}{{^force_password_change}}{{i18n.profile.new_password_optional}}{{/force_password_change}}
+        <input type="password" name="password" autocomplete="new-password" {{#force_password_change}}required{{/force_password_change}}>
+        <small>{{i18n.profile.password_help}}</small>
+    </label>
+
+    <button type="submit">{{i18n.actions.save}}</button>
+</form>
