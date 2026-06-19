@@ -1,6 +1,5 @@
 <section class="page-title">
     <div>
-        <span class="eyebrow">{{i18n.install.eyebrow}}</span>
         <h1>{{i18n.install.heading}}</h1>
         <p>{{i18n.install.intro}}</p>
     </div>
@@ -31,8 +30,11 @@
 {{#errors.admin_email}}
     <small class="alert alert-danger">{{.}}</small>
 {{/errors.admin_email}}
+{{#errors.kopere_backup_zip}}
+    <small class="alert alert-danger">{{.}}</small>
+{{/errors.kopere_backup_zip}}
 
-<form method="post" class="card form">
+<form method="post" enctype="multipart/form-data" class="card form">
     <input type="hidden" name="csrf_token" value="{{csrf_token}}">
     <input type="hidden" name="language" value="{{language.current_code}}">
 
@@ -77,6 +79,18 @@
         <input type="email" name="admin_email" value="{{values.admin_email}}" required>
         {{#errors.admin_email}}<small class="alert alert-danger">{{.}}</small>{{/errors.admin_email}}
     </label>
+
+    <div class="alert compact-alert">
+        <div class="alert ok compact-alert">
+            {{{i18n.install.kopere_intro}}}
+        </div>
+
+        <label>
+            <input type="file" name="kopere_backup_zip" accept=".zip,application/zip,application/x-zip-compressed">
+            <small>{{i18n.install.kopere_backup_help}}</small>
+            {{#errors.kopere_backup_zip}}<small class="alert alert-danger">{{.}}</small>{{/errors.kopere_backup_zip}}
+        </label>
+    </div>
 
     <label class="checkbox">
         <input type="checkbox" name="issue_cert" value="1" {{#values.issue_cert}}checked{{/values.issue_cert}}>
