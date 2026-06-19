@@ -1,0 +1,28 @@
+<ons-page id="page-notifications">
+    <div class="content">
+
+        <div class="xpull">
+            <div class="xpull__start-msg">
+                <div class="xpull__arrow"></div>
+            </div>
+            <div class="xpull__spinner">
+                <div class="xpull__spinner-circle"></div>
+            </div>
+        </div>
+
+        <div id="lista-notificacoes">
+            <ons-icon icon="md-spinner" spin></ons-icon>
+        </div>
+    </div>
+
+    <script>
+        $('#page-notifications .content').xpull({
+            'callback': function () {
+                HomeNotifications.show_notifications();
+            }
+        });
+    </script>
+
+    <link href="page/home/notifications/style.css" rel="stylesheet"/>
+
+</ons-page>

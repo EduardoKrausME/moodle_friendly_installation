@@ -1,0 +1,22 @@
+#page-error .toolbar {
+  background: #C0265A;
+  background-image: linear-gradient(to bottom, #C0265A, #CD2960);
+}
+#page-error .card {
+  background: #EC407A;
+}
+#page-error .card .content {
+  font-size: 17px;
+}
+#page-error .card p, #page-error .card li, #page-error .card h2 {
+  color: #FFFFFF;
+}
+#page-error .card h2, #page-error .card .button-center {
+  text-align: center;
+}
+#page-error .card .button--material {
+  background-color: #FCE4EC;
+  color: #880E4F;
+}
+
+/*# sourceMappingURL=style.css.map */

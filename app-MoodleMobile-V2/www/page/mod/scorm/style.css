@@ -1,13 +1,24 @@
 #page-mod-scorm #page-mod-scorm-content {
-    overflow: auto;
-    height: 100%;
-    width: 100%;
+  overflow: auto;
+  height: 100%;
+  width: 100%;
 }
-
 #page-mod-scorm #page-mod-scorm-content iframe {
-    min-height: 680px;
-    height: 100%;
-    width: 100%;
+  min-height: 680px;
+  height: 100%;
+  width: 100%;
+}
+#page-mod-scorm #page-mod-scorm-content ons-card[id^=progress-instance-] {
+  margin: 12px;
+}
+#page-mod-scorm #page-mod-scorm-content .scorm-progress-title {
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+#page-mod-scorm #page-mod-scorm-content .scorm-progress-info {
+  font-size: 12px;
+  opacity: 0.75;
+  margin-top: 6px;
 }
 
 /*# sourceMappingURL=style.css.map */

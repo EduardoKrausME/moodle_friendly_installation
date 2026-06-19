@@ -1,0 +1,27 @@
+<ons-page id="page-storage-management">
+    <div class="content">
+
+        <div class="xpull">
+            <div class="xpull__start-msg">
+                <div class="xpull__arrow"></div>
+            </div>
+            <div class="xpull__spinner">
+                <div class="xpull__spinner-circle"></div>
+            </div>
+        </div>
+
+        <div id="storage-management-content">
+            <ons-icon icon="md-spinner" spin></ons-icon>
+        </div>
+    </div>
+
+    <script>
+        $('#page-storage-management .content').xpull({
+            'callback': function () {
+                StorageManagement.load_storage_management(true);
+            }
+        });
+    </script>
+
+    <link href="page/home/storage/style.css" rel="stylesheet"/>
+</ons-page>

@@ -118,6 +118,37 @@
             }, "*");
         }
 
+        function normalizeLogLevel(messageLevel) {
+            switch (messageLevel) {
+                case "4":
+                case 4:
+                case "ERROR":
+                    return "ERROR";
+                case "3":
+                case 3:
+                case "WARN":
+                    return "WARN";
+                case "2":
+                case 2:
+                case "INFO":
+                    return "INFO";
+                case "1":
+                case 1:
+                case "DEBUG":
+                    return "DEBUG";
+                default:
+                    return String(messageLevel || "LOG");
+            }
+        }
+
+        function sendScormLog(messageLevel, logMessage) {
+            sendOfflineMessage("log", {
+                messageLevel: normalizeLogLevel(messageLevel),
+                originalMessageLevel: messageLevel,
+                logMessage: String(logMessage || "")
+            });
+        }
+
         function consoleLogHandler(messageLevel, logMessage) {
             switch (messageLevel) {
                 case "4":
@@ -147,6 +178,8 @@
                 default:
                     console.log(logMessage);
             }
+
+            sendScormLog(messageLevel, logMessage);
         }
 
         if (!scormUrl) {
@@ -249,10 +282,6 @@
 
             onLogMessage: function (messageLevel, logMessage) {
                 consoleLogHandler(messageLevel, logMessage);
-                sendOfflineMessage("log", {
-                    messageLevel: messageLevel,
-                    logMessage: String(logMessage || "")
-                });
             },
 
             requestHandler: function (commitObject) {

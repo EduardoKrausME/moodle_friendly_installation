@@ -1,0 +1,98 @@
+#page-storage-management .content {
+  padding: 12px 10px 24px;
+  box-sizing: border-box;
+}
+
+.storage-summary-card,
+.storage-course-card,
+.storage-download-card,
+.storage-pending-card {
+  border-radius: 16px;
+}
+
+.storage-summary-title {
+  font-size: 19px;
+  font-weight: 700;
+  margin-bottom: 14px;
+}
+
+.storage-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.storage-summary-grid div {
+  background: rgba(0, 0, 0, 0.04);
+  border-radius: 14px;
+  padding: 12px 8px;
+  text-align: center;
+}
+
+.storage-summary-grid strong {
+  display: block;
+  font-size: 16px;
+  margin-bottom: 4px;
+}
+
+.storage-summary-grid span,
+.storage-course-meta,
+.storage-download-meta,
+.storage-pending-meta,
+.storage-pending-error {
+  color: #666666;
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.storage-section-title {
+  font-size: 15px;
+  font-weight: 700;
+  margin: 18px 8px 8px;
+}
+
+.storage-empty {
+  color: #777777;
+  font-size: 14px;
+  padding: 8px 12px 14px;
+}
+
+.storage-course-main {
+  align-items: center;
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+}
+
+.storage-course-title,
+.storage-download-title,
+.storage-pending-title {
+  font-size: 15px;
+  font-weight: 700;
+  margin-bottom: 5px;
+}
+
+.storage-delete-course {
+  flex: 0 0 auto;
+}
+
+.storage-download-card ons-progress-bar {
+  margin-top: 10px;
+}
+
+.storage-pending-error {
+  margin-top: 6px;
+}
+
+@media (max-width: 380px) {
+  .storage-summary-grid {
+    grid-template-columns: 1fr;
+  }
+  .storage-course-main {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}
+
+/*# sourceMappingURL=style.css.map */

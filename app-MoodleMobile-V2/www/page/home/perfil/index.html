@@ -26,7 +26,13 @@
             </ons-list>
 
             <ons-list style="margin-top: 16px;">
-                <ons-list-header data-i18n-html="profile.userdata"></ons-list-header>
+                <ons-list-header class="header-actions">
+                    <span data-i18n-html="profile.userdata"></span>
+                    <ons-button modifier="quiet" id="perfil-edit-open" class="perfil-edit-header-button">
+                        <ons-icon icon="ion-md-create"></ons-icon>
+                        <span data-i18n-html="profile.edit"></span>
+                    </ons-button>
+                </ons-list-header>
                 <ons-list-item>
                     <div class="perfil-info-w100">
                         <div data-i18n-html="profile.email"></div>
@@ -39,6 +45,17 @@
                         <div class="perfil-info-text-2" id="perfil-info-city">...</div>
                     </div>
                 </ons-list-item>
+                <ons-list-item id="perfil-info-country-row">
+                    <div class="perfil-info-w100">
+                        <div data-i18n-html="profile.country"></div>
+                        <div class="perfil-info-text-2" id="perfil-info-country">...</div>
+                    </div>
+                </ons-list-item>
+            </ons-list>
+
+            <ons-list id="perfil-customfields-list" style="margin-top: 16px; display: none;">
+                <ons-list-header data-i18n-html="profile.customfields"></ons-list-header>
+                <div id="perfil-customfields-read"></div>
             </ons-list>
 
             <ons-list style="margin-top: 16px;">
@@ -69,10 +86,11 @@
                 </ons-list-item>
             </ons-list>
 
-
             <ons-list style="margin-top: 16px;">
                 <ons-list-item>
-                    <div class="perfil-info-w100" id="perfil-info-logout"
+                    <div class="perfil-info-w100"
+                         id="perfil-info-logout"
+                         style="color: #E91E63;"
                          data-i18n-html="profile.logout"></div>
                 </ons-list-item>
             </ons-list>

@@ -1,42 +1,36 @@
-#page-perfil ons-list-item {
-    padding: 0;
+.perfil-info-text-center {
+  width: 100%;
+  text-align: center;
+  padding: 18px 8px;
+}
+.perfil-info-text-center img {
+  width: 92px;
+  height: 92px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-bottom: 10px;
 }
 
-#page-perfil #lista-perfil #perfil-info-nome {
-    color: #FFFFFF;
+#perfil-info-nome {
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 6px;
 }
 
-#page-perfil #lista-perfil #perfil-info-locale,
-#page-perfil #lista-perfil .ons-icon {
-    color: #DADADA;
+.perfil-info-text-2 {
+  color: #6b7280;
+  font-size: 14px;
+  word-break: break-word;
 }
 
-#page-perfil .perfil-info-text-2 {
-    color: #727070;
-    font-size: 14px;
+.perfil-info-w100 {
+  width: 100%;
 }
 
-#page-perfil .perfil-info-w100 {
-    width: 100%;
-    display: block;
-    padding-right: 16px;
-    padding-left: 31px;
-}
-
-#page-perfil .perfil-info-text-center {
-    text-align: center;
-    display: block;
-    width: 100%;
-}
-
-#page-perfil #perfil-info-imagem {
-    width: 45px;
-    height: 45px;
-    border-radius: 50%;
-}
-
-#page-perfil #perfil-info-logout {
-    color: #2196F3;
+#lista-perfil .header-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
 /*# sourceMappingURL=style.css.map */

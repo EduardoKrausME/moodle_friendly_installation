@@ -1,9 +1,9 @@
 <?xml version='1.0' encoding='utf-8'?>
 <widget android-packageName="com.eduardokraus.aulaemvideo"
-        version="4.2.13"
+        version="4.2.14"
         xmlns="http://www.w3.org/ns/widgets"
         xmlns:android="http://schemas.android.com/apk/res/android">
-    <preference name="AppendUserAgent" value=" AppMoodleMobileV2\/4.2.13" />
+    <preference name="AppendUserAgent" value=" AppMoodleMobileV2\/4.2.14" />
     <name>Aula em Vídeo</name>
     <description>Kraus Moodle™ Mobile</description>
     <author email="kraus@eduardokraus.com" href="https://eduardokraus.com">
@@ -18,20 +18,20 @@
         <preference name="SplashScreenDelay" value="4000" />
         <preference name="SplashMaintainAspectRatio" value="true" />
 
-        <icon density="ldpi" src="res/mylearn.corp/android/36x36.png" />
-        <icon density="mdpi" src="res/mylearn.corp/android/48x48.png" />
-        <icon density="hdpi" src="res/mylearn.corp/android/72x72.png" />
-        <icon density="xhdpi" src="res/mylearn.corp/android/96x96.png" />
-        <icon density="xxhdpi" src="res/mylearn.corp/android/144x144.png" />
-        <icon density="xxxhdpi" src="res/mylearn.corp/android/192x192.png" />
+        <icon density="ldpi" src="res/kraus/android/36x36.png" />
+        <icon density="mdpi" src="res/kraus/android/48x48.png" />
+        <icon density="hdpi" src="res/kraus/android/72x72.png" />
+        <icon density="xhdpi" src="res/kraus/android/96x96.png" />
+        <icon density="xxhdpi" src="res/kraus/android/144x144.png" />
+        <icon density="xxxhdpi" src="res/kraus/android/192x192.png" />
 
-        <splash src="res/mylearn.corp/splash.png" />
+        <preference value="all-clients/splashscreen.xml" name="AndroidWindowSplashScreenAnimatedIcon" />
 
-        <resource-file src="res/mylearn.corp/android-notification/48x48.png" target="app/src/main/res/drawable-mdpi/ic_stat_onesignal_default.png" />
-        <resource-file src="res/mylearn.corp/android-notification/72x72.png" target="app/src/main/res/drawable-hdpi/ic_stat_onesignal_default.png" />
-        <resource-file src="res/mylearn.corp/android-notification/96x96.png" target="app/src/main/res/drawable-xhdpi/ic_stat_onesignal_default.png" />
-        <resource-file src="res/mylearn.corp/android-notification/144x144.png" target="app/src/main/res/drawable-xxhdpi/ic_stat_onesignal_default.png" />
-        <resource-file src="res/mylearn.corp/android-notification/192x192.png" target="app/src/main/res/drawable-xxxhdpi/ic_stat_onesignal_default.png" />
+        <resource-file src="res/kraus/android-notification/48x48.png" target="app/src/main/res/drawable-mdpi/ic_stat_onesignal_default.png" />
+        <resource-file src="res/kraus/android-notification/72x72.png" target="app/src/main/res/drawable-hdpi/ic_stat_onesignal_default.png" />
+        <resource-file src="res/kraus/android-notification/96x96.png" target="app/src/main/res/drawable-xhdpi/ic_stat_onesignal_default.png" />
+        <resource-file src="res/kraus/android-notification/144x144.png" target="app/src/main/res/drawable-xxhdpi/ic_stat_onesignal_default.png" />
+        <resource-file src="res/kraus/android-notification/192x192.png" target="app/src/main/res/drawable-xxxhdpi/ic_stat_onesignal_default.png" />
         <resource-file src="src/img/icon/ic_menu_share_48x48.png" target="app/src/main/res/drawable-mdpi/ic_menu_share.png" />
         <resource-file src="src/img/icon/ic_menu_share_72x72.png" target="app/src/main/res/drawable-hdpi/ic_menu_share.png" />
         <resource-file src="src/img/icon/ic_menu_share_96x96.png" target="app/src/main/res/drawable-xhdpi/ic_menu_share.png" />

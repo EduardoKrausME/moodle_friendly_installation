@@ -28,16 +28,22 @@
                              icon="ion-ios-trending-up"
                              page="page/home/notas/index.html"></ons-tab>
                     <ons-tab data-tab="3"
+                             data-i18n-label="home.notifications"
+                             icon="ion-ios-notifications"
+                             page="page/home/notifications/index.html"></ons-tab>
+                    <ons-tab data-tab="4"
+                             data-i18n-label="storage.management"
+                             icon="ion-md-archive"
+                             page="page/home/storage/index.html"></ons-tab>
+                    <ons-tab data-tab="5"
                              data-i18n-label="home.profile"
                              icon="ion-md-person"
                              page="page/home/perfil/index.html"></ons-tab>
-
                     <!--
                     ion-ios-contact
                     ion-ios-person
                     ion-md-person
                     -->
-
 
                 </ons-tabbar>
             </ons-page>
@@ -45,5 +51,9 @@
     </ons-splitter>
 
     <link href="page/home/index/style.css" rel="stylesheet"/>
+
+    <script>
+        I18n.apply();
+    </script>
 
 </ons-page>

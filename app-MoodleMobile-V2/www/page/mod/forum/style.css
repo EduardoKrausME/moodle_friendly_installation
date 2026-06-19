@@ -1,0 +1,50 @@
+#page-mod-forum-content ons-card {
+  margin: 10px;
+}
+
+#page-mod-forum-content .forum-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+
+#page-mod-forum-content .forum-discussion-item,
+#page-mod-forum-content .forum-post-item {
+  cursor: pointer;
+}
+
+#page-mod-forum-content .forum-discussion-title,
+#page-mod-forum-content .forum-post-title {
+  font-weight: 600;
+  line-height: 1.35;
+  margin-bottom: 6px;
+}
+
+#page-mod-forum-content .forum-meta {
+  color: #666666;
+  font-size: 12px;
+  line-height: 1.35;
+  margin-bottom: 8px;
+}
+
+#page-mod-forum-content .forum-message {
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+#page-mod-forum-content .forum-empty,
+#page-mod-forum-content .forum-loading {
+  padding: 20px 10px;
+  text-align: center;
+}
+
+#page-mod-forum-content .forum-small-button {
+  margin-top: 8px;
+}
+
+#page-mod-forum-content .forum-back-row {
+  margin: 10px;
+}
+
+/*# sourceMappingURL=style.css.map */

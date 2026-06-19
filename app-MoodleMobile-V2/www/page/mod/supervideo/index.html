@@ -49,11 +49,23 @@
     </ons-dialog>
 
     <script>
-        $('#page-mod-supervideo .content').xpull({
-            'callback': function () {
-                ModSupervideo.show_module_load();
+        (function () {
+            var page = document.getElementById("page-mod-supervideo");
+            if (page) {
+                page.addEventListener("hide", function () {
+                    ModSupervideo.destroy_page();
+                });
+                page.addEventListener("destroy", function () {
+                    ModSupervideo.destroy_page();
+                });
             }
-        });
+
+            $('#page-mod-supervideo .content').xpull({
+                'callback': function () {
+                    ModSupervideo.show_module_load();
+                }
+            });
+        })();
     </script>
 
     <link href="page/mod/supervideo/style.css" rel="stylesheet"/>

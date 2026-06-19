@@ -1,5 +1,6 @@
 {
     "dependencies": {
+        "cordova-plugin-kopere-media-notification": "github:EduardoKrausME/cordova-plugin-kopere-media-notification",
         "xml": "^1.0.1",
         "xml-js": "^1.6.11"
     },
@@ -11,9 +12,12 @@
             },
             "cordova-plugin-inappbrowser": {},
             "cordova-plugin-ionic-webview": {},
-            "cordova-plugin-splashscreen": {},
             "cordova-plugin-file-transfer": {},
-            "cordova-plugin-zip": {}
+            "cordova-plugin-zip": {},
+            "cordova-plugin-kopere-media-notification": {
+                "ANDROIDX_CORE_VERSION": "1.13.1",
+                "ANDROIDX_MEDIA_VERSION": "1.7.0"
+            }
         },
         "platforms": []
     },
@@ -23,7 +27,7 @@
         "cordova-plugin-file-transfer": "^2.0.0",
         "cordova-plugin-inappbrowser": "^6.0.0",
         "cordova-plugin-ionic-webview": "^5.0.1",
-        "cordova-plugin-splashscreen": "^6.0.1",
-        "cordova-plugin-zip": "github:EduardoKrausME/cordova-plugin-zip"
+        "cordova-plugin-zip": "github:EduardoKrausME/cordova-plugin-zip",
+        "cordova-plugin-kopere-media-notification": "github:EduardoKrausME/cordova-plugin-kopere-media-notification"
     }
 }
