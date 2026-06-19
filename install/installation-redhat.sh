@@ -932,8 +932,6 @@ tune_php_ini() {
             -e 's/^upload_max_filesize = .*/upload_max_filesize = 128M/' \
             -e 's/^max_input_vars = .*/max_input_vars = 5000/' \
             -e 's/^;max_input_vars = .*/max_input_vars = 5000/' \
-            -e 's/^date.timezone = .*/date.timezone = America\/Sao_Paulo/' \
-            -e 's/^;date.timezone =.*/date.timezone = America\/Sao_Paulo/' \
             "${file}" || true
     done
 }
