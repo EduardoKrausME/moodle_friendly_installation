@@ -1,5 +1,7 @@
 <?php
 
+use app\Auth;
+
 error_reporting(E_ALL);
 ini_set("display_errors", "1");
 ini_set("display_startup_errors", "1");
@@ -64,4 +66,11 @@ function validate_csrf(): void {
 
 function now_iso(): string {
     return (new DateTimeImmutable('now', new DateTimeZone('America/Sao_Paulo')))->format(DateTimeInterface::ATOM);
+}
+
+if (PHP_SAPI != 'cli' && Auth::check()) {
+    $scriptname = basename((string) ($_SERVER['SCRIPT_NAME'] ?? ''));
+    if (Auth::requiresPasswordChange() && $scriptname != 'profile.php') {
+        redirect_to('/profile.php?force=1');
+    }
 }
