@@ -27,7 +27,9 @@
 
         <div class="sidebar-footer">
             <small>{{i18n.navigation.connected_user}}</small>
-            <strong>{{user_name}}</strong>
+            <a class="connected-user-link" href="/profile.php" title="{{i18n.profile.edit_title}}">
+                <strong>{{user_name}}</strong>
+            </a>
 
             <div class="language-selector sidebar-language-selector" aria-label="{{language.change}}">
                 <small>{{language.label}}</small>
