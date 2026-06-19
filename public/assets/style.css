@@ -198,17 +198,6 @@ a:hover {
   color: var(--muted);
 }
 
-.eyebrow {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  color: var(--primary);
-  font-size: 12px;
-  font-weight: 900;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-}
-
 .card,
 .login-card,
 .site-card {
@@ -523,6 +512,12 @@ code {
   border: 1px solid var(--line);
   background: #ffffff;
   box-shadow: 0 14px 30px rgba(15, 23, 42, 0.06);
+}
+.alert:first-child {
+  margin-top: 0;
+}
+.alert:last-child {
+  margin-bottom: 0;
 }
 .alert.ok {
   border-color: #a7f3d0;
