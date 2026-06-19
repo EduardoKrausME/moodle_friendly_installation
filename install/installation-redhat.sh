@@ -1133,7 +1133,7 @@ ensure_sites_enabled_includes() {
 
 configure_apache_remoteip() {
     log "Configuring Apache RemoteIP"
-    mkdir -p /etc/httpd/conf.d
+    mkdir -p /etc/apache/conf.d
     cp "${INSTALL_DIR}/install/httpd/conf.d/remoteip.conf" /etc/httpd/conf.d/remoteip.conf
 }
 
