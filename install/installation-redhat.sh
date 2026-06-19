@@ -1346,12 +1346,10 @@ NGINX
 set_permissions() {
     log "Adjusting permissions"
     chown -R root:apache "${INSTALL_DIR}"
-    find "${INSTALL_DIR}" -type d -exec chmod 0750 {} \;
-    find "${INSTALL_DIR}" -type f -exec chmod 0640 {} \;
-    chmod +x "${INSTALL_DIR}/bin/cron-root-runner.php" "${INSTALL_DIR}/bin/cron-install_moodle.php" "${INSTALL_DIR}/bin/cron-app_build.php" 2>/dev/null || true
-    chmod 0770 "${INSTALL_DIR}/data" "${INSTALL_DIR}/runtime" "${INSTALL_DIR}/logs" "${INSTALL_DIR}/queue"
-    chmod 0770 "${INSTALL_DIR}/app-MoodleMobile-V2/res"
-    chmod 0640 "${INSTALL_DIR}/public/config.php" "${INSTALL_DIR}/data/users.json"
+    chmod +x      "${INSTALL_DIR}/bin/*.php" 2>/dev/null || true
+    chmod -R 0770 "${INSTALL_DIR}/data" "${INSTALL_DIR}/runtime" "${INSTALL_DIR}/logs" "${INSTALL_DIR}/queue"
+    chmod -R 0770 "${INSTALL_DIR}/app-MoodleMobile-V2/res"
+    chmod    0640 "${INSTALL_DIR}/public/config.php"
 
     if command_exists restorecon; then
         if command_exists semanage; then
