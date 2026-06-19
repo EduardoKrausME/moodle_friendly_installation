@@ -25,6 +25,7 @@ class JobManager {
             'moodle_branch' => $data['moodle_branch'],
             'language' => I18n::moodleLanguage(isset($data['language']) && is_string($data['language']) ? $data['language'] : I18n::current()),
             'issue_cert' => (bool) $data['issue_cert'],
+            'kopere_backup_zip' => $data['kopere_backup_zip'] ?? null,
             'created_at' => now_iso(),
             'updated_at' => now_iso(),
             'created_by' => Auth::user()['username'] ?? 'system',
@@ -100,7 +101,7 @@ class JobManager {
                 continue;
             }
 
-            if ($type == 'app_build' && $status == 'pending') {
+            if (in_array($type, ['app_build', 'restore_moodle'], true) && $status == 'pending') {
                 $pendingjobs[] = $job;
             }
         }

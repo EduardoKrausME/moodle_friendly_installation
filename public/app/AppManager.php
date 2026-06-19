@@ -478,7 +478,7 @@ class AppManager {
     }
 
     public static function iconPath(string $packageuid): string {
-        return self::resourceDir($packageuid) . '/' . self::ICON_FILENAME;
+        return self::storageDir($packageuid) . '/' . self::ICON_FILENAME;
     }
 
     public static function hasIcon(string $packageuid): bool {

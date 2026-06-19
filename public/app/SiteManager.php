@@ -101,7 +101,7 @@ class SiteManager {
             'moodle_branch_number' => $release['branch'],
             'base_dir' => $base,
             'moodle_dir' => $moodledir,
-            'webroot' => realpath("{$publicroot}/../.."),
+            'webroot' => realpath($publicroot) ?: $publicroot,
             'dataroot' => $config['dataroot'] ?? '',
             'config_file' => $configfile,
             'url' => $wwwroot != '' ? $wwwroot : 'https://' . $domain,

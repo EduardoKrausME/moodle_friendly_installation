@@ -20,15 +20,18 @@ if ($result['exitcode'] === 0) {
     echo "App build failed: {$job['id']} - {$result['message']}\n";
 }
 
+/**
+ * Function executeAppBuildJob
+ *
+ * @param array $job
+ * @return array
+ */
 function executeAppBuildJob(array $job): array {
     $domain = sanitizeDomain((string) ($job['domain'] ?? ''));
-    $packageuid = $job['package_uid'] ?? '';
-    $packagename = $job['package_name'] ?? '';
-    $moodleurl = $job['moodle_url'] ?? '';
-    if ($moodleurl === '') {
-        $moodleurl = 'https://' . $domain;
+    if ($job['moodle_url'] === '') {
+        $job['moodle_url'] = "https://{$domain}";
     }
-    $moodleurl = rtrim($moodleurl, '/');
+    $job['moodle_url'] = rtrim($job['moodle_url'], '/');
     $color = $job['statusbarbackgroundcolor'] ?? '#08422A';
     $version = $job['app_version'] ?? AppManager::appVersion();
     $iconpath = $job['icon_path'] ?? '';
@@ -51,7 +54,7 @@ function executeAppBuildJob(array $job): array {
     ensureDir($workroot, 0700);
     copyRecursive($source, $workdir, ['node_modules', 'platforms', 'plugins']);
 
-    $resfolder = sanitizePackageUid($packageuid);
+    $resfolder = sanitizePackageUid($job['package_uid']);
     $resdir = $workdir . '/res/' . $resfolder;
     ensureDir($resdir, 0750);
     copy($iconpath, $resdir . '/logo.png');
@@ -59,8 +62,8 @@ function executeAppBuildJob(array $job): array {
 
     try {
         generateAppImages($resdir, $color, $logfile);
-        updateCordovaConfig($workdir . '/config.xml', $resfolder, $packageuid, $packagename, $color, $version);
-        updateIndexHtml($workdir . '/www/index.html', $packageuid, $packagename, $version, $moodleurl);
+        updateCordovaConfig($workdir . '/config.xml', $resfolder, $job['package_uid'], $job['package_name'], $color, $version);
+        updateIndexHtml($workdir . '/www/index.html', $job['package_uid'], $job['package_name'], $version, $job['moodle_url']);
         $buildconfig = createAndroidBuildConfig($resfolder, $workdir, $logfile);
 
         runBuildCommand('npm install --no-audit --fund=false', $workdir, $logfile);
@@ -70,7 +73,9 @@ function executeAppBuildJob(array $job): array {
         runBuildCommand('npx cordova build android --release -- --packageType=apk --buildConfig ' . escapeshellarg($buildconfig), $workdir, $logfile);
         runBuildCommand('npx cordova build android --release -- --packageType=bundle --buildConfig ' . escapeshellarg($buildconfig), $workdir, $logfile);
 
-        $artifacts = moveBuildArtifacts($workdir, $domain, $packageuid, $version, $logfile);
+        signReleaseApk($workdir, $resfolder, $logfile);
+
+        $artifacts = moveBuildArtifacts($workdir, $domain, $job['package_uid'], $version, $logfile);
         appendAppBuildLog($logfile, 'Build completed successfully.');
 
         return [
@@ -84,6 +89,14 @@ function executeAppBuildJob(array $job): array {
     }
 }
 
+/**
+ * Function generateAppImages
+ *
+ * @param string $resdir
+ * @param string $color
+ * @param string $logfile
+ * @return void
+ */
 function generateAppImages(string $resdir, string $color, string $logfile): void {
     ensureDir($resdir . '/android', 0750);
     ensureDir($resdir . '/android-notification', 0750);
@@ -120,6 +133,17 @@ function generateAppImages(string $resdir, string $color, string $logfile): void
     @unlink($resdir . '/splash-tmp.png');
 }
 
+/**
+ * Function updateCordovaConfig
+ *
+ * @param string $configfile
+ * @param string $resfolder
+ * @param string $packageuid
+ * @param string $packagename
+ * @param string $color
+ * @param string $version
+ * @return void
+ */
 function updateCordovaConfig(string $configfile, string $resfolder, string $packageuid, string $packagename, string $color, string $version): void {
     $dom = new DOMDocument('1.0', 'UTF-8');
     $dom->preserveWhiteSpace = false;
@@ -173,6 +197,14 @@ function updateCordovaConfig(string $configfile, string $resfolder, string $pack
     $dom->save($configfile);
 }
 
+/**
+ * Function setElementText
+ *
+ * @param \DOMDocument $dom
+ * @param string $tagname
+ * @param string $value
+ * @return void
+ */
 function setElementText(DOMDocument $dom, string $tagname, string $value): void {
     $nodes = $dom->getElementsByTagName($tagname);
     if ($nodes->length > 0) {
@@ -180,6 +212,15 @@ function setElementText(DOMDocument $dom, string $tagname, string $value): void 
     }
 }
 
+/**
+ * Function setPreference
+ *
+ * @param \DOMDocument $dom
+ * @param string $name
+ * @param string $value
+ * @return void
+ * @throws \DOMException
+ */
 function setPreference(DOMDocument $dom, string $name, string $value): void {
     foreach ($dom->getElementsByTagName('preference') as $pref) {
         if ($pref->getAttribute('name') === $name) {
@@ -194,6 +235,16 @@ function setPreference(DOMDocument $dom, string $name, string $value): void {
     $dom->documentElement->appendChild($pref);
 }
 
+/**
+ * Function updateIndexHtml
+ *
+ * @param string $file
+ * @param string $packageuid
+ * @param string $packagename
+ * @param string $version
+ * @param string $moodleurl
+ * @return void
+ */
 function updateIndexHtml(string $file, string $packageuid, string $packagename, string $version, string $moodleurl): void {
     $content = file_get_contents($file);
     if ($content === false) {
@@ -216,6 +267,15 @@ function updateIndexHtml(string $file, string $packageuid, string $packagename, 
     }
 }
 
+/**
+ * Function replaceDataAttribute
+ *
+ * @param string $content
+ * @param string $elementid
+ * @param string $attribute
+ * @param string $value
+ * @return string
+ */
 function replaceDataAttribute(string $content, string $elementid, string $attribute, string $value): string {
     $escapedvalue = htmlSpecialCharsValue($value);
     $elementidpattern = preg_quote($elementid, '/');
@@ -253,6 +313,14 @@ function replaceDataAttribute(string $content, string $elementid, string $attrib
     return $updated;
 }
 
+/**
+ * Function replaceElementTextById
+ *
+ * @param string $content
+ * @param string $elementid
+ * @param string $value
+ * @return string
+ */
 function replaceElementTextById(string $content, string $elementid, string $value): string {
     $elementidpattern = preg_quote($elementid, '/');
     $pattern = '/(<([a-z0-9:-]+)\b[^>]*\bid=["\']' . $elementidpattern . '["\'][^>]*>)(.*?)(<\/\2>)/is';
@@ -274,10 +342,24 @@ function replaceElementTextById(string $content, string $elementid, string $valu
     return $updated;
 }
 
+/**
+ * Function htmlSpecialCharsValue
+ *
+ * @param string $value
+ * @return string
+ */
 function htmlSpecialCharsValue(string $value): string {
     return htmlspecialchars($value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 }
 
+/**
+ * Function createAndroidBuildConfig
+ *
+ * @param string $resfolder
+ * @param string $workdir
+ * @param string $logfile
+ * @return string
+ */
 function createAndroidBuildConfig(string $resfolder, string $workdir, string $logfile): string {
     $keydir = $workdir . '/res/' . $resfolder . '/key-android';
     $keystore = $keydir . '/keystore';
@@ -306,12 +388,28 @@ function createAndroidBuildConfig(string $resfolder, string $workdir, string $lo
     return $buildconfig;
 }
 
+/**
+ * Function moveBuildArtifacts
+ *
+ * @param string $workdir
+ * @param string $domain
+ * @param string $packageuid
+ * @param string $version
+ * @param string $logfile
+ * @return array
+ */
 function moveBuildArtifacts(string $workdir, string $domain, string $packageuid, string $version, string $logfile): array {
-    $apk = newestFile($workdir . '/platforms/android/app/build/outputs/apk/release/*.apk');
+    $apkdir = $workdir . '/platforms/android/app/build/outputs/apk/release';
+    $apk = newestFile($apkdir . '/*-signed.apk')
+        ?? newestFile($apkdir . '/*-release.apk')
+        ?? newestFile($apkdir . '/*.apk');
     $aab = newestFile($workdir . '/platforms/android/app/build/outputs/bundle/release/*.aab');
 
     if ($apk === null) {
         throw new RuntimeException('APK not found after the build.');
+    }
+    if (str_contains(basename($apk), 'unsigned')) {
+        throw new RuntimeException('Only unsigned APK was found after the build: ' . $apk);
     }
     if ($aab === null) {
         throw new RuntimeException('AAB not found after the build.');
@@ -334,6 +432,140 @@ function moveBuildArtifacts(string $workdir, string $domain, string $packageuid,
     return [basename($apkdest), basename($aabdest)];
 }
 
+/**
+ * Function signReleaseApk
+ *
+ * @param string $workdir
+ * @param string $resfolder
+ * @param string $logfile
+ * @return void
+ */
+function signReleaseApk(string $workdir, string $resfolder, string $logfile): void {
+    $apkdir = $workdir . '/platforms/android/app/build/outputs/apk/release';
+    $unsignedapk = newestFile($apkdir . '/*-unsigned.apk');
+    $signedapk = $apkdir . '/app-release-signed.apk';
+
+    if ($unsignedapk === null) {
+        $candidate = newestFile($apkdir . '/*-signed.apk') ?? newestFile($apkdir . '/*-release.apk');
+        if ($candidate !== null && verifyApkSignature($candidate, $workdir, $logfile)) {
+            appendAppBuildLog($logfile, 'APK already signed: ' . $candidate . '.');
+            return;
+        }
+        throw new RuntimeException('Unsigned APK not found and no signed APK could be verified.');
+    }
+
+    $keydir = $workdir . '/res/' . $resfolder . '/key-android';
+    $keystore = $keydir . '/keystore';
+    $passfile = $keydir . '/keystore.txt';
+    if (!is_file($keystore) || !is_readable($keystore)) {
+        throw new RuntimeException('Android keystore not found for APK signing.');
+    }
+    if (!is_file($passfile) || !is_readable($passfile)) {
+        throw new RuntimeException('Android keystore password not found for APK signing.');
+    }
+
+    $password = trim((string) file_get_contents($passfile));
+    if ($password === '') {
+        throw new RuntimeException('The keystore.txt file is empty.');
+    }
+
+    $zipalign = findAndroidBuildTool('zipalign');
+    $apksigner = findAndroidBuildTool('apksigner');
+    $alignedapk = $apkdir . '/app-release-aligned.apk';
+
+    @unlink($alignedapk);
+    @unlink($signedapk);
+
+    runBuildCommand(
+        escapeshellarg($zipalign) . ' -f -p 4 ' . escapeshellarg($unsignedapk) . ' ' . escapeshellarg($alignedapk),
+        $workdir,
+        $logfile
+    );
+
+    runBuildCommand(
+        escapeshellarg($apksigner) .
+            ' sign' .
+            ' --ks ' . escapeshellarg($keystore) .
+            ' --ks-type PKCS12' .
+            ' --ks-key-alias ' . escapeshellarg('app') .
+            ' --ks-pass ' . escapeshellarg('pass:' . $password) .
+            ' --key-pass ' . escapeshellarg('pass:' . $password) .
+            ' --out ' . escapeshellarg($signedapk) .
+            ' ' . escapeshellarg($alignedapk),
+        $workdir,
+        $logfile
+    );
+
+    if (!verifyApkSignature($signedapk, $workdir, $logfile)) {
+        throw new RuntimeException('Signed APK verification failed: ' . $signedapk);
+    }
+
+    appendAppBuildLog($logfile, 'Signed APK prepared at ' . $signedapk . '.');
+}
+
+/**
+ * Function verifyApkSignature
+ *
+ * @param string $apk
+ * @param string $workdir
+ * @param string $logfile
+ * @return bool
+ */
+function verifyApkSignature(string $apk, string $workdir, string $logfile): bool {
+    if (!is_file($apk)) {
+        return false;
+    }
+
+    $apksigner = findAndroidBuildTool('apksigner');
+    appendAppBuildLog($logfile, '$ ' . escapeshellarg($apksigner) . ' verify --verbose --print-certs ' . escapeshellarg($apk));
+
+    $script = 'cd ' . escapeshellarg($workdir) . ' && ' .
+        escapeshellarg($apksigner) . ' verify --verbose --print-certs ' . escapeshellarg($apk) .
+        ' >> ' . escapeshellarg($logfile) . ' 2>&1';
+    exec('/usr/bin/env bash -lc ' . escapeshellarg($script), $output, $exitcode);
+    return $exitcode === 0;
+}
+
+/**
+ * Function findAndroidBuildTool
+ *
+ * @param string $tool
+ * @return string
+ */
+function findAndroidBuildTool(string $tool): string {
+    $sdkroots = array_filter([
+        getenv('ANDROID_HOME') ?: '',
+        getenv('ANDROID_SDK_ROOT') ?: '',
+        '/root/Android/Sdk',
+        '/opt/android-sdk',
+    ]);
+
+    foreach ($sdkroots as $sdkroot) {
+        $matches = glob(rtrim($sdkroot, '/') . '/build-tools/*/' . $tool) ?: [];
+        usort($matches, static function(string $a, string $b): int {
+            return version_compare(basename(dirname($b)), basename(dirname($a)));
+        });
+        foreach ($matches as $match) {
+            if (is_file($match) && is_executable($match)) {
+                return $match;
+            }
+        }
+    }
+
+    $command = trim((string) shell_exec('command -v ' . escapeshellarg($tool) . ' 2>/dev/null'));
+    if ($command !== '' && is_executable($command)) {
+        return $command;
+    }
+
+    throw new RuntimeException('Android build tool not found: ' . $tool . '. Install Android SDK build-tools.');
+}
+
+/**
+ * Function newestFile
+ *
+ * @param string $pattern
+ * @return string|null
+ */
 function newestFile(string $pattern): ?string {
     $files = glob($pattern) ?: [];
     if (!$files) {
@@ -343,14 +575,39 @@ function newestFile(string $pattern): ?string {
     return $files[0];
 }
 
+/**
+ * Function runImageCommand
+ *
+ * @param string $command
+ * @param string $cwd
+ * @param string $logfile
+ * @return void
+ */
 function runImageCommand(string $command, string $cwd, string $logfile): void {
     runCommand($command, $cwd, $logfile, false);
 }
 
+/**
+ * Function runBuildCommand
+ *
+ * @param string $command
+ * @param string $cwd
+ * @param string $logfile
+ * @return void
+ */
 function runBuildCommand(string $command, string $cwd, string $logfile): void {
     runCommand($command, $cwd, $logfile, true);
 }
 
+/**
+ * Function runCommand
+ *
+ * @param string $command
+ * @param string $cwd
+ * @param string $logfile
+ * @param bool $withjava
+ * @return void
+ */
 function runCommand(string $command, string $cwd, string $logfile, bool $withjava): void {
     appendAppBuildLog($logfile, '$ ' . $command);
     $env = 'export npm_config_unsafe_perm=true; ';
@@ -365,11 +622,25 @@ function runCommand(string $command, string $cwd, string $logfile, bool $withjav
     }
 }
 
+/**
+ * Function appendAppBuildLog
+ *
+ * @param string $logfile
+ * @param string $message
+ * @return void
+ */
 function appendAppBuildLog(string $logfile, string $message): void {
     ensureDir(dirname($logfile), 0750);
     file_put_contents($logfile, '[' . date('Y-m-d H:i:s') . '] ' . $message . PHP_EOL, FILE_APPEND | LOCK_EX);
 }
 
+/**
+ * Function failAppBuild
+ *
+ * @param string $logfile
+ * @param string $message
+ * @return array
+ */
 function failAppBuild(string $logfile, string $message): array {
     appendAppBuildLog($logfile, 'ERROR: ' . $message);
     return [
@@ -380,6 +651,14 @@ function failAppBuild(string $logfile, string $message): array {
     ];
 }
 
+/**
+ * Function copyRecursive
+ *
+ * @param string $source
+ * @param string $dest
+ * @param array $skipnames
+ * @return void
+ */
 function copyRecursive(string $source, string $dest, array $skipnames = []): void {
     ensureDir($dest, 0750);
     $source = rtrim($source, '/');
@@ -408,6 +687,12 @@ function copyRecursive(string $source, string $dest, array $skipnames = []): voi
     }
 }
 
+/**
+ * Function removeDir
+ *
+ * @param string $dir
+ * @return void
+ */
 function removeDir(string $dir): void {
     if (!is_dir($dir)) {
         return;
@@ -426,19 +711,37 @@ function removeDir(string $dir): void {
     rmdir($dir);
 }
 
+/**
+ * Function ensureDir
+ *
+ * @param string $dir
+ * @param int $mode
+ * @return void
+ */
 function ensureDir(string $dir, int $mode): void {
     if (!is_dir($dir)) {
         mkdir($dir, $mode, true);
     }
 }
 
-
+/**
+ * Function sanitizePackageUid
+ *
+ * @param string $packageuid
+ * @return string
+ */
 function sanitizePackageUid(string $packageuid): string {
     $packageuid = strtolower(trim($packageuid));
     $packageuid = preg_replace('/[^a-z0-9_.]+/', '_', $packageuid);
     return trim((string) $packageuid, '._');
 }
 
+/**
+ * Function sanitizeDomain
+ *
+ * @param string $domain
+ * @return string
+ */
 function sanitizeDomain(string $domain): string {
     $domain = strtolower(trim($domain));
     $domain = preg_replace('/[^a-z0-9.-]+/', '-', $domain);

@@ -62,6 +62,13 @@ class Validator {
             $errors['moodle_branch'] = I18n::get('validation.branch_unavailable');
         }
 
+        if (!empty($_FILES['kopere_backup_zip']) && is_array($_FILES['kopere_backup_zip'])) {
+            $backuperror = self::validateKopereBackupUpload($_FILES['kopere_backup_zip']);
+            if ($backuperror !== null) {
+                $errors['kopere_backup_zip'] = $backuperror;
+            }
+        }
+
         $issuecert = !empty($input['issue_cert']);
         $language = I18n::moodleLanguage(isset($input['language']) && is_string($input['language']) ? $input['language'] : I18n::current());
 
@@ -80,5 +87,95 @@ class Validator {
                 'language' => $language,
             ],
         ];
+    }
+
+    /**
+     * Validates the optional Kopere Dashboard backup ZIP upload.
+     *
+     * @param array $file
+     * @return string|null
+     */
+    public static function validateKopereBackupUpload(array $file): ?string {
+        $error = (int) ($file['error'] ?? UPLOAD_ERR_NO_FILE);
+        if ($error === UPLOAD_ERR_NO_FILE) {
+            return null;
+        }
+        if ($error !== UPLOAD_ERR_OK) {
+            return I18n::get('validation.kopere_backup_upload_failed');
+        }
+
+        $name = isset($file['name']) && is_string($file['name']) ? $file['name'] : '';
+        $tmpname = isset($file['tmp_name']) && is_string($file['tmp_name']) ? $file['tmp_name'] : '';
+        if ($tmpname == '' || !is_uploaded_file($tmpname)) {
+            return I18n::get('validation.upload_invalid');
+        }
+        if (!preg_match('/\.zip$/i', $name)) {
+            return I18n::get('validation.kopere_backup_zip_required');
+        }
+        if (!class_exists('ZipArchive')) {
+            return I18n::get('validation.zip_not_available');
+        }
+
+        $zip = new \ZipArchive();
+        if ($zip->open($tmpname) !== true) {
+            return I18n::get('validation.kopere_backup_zip_invalid');
+        }
+
+        $hasSchema = false;
+        $hasData = false;
+        $hasMoodledata = false;
+        for ($i = 0; $i < $zip->numFiles; $i++) {
+            $entry = str_replace('\\', '/', (string) $zip->getNameIndex($i));
+            if (preg_match('#(^|/)schema/[^/]+\.json$#i', $entry)) {
+                $hasSchema = true;
+            }
+            if (preg_match('#(^|/)data/[^/]+\.csv$#i', $entry)) {
+                $hasData = true;
+            }
+            if (preg_match('#(^|/)moodledata/#i', $entry) || preg_match('#(^|/)(filedir|files|cache|localcache|sessions|temp|trashdir)/#i', $entry)) {
+                $hasMoodledata = true;
+            }
+        }
+        $zip->close();
+
+        if (($hasSchema && $hasData) || $hasMoodledata) {
+            return null;
+        }
+
+        return I18n::get('validation.kopere_backup_zip_unknown');
+    }
+
+    /**
+     * Stores the optional Kopere Dashboard backup ZIP outside the public webroot.
+     *
+     * @param array $file
+     * @param string $domain
+     * @return string|null
+     */
+    public static function storeKopereBackupUpload(array $file, string $domain): ?string {
+        $validationerror = self::validateKopereBackupUpload($file);
+        if ($validationerror !== null) {
+            if ((int) ($file['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_NO_FILE) {
+                return null;
+            }
+            throw new \RuntimeException($validationerror);
+        }
+
+        if ((int) ($file['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_NO_FILE) {
+            return null;
+        }
+
+        $uploaddir = app_config_path('/data/restore-uploads');
+        if (!is_dir($uploaddir)) {
+            mkdir($uploaddir, 0750, true);
+        }
+
+        $safeDomain = preg_replace('/[^a-z0-9.-]+/', '-', strtolower($domain));
+        $destination = $uploaddir . '/' . $safeDomain . '-' . date('Ymd-His') . '-' . bin2hex(random_bytes(4)) . '.zip';
+        if (!move_uploaded_file((string) $file['tmp_name'], $destination)) {
+            throw new \RuntimeException(I18n::get('validation.kopere_backup_store_failed'));
+        }
+        chmod($destination, 0640);
+        return $destination;
     }
 }

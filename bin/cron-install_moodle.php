@@ -24,13 +24,19 @@ if (!$job) {
 
 $result = executeInstallJob($job);
 if ($result["exitcode"] === 0) {
-    JobManager::markDone((string) $job["id"]);
+    JobManager::markDone((string) $job["id"], $result["extra"] ?? []);
     echo "Job completed: {$job["id"]}\n";
 } else {
     JobManager::markFailed((string) $job["id"], $result["message"]);
     echo "Job failed: {$job["id"]} - {$result["message"]}\n";
 }
 
+/**
+ * Function domainHasDnsRecord
+ *
+ * @param string $domain
+ * @return bool
+ */
 function domainHasDnsRecord(string $domain): bool {
     $domain = trim($domain);
     if ($domain === '') {
@@ -42,6 +48,14 @@ function domainHasDnsRecord(string $domain): bool {
     return checkdnsrr($domain, 'A') || checkdnsrr($domain, 'AAAA');
 }
 
+/**
+ * Function appendJobLog
+ *
+ * @param array $job
+ * @param string $message
+ * @param string $level
+ * @return void
+ */
 function appendJobLog(array $job, string $message, string $level = 'info'): void {
     $domain = $job['domain'] ?? 'domain';
     $logfile = $job['log_file'] ?? (app_config_path("/logs/install-{$domain}.log"));
@@ -56,6 +70,12 @@ function appendJobLog(array $job, string $message, string $level = 'info'): void
     file_put_contents($logfile, $line . PHP_EOL, FILE_APPEND | LOCK_EX);
 }
 
+/**
+ * Function apacheConfPath
+ *
+ * @param string $domain
+ * @return string
+ */
 function apacheConfPath(string $domain): string {
     $os = detectOperatingSystem();
 
@@ -68,6 +88,11 @@ function apacheConfPath(string $domain): string {
     };
 }
 
+/**
+ * Function detectOperatingSystem
+ *
+ * @return string
+ */
 function detectOperatingSystem(): string {
     $release = readOsRelease();
     $id = strtolower((string) ($release['ID'] ?? ''));
@@ -85,6 +110,11 @@ function detectOperatingSystem(): string {
     return 'unknown';
 }
 
+/**
+ * Function readOsRelease
+ *
+ * @return array
+ */
 function readOsRelease(): array {
     $files = ['/etc/os-release', '/usr/lib/os-release'];
 
@@ -98,11 +128,35 @@ function readOsRelease(): array {
     return [];
 }
 
+/**
+ * Function moodleBranchUsesPublicDir
+ *
+ * @param string $branch
+ * @return bool
+ */
+function moodleBranchUsesPublicDir(string $branch): bool {
+    if (preg_match('/^MOODLE_(\d+)_STABLE$/', $branch, $matches)) {
+        return (int) $matches[1] >= 501;
+    }
+    return true;
+}
+
+/**
+ * Function executeInstallJob
+ *
+ * @param array $job
+ * @return array
+ * @throws \Random\RandomException
+ */
 function executeInstallJob(array $job): array {
     $domain =$job["domain"];
     $base = "/home/{$domain}";
     $moodledir = "{$base}/moodle";
-    $webroot = "{$moodledir}/public";
+    $moodlebranch = (string) ($job["moodle_branch"] ?? "MOODLE_501_STABLE");
+    $usespublicdir = moodleBranchUsesPublicDir($moodlebranch);
+    $webroot = $usespublicdir ? "{$moodledir}/public" : $moodledir;
+    $moodlewebdir = $webroot;
+    $moodlesetuppath = $usespublicdir ? "public/lib/setup.php" : "lib/setup.php";
 
     $dbname = dbName($domain);
     $dbuser = dbUser($domain);
@@ -118,6 +172,7 @@ function executeInstallJob(array $job): array {
         "MOODLE_DIR" => $moodledir,
         "WEBROOT" => $webroot,
         "BASE_DIR" => $base,
+        "WEBROOT_MODE" => $usespublicdir ? "public" : "legacy",
     ]);
 
     $nginxTemplate = renderTemplateFile(app_config_path("/templates/nginx-site.conf"), [
@@ -138,6 +193,7 @@ function executeInstallJob(array $job): array {
         "DB_PASS" => $dbpass,
         "DOMAIN" => $domain,
         "BASE_DIR" => $base,
+        "MOODLE_SETUP_PATH" => $moodlesetuppath,
     ]);
 
     $script = renderTemplateFile(app_config_path("/templates/install-moodle.sh"), [
@@ -147,10 +203,13 @@ function executeInstallJob(array $job): array {
         "ADMIN_USER" => $job["admin_user"],
         "ADMIN_PASS_SH" => sh($job["admin_pass"]),
         "ADMIN_EMAIL" => $job["admin_email"],
-        "MOODLE_BRANCH" => $job["moodle_branch"],
+        "MOODLE_BRANCH" => $moodlebranch,
         "MOODLE_LANG" => I18n::moodleLanguage(isset($job["language"]) && is_string($job["language"]) ? $job["language"] : null),
         "MOODLE_HUB_LANG" => I18n::moodleHubLanguage(isset($job["language"]) && is_string($job["language"]) ? $job["language"] : null),
         "TEMPLATES_DIR" => app_config_path("/templates"),
+        "MOODLE_DIR" => $moodledir,
+        "MOODLE_WEB_DIR" => $moodlewebdir,
+        "MOODLE_USES_PUBLIC_DIR" => $usespublicdir ? "1" : "0",
         "APACHE_USER" => app_config("apache_user"),
         "APACHE_GROUP" => app_config("apache_group"),
         "APACHE_CONF" => $apacheconf,
@@ -183,12 +242,43 @@ function executeInstallJob(array $job): array {
     exec($cmd, $output, $exitcode);
     @unlink($scriptfile);
 
+    $extra = [];
+    if ($exitcode === 0 && !empty($job["kopere_backup_zip"])) {
+        require_once __DIR__ . "/cron-restore_moodle.php";
+        appendJobLog($job, "Starting Kopere Dashboard backup restore.");
+        $restoreResult = restoreMoodleFromKopereZip($job, [
+            "domain" => $domain,
+            "base_dir" => $base,
+            "moodle_dir" => $moodledir,
+            "webroot" => $webroot,
+            "dataroot" => "{$base}/moodledata",
+            "dbname" => $dbname,
+            "dbuser" => $dbuser,
+            "dbpass" => $dbpass,
+            "dbhost" => "localhost",
+            "dbprefix" => "mdl_",
+            "php_bin" => app_config("php_bin"),
+            "apache_user" => app_config("apache_user"),
+            "apache_group" => app_config("apache_group"),
+        ]);
+        $extra["restore_summary"] = $restoreResult;
+        appendJobLog($job, "Kopere Dashboard backup restore finished.");
+    }
+
     return [
         "exitcode" => $exitcode,
         "message" => $exitcode === 0 ? "OK" : "Installer exited with code {$exitcode}. See log: {$logfile}",
+        "extra" => $extra,
     ];
 }
 
+/**
+ * Function renderTemplateFile
+ *
+ * @param string $file
+ * @param array $vars
+ * @return string
+ */
 function renderTemplateFile(string $file, array $vars): string {
     $content = file_get_contents($file);
     if ($content === false) {
@@ -203,22 +293,48 @@ function renderTemplateFile(string $file, array $vars): string {
     return $content;
 }
 
+/**
+ * Function sh
+ *
+ * @param string $value
+ * @return string
+ */
 function sh(string $value): string {
     return escapeshellarg($value);
 }
 
+/**
+ * Function dbName
+ *
+ * @param string $domain
+ * @return string
+ */
 function dbName(string $domain): string {
     $name = preg_replace('/[^a-z0-9]+/', "_", strtolower($domain));
     $name = trim((string) $name, "_");
     return substr($name, 0, 60);
 }
 
+/**
+ * Function dbUser
+ *
+ * @param string $domain
+ * @return string
+ */
 function dbUser(string $domain): string {
     $name = preg_replace('/[^a-z0-9]+/', "_", strtolower($domain));
     $name = trim((string) $name, "_");
     return substr($name, 0, 30);
 }
 
+/**
+ * Function createMysqlDatabaseAndUser
+ *
+ * @param string $dbname
+ * @param string $dbuser
+ * @param string $dbpass
+ * @return void
+ */
 function createMysqlDatabaseAndUser(string $dbname, string $dbuser, string $dbpass): void {
     $host = app_config("mysql_admin_host", "localhost");
     $port = app_config("mysql_admin_port", 3306);

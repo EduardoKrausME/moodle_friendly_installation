@@ -35,6 +35,20 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $warnings = $validation['warnings'];
 
     if ($validation['valid']) {
+        try {
+            if (!empty($_FILES['kopere_backup_zip']) && is_array($_FILES['kopere_backup_zip'])) {
+                $backupzip = Validator::storeKopereBackupUpload($_FILES['kopere_backup_zip'], $validation['data']['domain']);
+                if ($backupzip !== null) {
+                    $validation['data']['kopere_backup_zip'] = $backupzip;
+                }
+            }
+        } catch (RuntimeException $e) {
+            $errors['kopere_backup_zip'] = $e->getMessage();
+            $validation['valid'] = false;
+        }
+    }
+
+    if ($validation['valid']) {
         $job = JobManager::createInstallJob($validation['data']);
         $_SESSION['flash'] = t('install.queued', ['id' => $job['id']]);
         redirect_to('/jobs.php');
@@ -67,6 +81,7 @@ echo render_app_template('page/install', [
         'admin_user' => $errors['admin_user'] ?? '',
         'admin_pass' => $errors['admin_pass'] ?? '',
         'admin_email' => $errors['admin_email'] ?? '',
+        'kopere_backup_zip' => $errors['kopere_backup_zip'] ?? '',
     ],
 ]);
 
