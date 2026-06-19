@@ -1217,6 +1217,12 @@ ensure_sites_enabled_includes() {
     fi
 }
 
+configure_apache_remoteip() {
+    log "Configuring Apache RemoteIP"
+    mkdir -p /etc/httpd/conf.d
+    cp "${INSTALL_DIR}/install/httpd/conf.d/remoteip.conf" /etc/httpd/conf.d/remoteip.conf
+}
+
 configure_apache_port() {
     log "Configuring Apache to listen only on 8080"
     sed -i -E 's/^[[:space:]]*Listen[[:space:]]+80$/# Listen 80 disabled by Moodle Friendly Installation installer/' /etc/apache2/ports.conf || true
@@ -1431,7 +1437,6 @@ set_permissions() {
     chmod -R 0770 "${INSTALL_DIR}/data" "${INSTALL_DIR}/runtime" "${INSTALL_DIR}/logs" "${INSTALL_DIR}/queue"
     chmod -R 0770 "${INSTALL_DIR}/app-MoodleMobile-V2/res"
     chmod    0640 "${INSTALL_DIR}/public/config.php"
-
 }
 
 configure_cron() {
@@ -1870,6 +1875,7 @@ main() {
     fi
 
     ensure_sites_enabled_includes
+    configure_apache_remoteip
     configure_apache_port
     configure_firewall
 

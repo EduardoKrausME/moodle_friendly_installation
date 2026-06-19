@@ -1131,6 +1131,12 @@ ensure_sites_enabled_includes() {
     fi
 }
 
+configure_apache_remoteip() {
+    log "Configuring Apache RemoteIP"
+    mkdir -p /etc/httpd/conf.d
+    cp "${INSTALL_DIR}/install/httpd/conf.d/remoteip.conf" /etc/httpd/conf.d/remoteip.conf
+}
+
 configure_apache_port() {
     log "Configuring Apache to listen only on 8080"
     sed -i -E 's/^[[:space:]]*Listen[[:space:]]+80$/# Listen 80 disabled by Moodle Friendly Installation installer/' /etc/httpd/conf/httpd.conf || true
@@ -1809,6 +1815,7 @@ main() {
     fi
 
     ensure_sites_enabled_includes
+    configure_apache_remoteip
     configure_apache_port
     configure_firewall
 
