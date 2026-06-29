@@ -8,7 +8,7 @@ use RuntimeException;
  * Class AppManager
  */
 class AppManager {
-    private const ICON_FILENAME = 'logo.png';
+    private const string ICON_FILENAME = 'logo.png';
 
     /**
      * Function getSettings
@@ -201,7 +201,7 @@ class AppManager {
      * @throws \Random\RandomException
      */
     public static function saveSettings(string $domain, array $data, ?array $iconfile = null): array {
-        $current = JsonStorage::read(self::settingsFile($domain), []);
+        $current = JsonStorage::read(self::settingsFile($domain));
         if (!is_array($current)) {
             $current = [];
         }
@@ -446,7 +446,7 @@ class AppManager {
         $result["has_warnings"] = !empty($result["warnings"]);
         $result["has_oks"] = !empty($result["oks"]);
         $result["has_versions"] = !empty($result["versions"]);
-        $result["valid"] = !$result["has_error"] && !$result["has_warnings"];
+        $result["valid"] = !$result["has_warnings"];
         return $result;
     }
 
@@ -488,7 +488,7 @@ class AppManager {
         }
 
         $content = file_get_contents($configfile);
-        if ($content != false && preg_match('/<widget\b[^>]*\bversion=["\']([^"\']+)["\']/i', $content, $matches)) {
+        if ($content && preg_match('/<widget\b[^>]*\bversion=["\']([^"\']+)["\']/i', $content, $matches)) {
             return $matches[1];
         }
 

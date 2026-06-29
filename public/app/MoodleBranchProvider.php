@@ -6,7 +6,7 @@ namespace app;
  * Class MoodleBranchProvider
  */
 class MoodleBranchProvider {
-    private const GITHUB_BRANCHES_URL = 'https://api.github.com/repos/moodle/moodle/branches';
+    private const string GITHUB_BRANCHES_URL = 'https://api.github.com/repos/moodle/moodle/branches';
 
     /**
      * Function getInstallBranches

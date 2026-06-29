@@ -56,9 +56,9 @@ function app_config(?string $key = null): mixed {
  * Function app_config_path
  *
  * @param string $path
- * @return mixed
+ * @return string
  */
-function app_config_path(string $path): mixed {
+function app_config_path(string $path): string {
     return app_config("base_dir") . $path;
 }
 

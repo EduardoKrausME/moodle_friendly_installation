@@ -59,6 +59,7 @@ render_footer();
  * @param array $featureflags
  * @param string|null $flash
  * @return array
+ * @throws \Random\RandomException
  */
 function details_page_context(
     array $site,
@@ -194,6 +195,7 @@ function details_diagnostic_row(string $label, array $item): array {
  *
  * @param array $featureflags
  * @return array
+ * @throws \Random\RandomException
  */
 function details_feature_flags(array $featureflags): array {
     $items = [];

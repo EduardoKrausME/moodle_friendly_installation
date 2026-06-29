@@ -163,7 +163,7 @@ class SiteManager {
         }
 
         $content = file_get_contents($configfile);
-        if ($content == false) {
+        if (!$content) {
             return ['_error' => I18n::get('diagnostic.config_not_readable')];
         }
 
@@ -208,9 +208,9 @@ class SiteManager {
      *
      * @param string $content
      * @param string $key
-     * @return mixed
+     * @return string|bool|null
      */
-    private static function readCfgValue(string $content, string $key): mixed {
+    private static function readCfgValue(string $content, string $key): string|bool|null {
         $quoted = preg_quote($key, '/');
 
         if (preg_match('/\$CFG->' . $quoted . '\s*=\s*([\'\"])((?:\\\\.|(?!\1).)*)\1\s*;/s', $content, $matches)) {
@@ -270,7 +270,7 @@ class SiteManager {
             }
 
             $content = file_get_contents($versionfile);
-            if ($content == false) {
+            if (!$content) {
                 continue;
             }
 
@@ -320,7 +320,7 @@ class SiteManager {
         }
 
         $content = file_get_contents($file);
-        if ($content == false) {
+        if (!$content) {
             return [
                 'status' => 'warning',
                 'label' => I18n::get('status.not_readable'),
@@ -523,11 +523,9 @@ class SiteManager {
             }
         }
 
-        $ips = array_values(array_unique(array_filter(array_map('trim', $ips), static function(string $ip): bool {
+        return array_values(array_unique(array_filter(array_map('trim', $ips), static function(string $ip): bool {
             return filter_var($ip, FILTER_VALIDATE_IP) != false;
         })));
-
-        return $ips;
     }
 
     /**
@@ -687,10 +685,10 @@ class SiteManager {
      * @return array
      */
     private static function readDatabaseStats(array $config): array {
-        $host = app_config("mysql_admin_host", "localhost");
-        $port = app_config("mysql_admin_port", 3306);
-        $user = app_config("mysql_admin_user", "root");
-        $pass = app_config("mysql_admin_pass", "");
+        $host = app_config("mysql_admin_host");
+        $port = app_config("mysql_admin_port");
+        $user = app_config("mysql_admin_user");
+        $pass = app_config("mysql_admin_pass");
 
         if (isset($config["dbname"])) {
             $dsn = "mysql:host={$host};port={$port};dbname={$config["dbname"]};charset=utf8mb4";
@@ -748,8 +746,7 @@ class SiteManager {
      * @return int
      */
     private static function countQuery(PDO $pdo, string $sql): int {
-        $value = $pdo->query($sql)->fetchColumn();
-        return $value;
+        return $pdo->query($sql)->fetchColumn();
     }
 
     /**
@@ -971,7 +968,7 @@ class SiteManager {
 
         if ($enabled) {
             $content = $content ?? ('enabled_at=' . date('c') . PHP_EOL);
-            if (@file_put_contents($file, $content, LOCK_EX) == false) {
+            if (!@file_put_contents($file, $content, LOCK_EX)) {
                 return [
                     'ok' => false,
                     'message' => I18n::get('diagnostic.flag_create_failed', ['file' => $file]),
@@ -1007,7 +1004,7 @@ class SiteManager {
      * @return array
      */
     private static function setMaintenanceMode(array $site, bool $enabled): array {
-        $cli = self::moodleCliFile($site, 'maintenance.php');
+        $cli = self::moodleCliFile($site);
         if ($cli == '') {
             return [
                 'ok' => false,
@@ -1050,18 +1047,17 @@ class SiteManager {
      * Function moodleCliFile
      *
      * @param array $site
-     * @param string $filename
      * @return string
      */
-    private static function moodleCliFile(array $site, string $filename): string {
+    private static function moodleCliFile(array $site): string {
         $moodledir = rtrim($site["moodle_dir"] ?? '', '/');
         if ($moodledir == '') {
             return '';
         }
 
         $candidates = [
-            $moodledir . '/admin/cli/' . $filename,
-            $moodledir . '/public/admin/cli/' . $filename,
+            $moodledir . '/admin/cli/' . 'maintenance.php',
+            $moodledir . '/public/admin/cli/' . 'maintenance.php',
         ];
 
         foreach ($candidates as $candidate) {
@@ -1071,16 +1067,6 @@ class SiteManager {
         }
 
         return '';
-    }
-
-    /**
-     * Function debugFile
-     *
-     * @param array $site
-     * @return string
-     */
-    private static function debugFile(array $site): string {
-        return self::featureFlagFile($site, 'debug.enable');
     }
 
     /**

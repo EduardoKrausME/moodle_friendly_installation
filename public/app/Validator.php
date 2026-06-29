@@ -2,6 +2,9 @@
 // Validation rules for Moodle site provisioning.
 namespace app;
 
+use RuntimeException;
+use ZipArchive;
+
 /**
  * Class Validator
  */
@@ -132,7 +135,7 @@ class Validator {
             return I18n::get('validation.zip_not_available');
         }
 
-        $zip = new \ZipArchive();
+        $zip = new ZipArchive();
         if ($zip->open($tmpname) !== true) {
             return I18n::get('validation.kopere_backup_zip_invalid');
         }
@@ -167,6 +170,7 @@ class Validator {
      * @param array $file
      * @param string $domain
      * @return string|null
+     * @throws \Random\RandomException
      */
     public static function storeKopereBackupUpload(array $file, string $domain): ?string {
         $validationerror = self::validateKopereBackupUpload($file);
@@ -174,7 +178,7 @@ class Validator {
             if ((int) ($file["error"] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_NO_FILE) {
                 return null;
             }
-            throw new \RuntimeException($validationerror);
+            throw new RuntimeException($validationerror);
         }
 
         if ((int) ($file["error"] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_NO_FILE) {
@@ -189,7 +193,7 @@ class Validator {
         $safeDomain = preg_replace('/[^a-z0-9.-]+/', '-', strtolower($domain));
         $destination = $uploaddir . '/' . $safeDomain . '-' . date('Ymd-His') . '-' . bin2hex(random_bytes(4)) . '.zip';
         if (!move_uploaded_file($file["tmp_name"], $destination)) {
-            throw new \RuntimeException(I18n::get('validation.kopere_backup_store_failed'));
+            throw new RuntimeException(I18n::get('validation.kopere_backup_store_failed'));
         }
         chmod($destination, 0640);
         return $destination;

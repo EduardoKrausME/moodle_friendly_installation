@@ -6,8 +6,8 @@ namespace app;
  * Class I18n
  */
 class I18n {
-    private const DEFAULT_LANGUAGE = 'pt_br';
-    private const COOKIE_NAME = 'moodle_friendly_installation_admin_lang';
+    private const string DEFAULT_LANGUAGE = 'pt_br';
+    private const string COOKIE_NAME = 'moodle_friendly_installation_admin_lang';
 
     /** @var array<string, array<string, mixed>> */
     private static array $cache = [];
@@ -78,7 +78,7 @@ class I18n {
     /**
      * Function strings
      *
-     * @return array|mixed[]
+     * @return array
      */
     public static function strings(): array {
         return self::languageData(self::$current);
@@ -242,7 +242,7 @@ class I18n {
      * Function languageData
      *
      * @param string $language
-     * @return array|mixed[]
+     * @return array
      */
     private static function languageData(string $language): array {
         if (isset(self::$cache[$language])) {

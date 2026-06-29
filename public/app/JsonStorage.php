@@ -2,6 +2,8 @@
 // JSON storage helper with atomic writes and file locking.
 namespace app;
 
+use RuntimeException;
+
 /**
  * Class JsonStorage
  */
@@ -19,7 +21,7 @@ class JsonStorage {
         }
 
         $raw = file_get_contents($file);
-        if ($raw == false || trim($raw) == '') {
+        if (!$raw || trim($raw) == '') {
             return $default;
         }
 
@@ -56,20 +58,20 @@ class JsonStorage {
             }
 
             $json = json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
-            if ($json == false) {
+            if (!$json) {
                 throw new RuntimeException('Cannot encode JSON for: ' . $file);
             }
 
             $tmp = $file . '.tmp.' . bin2hex(random_bytes(6));
-            if (file_put_contents($tmp, $json . PHP_EOL, LOCK_EX) == false) {
+            if (!file_put_contents($tmp, $json . PHP_EOL, LOCK_EX)) {
                 throw new RuntimeException('Cannot write temporary file: ' . $tmp);
             }
 
             chmod($tmp, 0640);
-            if ($owner != false) {
+            if ($owner) {
                 @chown($tmp, $owner);
             }
-            if ($group != false) {
+            if ($group) {
                 @chgrp($tmp, $group);
             }
             rename($tmp, $file);

@@ -2,6 +2,8 @@
 // Authentication helper. Plain text passwords are automatically upgraded to password_hash().
 namespace app;
 
+use RuntimeException;
+
 /**
  * Class Auth
  */
@@ -93,11 +95,13 @@ class Auth {
      * @param string $name
      * @param string|null $password
      * @return void
+     * @throws \DateMalformedStringException
+     * @throws \Random\RandomException
      */
     public static function updateCurrentUser(string $username, string $name, ?string $password = null): void {
         $sessionuser = self::user();
         if (!$sessionuser) {
-            throw new \RuntimeException('User is not logged in.');
+            throw new RuntimeException('User is not logged in.');
         }
 
         $oldusername = $sessionuser["username"] ?? '';
@@ -105,10 +109,10 @@ class Auth {
         $users = JsonStorage::read($usersfile);
         $found = false;
 
-        foreach ($users as $index => &$user) {
+        foreach ($users as &$user) {
             if (($user["username"] ?? '') != $oldusername) {
                 if (($user["username"] ?? '') == $username) {
-                    throw new \RuntimeException(t('profile.username_already_exists'));
+                    throw new RuntimeException(t('profile.username_already_exists'));
                 }
                 continue;
             }
@@ -128,7 +132,7 @@ class Auth {
         unset($user);
 
         if (!$found) {
-            throw new \RuntimeException(t('profile.current_user_not_found'));
+            throw new RuntimeException(t('profile.current_user_not_found'));
         }
 
         JsonStorage::write($usersfile, $users);
@@ -156,6 +160,8 @@ class Auth {
      * @param string $username
      * @param string $password
      * @return bool
+     * @throws \DateMalformedStringException
+     * @throws \Random\RandomException
      */
     public static function attempt(string $username, string $password): bool {
         $usersfile = app_config_path("/data/users.json");
@@ -170,7 +176,6 @@ class Auth {
 
             $stored = $user["password"] ?? '';
             $info = password_get_info($stored);
-            $valid = false;
 
             if (!empty($info["algo"])) {
                 $valid = password_verify($password, $stored);

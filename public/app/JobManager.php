@@ -12,7 +12,7 @@ class JobManager {
      * @return array
      */
     public static function all(): array {
-        $jobs = JsonStorage::read(app_config_path("/data/jobs.json"), []);
+        $jobs = JsonStorage::read(app_config_path("/data/jobs.json"));
         usort(
             $jobs,
             static fn(array $a, array $b): int => strcmp(($b["created_at"] ?? ''), ($a["created_at"] ?? ''))
@@ -26,6 +26,7 @@ class JobManager {
      * @param array $data
      * @return array
      * @throws \Random\RandomException
+     * @throws \DateMalformedStringException
      */
     public static function createInstallJob(array $data): array {
         $hasbackup = !empty($data["kopere_backup_zip"]);
@@ -70,6 +71,7 @@ class JobManager {
      * @param array $data
      * @return array
      * @throws \Random\RandomException
+     * @throws \DateMalformedStringException
      */
     public static function createAppBuildJob(array $data): array {
         $job = [
@@ -105,6 +107,7 @@ class JobManager {
      * @param callable $callback
      * @return array|null
      * @throws \Random\RandomException
+     * @throws \DateMalformedStringException
      */
     public static function updateJob(string $id, callable $callback): ?array {
         $updated = null;
@@ -131,7 +134,7 @@ class JobManager {
      * @return array|null
      */
     public static function nextPendingJob(): ?array {
-        $jobs = JsonStorage::read(app_config_path("/data/jobs.json"), []);
+        $jobs = JsonStorage::read(app_config_path("/data/jobs.json"));
         $pendingjobs = [];
 
         foreach ($jobs as $job) {
@@ -161,7 +164,7 @@ class JobManager {
      * @param string $id
      * @param string $message
      * @return array|null
-     * @throws \Random\RandomException
+     * @throws \Random\RandomException|\DateMalformedStringException
      */
     public static function markWaitingDns(string $id, string $message): ?array {
         return self::updateJob($id, static function(array $job) use ($message): array {
@@ -181,6 +184,7 @@ class JobManager {
      * @param string $id
      * @return array|null
      * @throws \Random\RandomException
+     * @throws \DateMalformedStringException
      */
     public static function markRunning(string $id): ?array {
         return self::updateJob($id, static function(array $job): array {
@@ -199,6 +203,7 @@ class JobManager {
      * @param array $extra
      * @return array|null
      * @throws \Random\RandomException
+     * @throws \DateMalformedStringException
      */
     public static function markDone(string $id, array $extra = []): ?array {
         return self::updateJob($id, static function(array $job) use ($extra): array {
@@ -217,6 +222,7 @@ class JobManager {
      * @param string $message
      * @return array|null
      * @throws \Random\RandomException
+     * @throws \DateMalformedStringException
      */
     public static function markFailed(string $id, string $message): ?array {
         return self::updateJob($id, static function(array $job) use ($message): array {
