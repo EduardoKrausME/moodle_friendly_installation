@@ -6,7 +6,15 @@ namespace app;
 use PDO;
 use Throwable;
 
+/**
+ * Class SiteManager
+ */
 class SiteManager {
+    /**
+     * Function all
+     *
+     * @return array
+     */
     public static function all(): array {
         $sites = [];
         $moodledirs = self::discoverMoodleDirs();
@@ -24,6 +32,12 @@ class SiteManager {
         return $sites;
     }
 
+    /**
+     * Function get
+     *
+     * @param string $domain
+     * @return array|null
+     */
     public static function get(string $domain): ?array {
         foreach (self::all() as $site) {
             if (($site["domain"] ?? '') == $domain) {
@@ -33,6 +47,12 @@ class SiteManager {
         return null;
     }
 
+    /**
+     * Function details
+     *
+     * @param string $domain
+     * @return array|null
+     */
     public static function details(string $domain): ?array {
         $site = self::get($domain);
         if ($site == null) {
@@ -54,6 +74,11 @@ class SiteManager {
         return $site;
     }
 
+    /**
+     * Function discoverMoodleDirs
+     *
+     * @return array
+     */
     private static function discoverMoodleDirs(): array {
         $dirs = [];
 
@@ -69,6 +94,12 @@ class SiteManager {
         return array_keys($dirs);
     }
 
+    /**
+     * Function buildBasicSite
+     *
+     * @param string $moodledir
+     * @return array|null
+     */
     private static function buildBasicSite(string $moodledir): ?array {
         $configfile = rtrim($moodledir, '/') . '/config.php';
         if (!is_file($configfile)) {
@@ -120,6 +151,12 @@ class SiteManager {
         return $return;
     }
 
+    /**
+     * Function readMoodleConfig
+     *
+     * @param string $configfile
+     * @return array
+     */
     private static function readMoodleConfig(string $configfile): array {
         if ($configfile == '' || !is_readable($configfile)) {
             return ['_error' => I18n::get('diagnostic.config_not_found')];
@@ -152,6 +189,12 @@ class SiteManager {
         return $config;
     }
 
+    /**
+     * Function publicConfig
+     *
+     * @param array $config
+     * @return array
+     */
     private static function publicConfig(array $config): array {
         $public = $config;
         if (array_key_exists('dbpass', $public)) {
@@ -160,6 +203,13 @@ class SiteManager {
         return $public;
     }
 
+    /**
+     * Function readCfgValue
+     *
+     * @param string $content
+     * @param string $key
+     * @return mixed
+     */
     private static function readCfgValue(string $content, string $key): mixed {
         $quoted = preg_quote($key, '/');
 
@@ -180,6 +230,13 @@ class SiteManager {
         return null;
     }
 
+    /**
+     * Function readArrayValue
+     *
+     * @param string $content
+     * @param string $key
+     * @return string|null
+     */
     private static function readArrayValue(string $content, string $key): ?string {
         $quoted = preg_quote($key, '/');
         if (preg_match('/[\'\"]' . $quoted . '[\'\"]\s*=>\s*([\'\"])((?:\\\\.|(?!\1).)*)\1/s', $content, $matches)) {
@@ -188,6 +245,13 @@ class SiteManager {
         return null;
     }
 
+    /**
+     * Function readMoodleRelease
+     *
+     * @param string $moodledir
+     * @param string $publicroot
+     * @return string[]
+     */
     private static function readMoodleRelease(string $moodledir, string $publicroot): array {
         $files = [
             rtrim($publicroot, '/') . '/version.php',
@@ -225,6 +289,13 @@ class SiteManager {
         return $result;
     }
 
+    /**
+     * Function checkWebServerConfig
+     *
+     * @param string $type
+     * @param array $site
+     * @return array
+     */
     private static function checkWebServerConfig(string $type, array $site): array {
         $domain = $site["domain"] ?? '';
         $label = $type == 'nginx' ? 'NGINX' : 'APACHE';
@@ -280,6 +351,13 @@ class SiteManager {
         ];
     }
 
+    /**
+     * Function webServerConfigPath
+     *
+     * @param string $type
+     * @param string $domain
+     * @return string
+     */
     private static function webServerConfigPath(string $type, string $domain): string {
         if ($type == 'nginx') {
             return "/etc/nginx/sites-enabled/{$domain}.conf";
@@ -294,6 +372,11 @@ class SiteManager {
         };
     }
 
+    /**
+     * Function detectOperatingSystem
+     *
+     * @return string
+     */
     private static function detectOperatingSystem(): string {
         $release = self::readOsRelease();
         $id = strtolower((string) ($release["ID"] ?? ''));
@@ -311,6 +394,11 @@ class SiteManager {
         return 'unknown';
     }
 
+    /**
+     * Function readOsRelease
+     *
+     * @return array
+     */
     private static function readOsRelease(): array {
         foreach (['/etc/os-release', '/usr/lib/os-release'] as $file) {
             if (!is_readable($file)) {
@@ -324,6 +412,12 @@ class SiteManager {
         return [];
     }
 
+    /**
+     * Function checkDns
+     *
+     * @param string $domain
+     * @return array
+     */
     private static function checkDns(string $domain): array {
         $records = self::dnsRecords($domain);
         $resolvedIps = array_values(array_unique(array_filter(array_merge($records["A"], $records["AAAA"]))));
@@ -362,6 +456,12 @@ class SiteManager {
         ];
     }
 
+    /**
+     * Function dnsRecords
+     *
+     * @param string $domain
+     * @return array|array[]
+     */
     private static function dnsRecords(string $domain): array {
         $records = ['A' => [], 'AAAA' => []];
         if ($domain == '') {
@@ -394,6 +494,11 @@ class SiteManager {
         return $records;
     }
 
+    /**
+     * Function serverIps
+     *
+     * @return array
+     */
     private static function serverIps(): array {
         $ips = [];
 
@@ -425,6 +530,12 @@ class SiteManager {
         return $ips;
     }
 
+    /**
+     * Function checkSsl
+     *
+     * @param string $domain
+     * @return array
+     */
     private static function checkSsl(string $domain): array {
         if ($domain == '') {
             return [
@@ -496,6 +607,13 @@ class SiteManager {
         ];
     }
 
+    /**
+     * Function readSslCertificate
+     *
+     * @param string $domain
+     * @param bool $verify
+     * @return array
+     */
     private static function readSslCertificate(string $domain, bool $verify): array {
         $context = stream_context_create([
             'ssl' => [
@@ -546,6 +664,12 @@ class SiteManager {
         ];
     }
 
+    /**
+     * Function certName
+     *
+     * @param array $data
+     * @return string
+     */
     private static function certName(array $data): string {
         if (!empty($data["CN"])) {
             return $data["CN"];
@@ -556,6 +680,12 @@ class SiteManager {
         return '';
     }
 
+    /**
+     * Function readDatabaseStats
+     *
+     * @param array $config
+     * @return array
+     */
     private static function readDatabaseStats(array $config): array {
         $host = app_config("mysql_admin_host", "localhost");
         $port = app_config("mysql_admin_port", 3306);
@@ -610,20 +740,49 @@ class SiteManager {
         ];
     }
 
+    /**
+     * Function countQuery
+     *
+     * @param \PDO $pdo
+     * @param string $sql
+     * @return int
+     */
     private static function countQuery(PDO $pdo, string $sql): int {
         $value = $pdo->query($sql)->fetchColumn();
         return $value;
     }
 
+    /**
+     * Function formatFileTime
+     *
+     * @param string $file
+     * @return string
+     */
     private static function formatFileTime(string $file): string {
         $time = @filemtime($file);
         return $time ? date('Y-m-d H:i:s', $time) : '';
     }
 
+    /**
+     * Function setDebugMode
+     *
+     * @param array $site
+     * @param bool $enabled
+     * @return array
+     */
     public static function setDebugMode(array $site, bool $enabled): array {
         return self::setFeatureFlag($site, 'debug', $enabled);
     }
 
+    /**
+     * Function setFeatureFlag
+     *
+     * @param array $site
+     * @param string $flag
+     * @param bool $enabled
+     * @param string|null $value
+     * @return array
+     */
     public static function setFeatureFlag(array $site, string $flag, bool $enabled, ?string $value = null): array {
         $definitions = self::featureFlagDefinitions();
         if (!isset($definitions[$flag])) {
@@ -652,6 +811,11 @@ class SiteManager {
         return self::writeFeatureFlagFile($site, $definition, $enabled);
     }
 
+    /**
+     * Function featureFlagDefinitions
+     *
+     * @return array[]
+     */
     private static function featureFlagDefinitions(): array {
         return [
             'debug' => [
@@ -747,6 +911,12 @@ class SiteManager {
         ];
     }
 
+    /**
+     * Function checkFeatureFlags
+     *
+     * @param array $site
+     * @return array
+     */
     private static function checkFeatureFlags(array $site): array {
         $items = [];
         foreach (self::featureFlagDefinitions() as $key => $definition) {
@@ -780,6 +950,15 @@ class SiteManager {
         return $items;
     }
 
+    /**
+     * Function writeFeatureFlagFile
+     *
+     * @param array $site
+     * @param array $definition
+     * @param bool $enabled
+     * @param string|null $content
+     * @return array
+     */
     private static function writeFeatureFlagFile(array $site, array $definition, bool $enabled, ?string $content = null): array {
         $file = self::featureFlagFile($site, ($definition["file"] ?? ''));
         $label = $definition["label"] ?? 'Flag';
@@ -820,6 +999,13 @@ class SiteManager {
         ];
     }
 
+    /**
+     * Function setMaintenanceMode
+     *
+     * @param array $site
+     * @param bool $enabled
+     * @return array
+     */
     private static function setMaintenanceMode(array $site, bool $enabled): array {
         $cli = self::moodleCliFile($site, 'maintenance.php');
         if ($cli == '') {
@@ -860,6 +1046,13 @@ class SiteManager {
         return $result;
     }
 
+    /**
+     * Function moodleCliFile
+     *
+     * @param array $site
+     * @param string $filename
+     * @return string
+     */
     private static function moodleCliFile(array $site, string $filename): string {
         $moodledir = rtrim($site["moodle_dir"] ?? '', '/');
         if ($moodledir == '') {
@@ -880,10 +1073,23 @@ class SiteManager {
         return '';
     }
 
+    /**
+     * Function debugFile
+     *
+     * @param array $site
+     * @return string
+     */
     private static function debugFile(array $site): string {
         return self::featureFlagFile($site, 'debug.enable');
     }
 
+    /**
+     * Function featureFlagFile
+     *
+     * @param array $site
+     * @param string $filename
+     * @return string
+     */
     private static function featureFlagFile(array $site, string $filename): string {
         $base = rtrim($site["base_dir"] ?? '', '/');
         $filename = ltrim($filename, '/');
@@ -893,6 +1099,12 @@ class SiteManager {
         return $base . '/' . $filename;
     }
 
+    /**
+     * Function checkDebugMode
+     *
+     * @param array $site
+     * @return array
+     */
     private static function checkDebugMode(array $site): array {
         $flags = self::checkFeatureFlags($site);
         $debug = $flags["debug"] ?? null;

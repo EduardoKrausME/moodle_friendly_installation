@@ -2,14 +2,23 @@
 // Lightweight i18n helper used by PHP and Mustache templates.
 namespace app;
 
+/**
+ * Class I18n
+ */
 class I18n {
     private const DEFAULT_LANGUAGE = 'pt_br';
     private const COOKIE_NAME = 'moodle_friendly_installation_admin_lang';
 
     /** @var array<string, array<string, mixed>> */
     private static array $cache = [];
+    /** @var string */
     private static string $current = self::DEFAULT_LANGUAGE;
 
+    /**
+     * Function init
+     *
+     * @return void
+     */
     public static function init(): void {
         self::$current = self::detectLanguage();
 
@@ -35,32 +44,71 @@ class I18n {
         }
     }
 
+    /**
+     * Function current
+     *
+     * @return string
+     */
     public static function current(): string {
         return self::$current;
     }
 
+    /**
+     * Function moodleLanguage
+     *
+     * @param string|null $language
+     * @return string
+     */
     public static function moodleLanguage(?string $language = null): string {
         $language = $language === null ? self::$current : self::normalizeLanguage($language);
         return self::isSupported($language) ? $language : self::DEFAULT_LANGUAGE;
     }
 
+    /**
+     * Function moodleHubLanguage
+     *
+     * @param string|null $language
+     * @return string
+     */
     public static function moodleHubLanguage(?string $language = null): string {
         $language = self::moodleLanguage($language);
         return $language == 'pt_br' ? 'pt' : $language;
     }
 
+    /**
+     * Function strings
+     *
+     * @return array|mixed[]
+     */
     public static function strings(): array {
         return self::languageData(self::$current);
     }
 
+    /**
+     * Function htmlLang
+     *
+     * @return string
+     */
     public static function htmlLang(): string {
         return (self::languageData(self::$current)["meta"]["html_lang"] ?? 'pt-BR');
     }
 
+    /**
+     * Function currentMeta
+     *
+     * @return array
+     */
     public static function currentMeta(): array {
         return self::languageData(self::$current)["meta"] ?? [];
     }
 
+    /**
+     * Function get
+     *
+     * @param string $key
+     * @param array $params
+     * @return string
+     */
     public static function get(string $key, array $params = []): string {
         $value = self::arrayGet(self::languageData(self::$current), $key);
         if (!is_string($value)) {
@@ -81,6 +129,11 @@ class I18n {
         return $value;
     }
 
+    /**
+     * Function languagesForSelector
+     *
+     * @return array
+     */
     public static function languagesForSelector(): array {
         $items = [];
         foreach (self::supportedLanguages() as $code) {
@@ -100,6 +153,11 @@ class I18n {
         return $items;
     }
 
+    /**
+     * Function supportedLanguages
+     *
+     * @return array
+     */
     public static function supportedLanguages(): array {
         $files = glob(__DIR__ . '/lang/*.php') ?: [];
         $languages = [];
@@ -113,6 +171,11 @@ class I18n {
         return array_values(array_unique($languages));
     }
 
+    /**
+     * Function detectLanguage
+     *
+     * @return string
+     */
     private static function detectLanguage(): string {
         $sessionlang = isset($_SESSION["lang"]) && is_string($_SESSION["lang"]) ? self::normalizeLanguage($_SESSION["lang"]) : '';
         if ($sessionlang != '' && self::isSupported($sessionlang)) {
@@ -144,6 +207,12 @@ class I18n {
         return self::DEFAULT_LANGUAGE;
     }
 
+    /**
+     * Function normalizeLanguage
+     *
+     * @param string $language
+     * @return string
+     */
     private static function normalizeLanguage(string $language): string {
         $language = strtolower(trim($language));
         $language = str_replace('-', '_', $language);
@@ -159,10 +228,22 @@ class I18n {
         return preg_replace('/[^a-z0-9_]/', '', $language) ?: '';
     }
 
+    /**
+     * Function isSupported
+     *
+     * @param string $language
+     * @return bool
+     */
     private static function isSupported(string $language): bool {
         return is_file(__DIR__ . '/lang/' . $language . '.php');
     }
 
+    /**
+     * Function languageData
+     *
+     * @param string $language
+     * @return array|mixed[]
+     */
     private static function languageData(string $language): array {
         if (isset(self::$cache[$language])) {
             return self::$cache[$language];
@@ -184,6 +265,13 @@ class I18n {
         return self::$cache[$language];
     }
 
+    /**
+     * Function arrayGet
+     *
+     * @param array $data
+     * @param string $key
+     * @return mixed
+     */
     private static function arrayGet(array $data, string $key): mixed {
         $current = $data;
         foreach (explode('.', $key) as $part) {
@@ -195,6 +283,12 @@ class I18n {
         return $current;
     }
 
+    /**
+     * Function urlWithLang
+     *
+     * @param string $language
+     * @return string
+     */
     private static function urlWithLang(string $language): string {
         $uri = $_SERVER["REQUEST_URI"] ?? '/';
         $parts = parse_url($uri) ?: [];
@@ -207,6 +301,11 @@ class I18n {
         return $path . '?' . http_build_query($query);
     }
 
+    /**
+     * Function urlWithoutLang
+     *
+     * @return string
+     */
     private static function urlWithoutLang(): string {
         $uri = $_SERVER["REQUEST_URI"] ?? '/';
         $parts = parse_url($uri) ?: [];

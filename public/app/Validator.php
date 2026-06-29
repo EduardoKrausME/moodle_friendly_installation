@@ -2,7 +2,16 @@
 // Validation rules for Moodle site provisioning.
 namespace app;
 
+/**
+ * Class Validator
+ */
 class Validator {
+    /**
+     * Function normalizeDomain
+     *
+     * @param string $domain
+     * @return string
+     */
     public static function normalizeDomain(string $domain): string {
         $domain = strtolower(trim($domain));
         $domain = preg_replace('/^https?:\/\//', '', $domain);
@@ -10,6 +19,13 @@ class Validator {
         return trim($domain, '. ');
     }
 
+    /**
+     * Function validateInstallRequest
+     *
+     * @param array $input
+     * @param array $allowedbranches
+     * @return array
+     */
     public static function validateInstallRequest(array $input, array $allowedbranches = []): array {
         $errors = [];
         $warnings = [];

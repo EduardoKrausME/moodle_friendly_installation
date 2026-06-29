@@ -49,6 +49,17 @@ render_header(t('details.title'));
 echo render_app_template('page/details', details_page_context($site, $config, $diagnostics, $stats, $featureflags, $flash));
 render_footer();
 
+/**
+ * Function details_page_context
+ *
+ * @param array $site
+ * @param array $config
+ * @param array $diagnostics
+ * @param array $stats
+ * @param array $featureflags
+ * @param string|null $flash
+ * @return array
+ */
 function details_page_context(
     array $site,
     array $config,
@@ -129,6 +140,14 @@ function details_page_context(
     ];
 }
 
+/**
+ * Function details_info_row
+ *
+ * @param string $label
+ * @param mixed $value
+ * @param bool $code
+ * @return array
+ */
 function details_info_row(string $label, mixed $value, bool $code = true): array {
     return [
         'label' => $label,
@@ -138,6 +157,13 @@ function details_info_row(string $label, mixed $value, bool $code = true): array
     ];
 }
 
+/**
+ * Function details_diagnostic_row
+ *
+ * @param string $label
+ * @param array $item
+ * @return array
+ */
 function details_diagnostic_row(string $label, array $item): array {
     $resolvedips = !empty($item["resolved_ips"]) && is_array($item["resolved_ips"])
         ? implode(', ', $item["resolved_ips"])
@@ -163,6 +189,12 @@ function details_diagnostic_row(string $label, array $item): array {
     ];
 }
 
+/**
+ * Function details_feature_flags
+ *
+ * @param array $featureflags
+ * @return array
+ */
 function details_feature_flags(array $featureflags): array {
     $items = [];
 
@@ -203,6 +235,12 @@ function details_feature_flags(array $featureflags): array {
     return $items;
 }
 
+/**
+ * Function details_value
+ *
+ * @param mixed $value
+ * @return string
+ */
 function details_value(mixed $value): string {
     if (is_bool($value)) {
         return $value ? t('details.yes') : t('details.no');
@@ -213,6 +251,12 @@ function details_value(mixed $value): string {
     return$value;
 }
 
+/**
+ * Function details_format_count
+ *
+ * @param mixed $value
+ * @return string
+ */
 function details_format_count(mixed $value): string {
     return number_format($value, 0, ',', '.');
 }

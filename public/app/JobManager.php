@@ -2,7 +2,15 @@
 // Job manager. The web panel creates pending jobs; the root cron runner executes them.
 namespace app;
 
+/**
+ * Class JobManager
+ */
 class JobManager {
+    /**
+     * Function all
+     *
+     * @return array
+     */
     public static function all(): array {
         $jobs = JsonStorage::read(app_config_path("/data/jobs.json"), []);
         usort(
@@ -12,6 +20,13 @@ class JobManager {
         return $jobs;
     }
 
+    /**
+     * Function createInstallJob
+     *
+     * @param array $data
+     * @return array
+     * @throws \Random\RandomException
+     */
     public static function createInstallJob(array $data): array {
         $hasbackup = !empty($data["kopere_backup_zip"]);
         $type = $hasbackup ? 'restore_moodle' : 'install_moodle';
@@ -49,7 +64,13 @@ class JobManager {
         return $job;
     }
 
-
+    /**
+     * Function createAppBuildJob
+     *
+     * @param array $data
+     * @return array
+     * @throws \Random\RandomException
+     */
     public static function createAppBuildJob(array $data): array {
         $job = [
             'id' => self::newId(),
@@ -77,6 +98,14 @@ class JobManager {
         return $job;
     }
 
+    /**
+     * Function updateJob
+     *
+     * @param string $id
+     * @param callable $callback
+     * @return array|null
+     * @throws \Random\RandomException
+     */
     public static function updateJob(string $id, callable $callback): ?array {
         $updated = null;
         JsonStorage::update(
@@ -96,6 +125,11 @@ class JobManager {
         return $updated;
     }
 
+    /**
+     * Function nextPendingJob
+     *
+     * @return array|null
+     */
     public static function nextPendingJob(): ?array {
         $jobs = JsonStorage::read(app_config_path("/data/jobs.json"), []);
         $pendingjobs = [];
@@ -121,6 +155,14 @@ class JobManager {
         return $pendingjobs[array_rand($pendingjobs)];
     }
 
+    /**
+     * Function markWaitingDns
+     *
+     * @param string $id
+     * @param string $message
+     * @return array|null
+     * @throws \Random\RandomException
+     */
     public static function markWaitingDns(string $id, string $message): ?array {
         return self::updateJob($id, static function(array $job) use ($message): array {
             $job["status"] = 'waiting_dns';
@@ -133,6 +175,13 @@ class JobManager {
         });
     }
 
+    /**
+     * Function markRunning
+     *
+     * @param string $id
+     * @return array|null
+     * @throws \Random\RandomException
+     */
     public static function markRunning(string $id): ?array {
         return self::updateJob($id, static function(array $job): array {
             $job["status"] = 'running';
@@ -143,6 +192,14 @@ class JobManager {
         });
     }
 
+    /**
+     * Function markDone
+     *
+     * @param string $id
+     * @param array $extra
+     * @return array|null
+     * @throws \Random\RandomException
+     */
     public static function markDone(string $id, array $extra = []): ?array {
         return self::updateJob($id, static function(array $job) use ($extra): array {
             $job = array_merge($job, $extra);
@@ -153,6 +210,14 @@ class JobManager {
         });
     }
 
+    /**
+     * Function markFailed
+     *
+     * @param string $id
+     * @param string $message
+     * @return array|null
+     * @throws \Random\RandomException
+     */
     public static function markFailed(string $id, string $message): ?array {
         return self::updateJob($id, static function(array $job) use ($message): array {
             $job["status"] = 'failed';
@@ -163,11 +228,23 @@ class JobManager {
         });
     }
 
+    /**
+     * Function writeQueueFile
+     *
+     * @param array $job
+     * @return void
+     * @throws \Random\RandomException
+     */
     private static function writeQueueFile(array $job): void {
         $queuefile = rtrim(app_config_path("/queue"), '/') . '/' . $job["id"] . '.json';
         JsonStorage::write($queuefile, $job);
     }
 
+    /**
+     * Function newId
+     *
+     * @return string
+     */
     private static function newId(): string {
         return 'job_' . uniqid();
     }

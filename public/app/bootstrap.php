@@ -1,6 +1,7 @@
 <?php
 
 use app\Auth;
+use app\I18n;
 
 error_reporting(E_ALL);
 ini_set("display_errors", "1");
@@ -27,26 +28,57 @@ if (PHP_SAPI != 'cli') {
     session_start();
 }
 
-\app\I18n::init();
+I18n::init();
 
+/**
+ * Function t
+ *
+ * @param string $key
+ * @param array $params
+ * @return string
+ */
 function t(string $key, array $params = []): string {
-    return \app\I18n::get($key, $params);
+    return I18n::get($key, $params);
 }
 
+/**
+ * Function app_config
+ *
+ * @param string|null $key
+ * @return mixed
+ */
 function app_config(?string $key = null): mixed {
     global $config;
     return $key == null ? $config : ($config[$key] ?? null);
 }
 
+/**
+ * Function app_config_path
+ *
+ * @param string $path
+ * @return mixed
+ */
 function app_config_path(string $path): mixed {
     return app_config("base_dir") . $path;
 }
 
+/**
+ * Function redirect_to
+ *
+ * @param string $path
+ * @return never
+ */
 function redirect_to(string $path): never {
     header('Location: ' . $path);
     exit;
 }
 
+/**
+ * Function csrf_token
+ *
+ * @return string
+ * @throws \Random\RandomException
+ */
 function csrf_token(): string {
     if (empty($_SESSION["csrf_token"])) {
         $_SESSION["csrf_token"] = bin2hex(random_bytes(32));
@@ -54,6 +86,11 @@ function csrf_token(): string {
     return $_SESSION["csrf_token"];
 }
 
+/**
+ * Function validate_csrf
+ *
+ * @return void
+ */
 function validate_csrf(): void {
     $token = $_POST["csrf_token"] ?? '';
     if (!is_string($token) || empty($_SESSION["csrf_token"]) || !hash_equals($_SESSION["csrf_token"], $token)) {
@@ -62,6 +99,12 @@ function validate_csrf(): void {
     }
 }
 
+/**
+ * Function now_iso
+ *
+ * @return string
+ * @throws \DateMalformedStringException
+ */
 function now_iso(): string {
     return (new DateTimeImmutable('now', new DateTimeZone('America/Sao_Paulo')))->format(DateTimeInterface::ATOM);
 }

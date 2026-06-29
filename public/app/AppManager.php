@@ -4,9 +4,18 @@ namespace app;
 
 use RuntimeException;
 
+/**
+ * Class AppManager
+ */
 class AppManager {
     private const ICON_FILENAME = 'logo.png';
 
+    /**
+     * Function getSettings
+     *
+     * @param array $site
+     * @return array
+     */
     public static function getSettings(array $site): array {
         $domain = self::siteDomain($site);
         $defaults = [
@@ -47,6 +56,14 @@ class AppManager {
         return $settings;
     }
 
+    /**
+     * Function validateSettings
+     *
+     * @param array $input
+     * @param string $domain
+     * @param array|null $current
+     * @return array
+     */
     public static function validateSettings(array $input, string $domain, ?array $current = null): array {
         $errors = [];
         $locked = !empty($current["package_uid_locked"]);
@@ -92,6 +109,13 @@ class AppManager {
         ];
     }
 
+    /**
+     * Function validateIconUpload
+     *
+     * @param array|null $file
+     * @param bool $required
+     * @return array
+     */
     public static function validateIconUpload(?array $file, bool $required): array {
         if (empty($file) || !isset($file["error"]) || $file["error"] == UPLOAD_ERR_NO_FILE) {
             return [
@@ -134,6 +158,13 @@ class AppManager {
         return ['valid' => true, 'error' => ''];
     }
 
+    /**
+     * Function validateKeystorePassword
+     *
+     * @param string|null $password
+     * @param bool $required
+     * @return array
+     */
     public static function validateKeystorePassword(?string $password, bool $required): array {
         $password = trim($password);
         if (!$required && $password == '') {
@@ -159,6 +190,16 @@ class AppManager {
         return ['valid' => true, 'error' => '', 'password' => $password];
     }
 
+    /**
+     * Function saveSettings
+     *
+     * @param string $domain
+     * @param array $data
+     * @param array|null $iconfile
+     * @return array
+     * @throws \DateMalformedStringException
+     * @throws \Random\RandomException
+     */
     public static function saveSettings(string $domain, array $data, ?array $iconfile = null): array {
         $current = JsonStorage::read(self::settingsFile($domain), []);
         if (!is_array($current)) {
@@ -202,6 +243,13 @@ class AppManager {
         return $settings;
     }
 
+    /**
+     * Function ensureAndroidKeyFiles
+     *
+     * @param string $packageuid
+     * @param string|null $password
+     * @return void
+     */
     public static function ensureAndroidKeyFiles(string $packageuid, ?string $password = null): void {
         self::ensureResourceRootWritable();
         $resdir = self::resourceDir($packageuid);
@@ -248,6 +296,13 @@ class AppManager {
         chmod($buildjson, 0600);
     }
 
+    /**
+     * Function androidBuildConfig
+     *
+     * @param string $keystore
+     * @param string $password
+     * @return array[]
+     */
     public static function androidBuildConfig(string $keystore, string $password): array {
         return [
             'android' => [
@@ -262,6 +317,13 @@ class AppManager {
         ];
     }
 
+    /**
+     * Function buildReadiness
+     *
+     * @param array $settings
+     * @param string $domain
+     * @return array
+     */
     public static function buildReadiness(array $settings, string $domain): array {
         $missing = [];
         $packageuid = $settings["package_uid"] ?? '';
@@ -299,7 +361,12 @@ class AppManager {
         ];
     }
 
-
+    /**
+     * Function moodleConfigTest
+     *
+     * @param string $domain
+     * @return array
+     */
     public static function moodleConfigTest(string $domain): array {
         $url = self::moodleConfigTestUrl($domain);
         $result = [
@@ -383,6 +450,13 @@ class AppManager {
         return $result;
     }
 
+    /**
+     * Function applyMoodleConfigTestToReadiness
+     *
+     * @param array $readiness
+     * @param array $configtest
+     * @return array
+     */
     public static function applyMoodleConfigTestToReadiness(array $readiness, array $configtest): array {
         if (!empty($configtest["has_error"])) {
             $readiness["missing"][] = [
@@ -402,6 +476,11 @@ class AppManager {
         return $readiness;
     }
 
+    /**
+     * Function appVersion
+     *
+     * @return string
+     */
     public static function appVersion(): string {
         $configfile = app_config_path('/app-MoodleMobile-V2/config.xml');
         if (!is_readable($configfile)) {
@@ -416,6 +495,12 @@ class AppManager {
         return '1.0.0';
     }
 
+    /**
+     * Function buildFiles
+     *
+     * @param string $domain
+     * @return array
+     */
     public static function buildFiles(string $domain): array {
         $dir = self::storageDir($domain);
         $items = [];
@@ -442,6 +527,12 @@ class AppManager {
         return $items;
     }
 
+    /**
+     * Function latestJob
+     *
+     * @param string $domain
+     * @return array|null
+     */
     public static function latestJob(string $domain): ?array {
         foreach (JobManager::all() as $job) {
             if (($job["type"] ?? '') == 'app_build' && ($job["domain"] ?? '') == $domain) {
@@ -451,6 +542,12 @@ class AppManager {
         return null;
     }
 
+    /**
+     * Function hasActiveBuildJob
+     *
+     * @param string $domain
+     * @return bool
+     */
     public static function hasActiveBuildJob(string $domain): bool {
         foreach (JobManager::all() as $job) {
             if (($job["type"] ?? '') != 'app_build' || ($job["domain"] ?? '') != $domain) {
@@ -463,38 +560,86 @@ class AppManager {
         return false;
     }
 
+    /**
+     * Function storageDir
+     *
+     * @param string $domain
+     * @return string
+     */
     public static function storageDir(string $domain): string {
         $domain = preg_replace('/[^a-z0-9.-]+/', '-', strtolower(trim($domain)));
         $domain = trim($domain, '.-');
         return app_config_path('/data/' . $domain);
     }
 
+    /**
+     * Function settingsFile
+     *
+     * @param string $domain
+     * @return string
+     */
     public static function settingsFile(string $domain): string {
         return self::storageDir($domain) . '/app-settings.json';
     }
 
+    /**
+     * Function resourceDir
+     *
+     * @param string $packageuid
+     * @return string
+     */
     public static function resourceDir(string $packageuid): string {
         return app_config_path('/app-MoodleMobile-V2/res/' . self::normalizePackageUid($packageuid));
     }
 
+    /**
+     * Function iconPath
+     *
+     * @param string $packageuid
+     * @return string
+     */
     public static function iconPath(string $packageuid): string {
         return self::storageDir($packageuid) . '/' . self::ICON_FILENAME;
     }
 
+    /**
+     * Function hasIcon
+     *
+     * @param string $packageuid
+     * @return bool
+     */
     public static function hasIcon(string $packageuid): bool {
         $path = self::iconPath($packageuid);
         return is_file($path) && is_readable($path);
     }
 
+    /**
+     * Function androidKeyDir
+     *
+     * @param string $packageuid
+     * @return string
+     */
     public static function androidKeyDir(string $packageuid): string {
         return self::resourceDir($packageuid) . '/key-android';
     }
 
+    /**
+     * Function hasAndroidKeystorePassword
+     *
+     * @param string $packageuid
+     * @return bool
+     */
     public static function hasAndroidKeystorePassword(string $packageuid): bool {
         $file = self::androidKeyDir($packageuid) . '/keystore.txt';
         return is_file($file) && is_readable($file);
     }
 
+    /**
+     * Function hasAndroidKeyFiles
+     *
+     * @param string $packageuid
+     * @return bool
+     */
     public static function hasAndroidKeyFiles(string $packageuid): bool {
         $keydir = self::androidKeyDir($packageuid);
         return is_file($keydir . '/keystore')
@@ -505,6 +650,12 @@ class AppManager {
             && is_readable($keydir . '/build.json');
     }
 
+    /**
+     * Function defaultPackageUid
+     *
+     * @param string $domain
+     * @return string
+     */
     public static function defaultPackageUid(string $domain): string {
         $domain = strtolower(trim($domain));
         $parts = array_filter(explode('.', $domain), static fn(string $part): bool => $part != '');
@@ -528,11 +679,22 @@ class AppManager {
         return implode('.', $clean);
     }
 
+    /**
+     * Function isPackageUidLocked
+     *
+     * @param string $domain
+     * @return bool
+     */
     private static function isPackageUidLocked(string $domain): bool {
         $stored = JsonStorage::read(self::settingsFile($domain));
         return is_array($stored) && !empty($stored["package_uid"]);
     }
 
+    /**
+     * Function ensureResourceRootWritable
+     *
+     * @return void
+     */
     private static function ensureResourceRootWritable(): void {
         $root = app_config_path('/app-MoodleMobile-V2/res');
         if (!is_dir($root)) {
@@ -543,17 +705,35 @@ class AppManager {
         }
     }
 
+    /**
+     * Function isResourceRootWritable
+     *
+     * @return bool
+     */
     private static function isResourceRootWritable(): bool {
         $root = app_config_path('/app-MoodleMobile-V2/res');
         return is_dir($root) && is_writable($root);
     }
 
+    /**
+     * Function normalizePackageUid
+     *
+     * @param string $packageuid
+     * @return string
+     */
     private static function normalizePackageUid(string $packageuid): string {
         $packageuid = strtolower(trim($packageuid));
         $packageuid = preg_replace('/[^a-z0-9_.]+/', '_', $packageuid);
         return trim($packageuid, '._');
     }
 
+    /**
+     * Function runKeytool
+     *
+     * @param string $resdir
+     * @param string $password
+     * @return void
+     */
     private static function runKeytool(string $resdir, string $password): void {
         if (!is_dir($resdir)) {
             self::ensureDir($resdir, 0750);
@@ -581,17 +761,35 @@ class AppManager {
         }
     }
 
-
+    /**
+     * Function moodleConfigTestUrl
+     *
+     * @param string $domain
+     * @return string
+     */
     private static function moodleConfigTestUrl(string $domain): string {
         return self::moodleConfigBaseUrl($domain) . '/local/kopere_mobile/index.php?action=test-config';
     }
 
+    /**
+     * Function moodleConfigBaseUrl
+     *
+     * @param string $domain
+     * @return string
+     */
     private static function moodleConfigBaseUrl(string $domain): string {
         $domain = strtolower(trim($domain));
         $domain = preg_replace('/[^a-z0-9.-]+/', '', $domain);
         return 'https://' . $domain;
     }
 
+    /**
+     * Function moodleConfigEditUrl
+     *
+     * @param string $domain
+     * @param string $key
+     * @return string
+     */
     private static function moodleConfigEditUrl(string $domain, string $key): string {
         $baseurl = self::moodleConfigBaseUrl($domain);
         $targets = [
@@ -608,10 +806,20 @@ class AppManager {
         return $baseurl . $target[0] . $query;
     }
 
+    /**
+     * Function moodleConfigInstallUrl
+     *
+     * @return string
+     */
     private static function moodleConfigInstallUrl(): string {
         return 'https://moodle.org/plugins/local_kopere_mobile';
     }
 
+    /**
+     * Function moodleConfigBooleanChecks
+     *
+     * @return array
+     */
     private static function moodleConfigBooleanChecks(): array {
         return [
             'is_moodle_cookie_secure' => I18n::get('app_manager.moodle_config_descriptions.is_moodle_cookie_secure'),
@@ -623,12 +831,23 @@ class AppManager {
         ];
     }
 
+    /**
+     * Function moodleConfigVersionChecks
+     *
+     * @return string[]
+     */
     private static function moodleConfigVersionChecks(): array {
         return [
             'local_kopere_mobile_version' => 'local_kopere_mobile',
         ];
     }
 
+    /**
+     * Function fetchMoodleConfigTestUrl
+     *
+     * @param string $url
+     * @return string
+     */
     private static function fetchMoodleConfigTestUrl(string $url): string {
         if (function_exists('curl_init')) {
             $curl = curl_init($url);
@@ -703,27 +922,57 @@ class AppManager {
         return $body;
     }
 
+    /**
+     * Function moodleConfigUserAgent
+     *
+     * @return string
+     */
     private static function moodleConfigUserAgent(): string {
         return 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 ' .
             '(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
     }
 
+    /**
+     * Function ensureDir
+     *
+     * @param string $dir
+     * @param int $mode
+     * @return void
+     */
     private static function ensureDir(string $dir, int $mode): void {
         if (!is_dir($dir)) {
             mkdir($dir, $mode, true);
         }
     }
 
+    /**
+     * Function defaultPackageName
+     *
+     * @param array $site
+     * @return string
+     */
     private static function defaultPackageName(array $site): string {
         $config = $site["moodle_config"] ?? [];
         $domain = self::siteDomain($site);
         return ($config["fullname"] ?? $domain);
     }
 
+    /**
+     * Function siteDomain
+     *
+     * @param array $site
+     * @return string
+     */
     private static function siteDomain(array $site): string {
         return strtolower( $site["domain"] ?? '');
     }
 
+    /**
+     * Function formatBytes
+     *
+     * @param int $bytes
+     * @return string
+     */
     private static function formatBytes(int $bytes): string {
         if ($bytes >= 1073741824) {
             return number_format($bytes / 1073741824, 2, ',', '.') . ' GB';

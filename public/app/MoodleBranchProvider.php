@@ -2,9 +2,19 @@
 // Provides the Software Moodle™ branches that can be used by the installer.
 namespace app;
 
+/**
+ * Class MoodleBranchProvider
+ */
 class MoodleBranchProvider {
     private const GITHUB_BRANCHES_URL = 'https://api.github.com/repos/moodle/moodle/branches';
 
+    /**
+     * Function getInstallBranches
+     *
+     * @param int $minimumversion
+     * @param int $limit
+     * @return array
+     */
     public static function getInstallBranches(int $minimumversion = 502, int $limit = 4): array {
         $branches = [];
 
@@ -63,6 +73,12 @@ class MoodleBranchProvider {
         return array_values(array_unique($branchnames));
     }
 
+    /**
+     * Function fetchUrl
+     *
+     * @param string $url
+     * @return string|null
+     */
     private static function fetchUrl(string $url): ?string {
         if (function_exists('curl_init')) {
             $curl = curl_init($url);
