@@ -3,32 +3,53 @@
 use app\I18n;
 use app\JobManager;
 
-$domain = $job["domain"] ?? "";
-if (!domainHasDnsRecord($domain)) {
-    $message =
-        "DNS ainda não configurado para {$domain}. Configure o registro A ou AAAA apontando para este servidor. O cron verificará novamente em 1 minuto.";
-    appendJobLog($job, $message, "danger");
-    JobManager::markWaitingDns((string) $job["id"], $message);
-    echo "Job waiting DNS: {$job["id"]} - {$message}\n";
-    exit(0);
+if (!isset($job) || !is_array($job)) {
+    die("\$job empty");
 }
 
-if (($job["status"] ?? "") === "waiting_dns") {
-    appendJobLog($job, "DNS detectado para {$domain}. Continuando instalação.");
+if ($job["type"] == "install_moodle") {
+    runInstallMoodleQueueJob($job);
 }
 
-$job = JobManager::markRunning((string) $job["id"]);
-if (!$job) {
-    throw new RuntimeException("Cannot mark job as running.");
-}
+/**
+ * Runs an install job from the root queue.
+ *
+ * Restore jobs use executeInstallJob() in restore mode only to provision files,
+ * services, config.php, database and user. They must not run Moodle install_database.php.
+ *
+ * @param array $job
+ * @return void
+ * @throws \Random\RandomException
+ * @throws \Throwable
+ */
+function runInstallMoodleQueueJob(array $job): void {
+    $domain = $job["domain"] ?? "";
+    if (!domainHasDnsRecord($domain)) {
+        $message =
+            "DNS ainda não configurado para {$domain}. Configure o registro A ou AAAA apontando para este servidor. O cron verificará novamente em 1 minuto.";
+        appendJobLog($job, $message, "danger");
+        JobManager::markWaitingDns($job["id"], $message);
+        echo "Job waiting DNS: {$job["id"]} - {$message}\n";
+        return;
+    }
 
-$result = executeInstallJob($job);
-if ($result["exitcode"] === 0) {
-    JobManager::markDone((string) $job["id"], $result["extra"] ?? []);
-    echo "Job completed: {$job["id"]}\n";
-} else {
-    JobManager::markFailed((string) $job["id"], $result["message"]);
-    echo "Job failed: {$job["id"]} - {$result["message"]}\n";
+    if (($job["status"] ?? "") === "waiting_dns") {
+        appendJobLog($job, "DNS detectado para {$domain}. Continuando instalação.");
+    }
+
+    $job = JobManager::markRunning($job["id"]);
+    if (!$job) {
+        throw new RuntimeException("Cannot mark job as running.");
+    }
+
+    $result = executeInstallJob($job);
+    if ($result["exitcode"] === 0) {
+        JobManager::markDone($job["id"], $result["extra"] ?? []);
+        echo "Job completed: {$job["id"]}\n";
+    } else {
+        JobManager::markFailed($job["id"], $result["message"]);
+        echo "Job failed: {$job["id"]} - {$result["message"]}\n";
+    }
 }
 
 /**
@@ -57,8 +78,8 @@ function domainHasDnsRecord(string $domain): bool {
  * @return void
  */
 function appendJobLog(array $job, string $message, string $level = 'info'): void {
-    $domain = $job['domain'] ?? 'domain';
-    $logfile = $job['log_file'] ?? (app_config_path("/logs/install-{$domain}.log"));
+    $domain = $job["domain"] ?? 'domain';
+    $logfile = $job["log_file"] ?? (app_config_path("/logs/install-{$domain}.log"));
     if (!is_dir(dirname($logfile))) {
         mkdir(dirname($logfile), 0750, true);
     }
@@ -67,7 +88,7 @@ function appendJobLog(array $job, string $message, string $level = 'info'): void
     if ($level === 'danger') {
         $line = '<span class="log-danger">' . htmlspecialchars($line, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') . '</span>';
     }
-    file_put_contents($logfile, $line . PHP_EOL, FILE_APPEND | LOCK_EX);
+    file_put_contents($logfile, "{$line}\n", FILE_APPEND | LOCK_EX);
 }
 
 /**
@@ -95,8 +116,8 @@ function apacheConfPath(string $domain): string {
  */
 function detectOperatingSystem(): string {
     $release = readOsRelease();
-    $id = strtolower((string) ($release['ID'] ?? ''));
-    $idlike = strtolower((string) ($release['ID_LIKE'] ?? ''));
+    $id = strtolower($release["ID"] ?? '');
+    $idlike = strtolower($release["ID_LIKE"] ?? '');
     $tokens = preg_split('/\s+/', trim("{$id} {$idlike}")) ?: [];
 
     if (array_intersect($tokens, ['debian', 'ubuntu'])) {
@@ -145,11 +166,14 @@ function moodleBranchUsesPublicDir(string $branch): bool {
  * Function executeInstallJob
  *
  * @param array $job
+ * @param string $mode
  * @return array
  * @throws \Random\RandomException
+ * @throws \Throwable
  */
-function executeInstallJob(array $job): array {
-    $domain =$job["domain"];
+function executeInstallJob(array $job, string $mode = "install"): array {
+    $domain = $job["domain"];
+    $isrestore = $mode === "restore";
     $base = "/home/{$domain}";
     $moodledir = "{$base}/moodle";
     $moodlebranch = (string) ($job["moodle_branch"] ?? "MOODLE_501_STABLE");
@@ -205,7 +229,9 @@ function executeInstallJob(array $job): array {
         "ADMIN_EMAIL" => $job["admin_email"],
         "MOODLE_BRANCH" => $moodlebranch,
         "MOODLE_LANG" => I18n::moodleLanguage(isset($job["language"]) && is_string($job["language"]) ? $job["language"] : null),
-        "MOODLE_HUB_LANG" => I18n::moodleHubLanguage(isset($job["language"]) && is_string($job["language"]) ? $job["language"] : null),
+        "MOODLE_HUB_LANG" => I18n::moodleHubLanguage(
+            isset($job["language"]) && is_string($job["language"]) ? $job["language"] : null
+        ),
         "TEMPLATES_DIR" => app_config_path("/templates"),
         "MOODLE_DIR" => $moodledir,
         "MOODLE_WEB_DIR" => $moodlewebdir,
@@ -221,10 +247,13 @@ function executeInstallJob(array $job): array {
         "CRON_FILE" => $cronfile,
         "ISSUE_CERT" => !empty($job["issue_cert"]) ? "1" : "0",
         "PHP_BIN" => app_config("php_bin"),
+        "INSTALL_MODE" => $isrestore ? "restore" : "install",
     ]);
 
-    // Creating MySQL database and user
-    createMysqlDatabaseAndUser($dbname, $dbuser, $dbpass);
+    // Creating MySQL database and user. Restore mode recreates an empty database,
+    // because the Moodle tables will be rebuilt from schema/*.json.
+    appendJobLog($job, "Created MySQL database and user");
+    createMysqlDatabaseAndUser($dbname, $dbuser, $dbpass, $isrestore);
 
     $scriptfile = app_config_path("/runtime/scripts/install-{$domain}-{$job["id"]}.sh");
     if (!is_dir(dirname($scriptfile))) {
@@ -243,10 +272,8 @@ function executeInstallJob(array $job): array {
     @unlink($scriptfile);
 
     $extra = [];
-    if ($exitcode === 0 && !empty($job["kopere_backup_zip"])) {
-        require_once __DIR__ . "/cron-restore_moodle.php";
-        appendJobLog($job, "Starting Kopere Dashboard backup restore.");
-        $restoreResult = restoreMoodleFromKopereZip($job, [
+    if ($exitcode === 0) {
+        $extra["target"] = [
             "domain" => $domain,
             "base_dir" => $base,
             "moodle_dir" => $moodledir,
@@ -260,9 +287,7 @@ function executeInstallJob(array $job): array {
             "php_bin" => app_config("php_bin"),
             "apache_user" => app_config("apache_user"),
             "apache_group" => app_config("apache_group"),
-        ]);
-        $extra["restore_summary"] = $restoreResult;
-        appendJobLog($job, "Kopere Dashboard backup restore finished.");
+        ];
     }
 
     return [
@@ -285,7 +310,7 @@ function renderTemplateFile(string $file, array $vars): string {
         throw new RuntimeException("Cannot read template: {$file}");
     }
     foreach ($vars as $key => $value) {
-        $content = str_replace("{{{$key}}}",$value, $content);
+        $content = str_replace("{{{$key}}}", $value, $content);
     }
     if (preg_match('/\.php$/i', $file)) {
         $content = str_replace('$', '\$', $content);
@@ -311,7 +336,7 @@ function sh(string $value): string {
  */
 function dbName(string $domain): string {
     $name = preg_replace('/[^a-z0-9]+/', "_", strtolower($domain));
-    $name = trim((string) $name, "_");
+    $name = trim($name, "_");
     return substr($name, 0, 60);
 }
 
@@ -323,7 +348,7 @@ function dbName(string $domain): string {
  */
 function dbUser(string $domain): string {
     $name = preg_replace('/[^a-z0-9]+/', "_", strtolower($domain));
-    $name = trim((string) $name, "_");
+    $name = trim($name, "_");
     return substr($name, 0, 30);
 }
 
@@ -333,13 +358,14 @@ function dbUser(string $domain): string {
  * @param string $dbname
  * @param string $dbuser
  * @param string $dbpass
+ * @param bool $reset
  * @return void
  */
-function createMysqlDatabaseAndUser(string $dbname, string $dbuser, string $dbpass): void {
-    $host = app_config("mysql_admin_host", "localhost");
-    $port = app_config("mysql_admin_port", 3306);
-    $user = app_config("mysql_admin_user", "root");
-    $pass = app_config("mysql_admin_pass", "");
+function createMysqlDatabaseAndUser(string $dbname, string $dbuser, string $dbpass, bool $reset = false): void {
+    $host = app_config("mysql_admin_host");
+    $port = app_config("mysql_admin_port");
+    $user = app_config("mysql_admin_user");
+    $pass = app_config("mysql_admin_pass");
 
     $dsn = "mysql:host={$host};port={$port};charset=utf8mb4";
 
@@ -349,10 +375,15 @@ function createMysqlDatabaseAndUser(string $dbname, string $dbuser, string $dbpa
         PDO::ATTR_EMULATE_PREPARES => false,
     ]);
 
+    $quotedDb = quoteMysqlIdentifier($dbname);
     $quotedUser = $pdo->quote($dbuser);
     $quotedPass = $pdo->quote($dbpass);
 
-    $sql = "CREATE DATABASE IF NOT EXISTS {$dbname} DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci ";
+    if ($reset) {
+        $pdo->exec("DROP DATABASE IF EXISTS {$quotedDb}");
+    }
+
+    $sql = "CREATE DATABASE IF NOT EXISTS {$quotedDb} DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci ";
     $pdo->exec($sql);
 
     $sql = "CREATE USER IF NOT EXISTS {$quotedUser}@'localhost' IDENTIFIED BY {$quotedPass} ";
@@ -361,9 +392,19 @@ function createMysqlDatabaseAndUser(string $dbname, string $dbuser, string $dbpa
     $sql = "ALTER USER {$quotedUser}@'localhost' IDENTIFIED BY {$quotedPass} ";
     $pdo->exec($sql);
 
-    $sql = "GRANT ALL PRIVILEGES ON {$dbname}.* TO {$quotedUser}@'localhost' ";
+    $sql = "GRANT ALL PRIVILEGES ON {$quotedDb}.* TO {$quotedUser}@'localhost' ";
     $pdo->exec($sql);
 
     $sql = "FLUSH PRIVILEGES ";
     $pdo->exec($sql);
+}
+
+/**
+ * Quotes a MySQL identifier for administrative queries.
+ *
+ * @param string $identifier
+ * @return string
+ */
+function quoteMysqlIdentifier(string $identifier): string {
+    return '`' . str_replace('`', '``', $identifier) . '`';
 }

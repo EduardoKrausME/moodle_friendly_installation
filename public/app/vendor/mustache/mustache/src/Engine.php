@@ -254,8 +254,8 @@ class Engine
      */
     public function __construct(array $options = [])
     {
-        if (isset($options['template_class_prefix'])) {
-            $templateClassPrefix =$options['template_class_prefix'];
+        if (isset($options["template_class_prefix"])) {
+            $templateClassPrefix =$options["template_class_prefix"];
             if (!preg_match('/^[A-Za-z_\x80-\xff][A-Za-z0-9_\x80-\xff]*$/', $templateClassPrefix)) {
                 throw new InvalidArgumentException('Mustache Constructor "template_class_prefix" must be a valid PHP class name prefix');
             }
@@ -263,81 +263,81 @@ class Engine
             $this->templateClassPrefix = $templateClassPrefix;
         }
 
-        if (isset($options['cache'])) {
-            $cache = $options['cache'];
+        if (isset($options["cache"])) {
+            $cache = $options["cache"];
 
             if (is_string($cache)) {
-                $mode  = isset($options['cache_file_mode']) ? $options['cache_file_mode'] : null;
+                $mode  = isset($options["cache_file_mode"]) ? $options["cache_file_mode"] : null;
                 $cache = new FilesystemCache($cache, $mode);
             }
 
             $this->setCache($cache);
         }
 
-        if (isset($options['cache_lambda_templates'])) {
-            $this->cacheLambdaTemplates = (bool) $options['cache_lambda_templates'];
+        if (isset($options["cache_lambda_templates"])) {
+            $this->cacheLambdaTemplates = (bool) $options["cache_lambda_templates"];
         }
 
-        if (isset($options['loader'])) {
-            $this->setLoader($options['loader']);
+        if (isset($options["loader"])) {
+            $this->setLoader($options["loader"]);
         }
 
-        if (isset($options['partials_loader'])) {
-            $this->setPartialsLoader($options['partials_loader']);
+        if (isset($options["partials_loader"])) {
+            $this->setPartialsLoader($options["partials_loader"]);
         }
 
-        if (isset($options['partials'])) {
-            $this->setPartials($options['partials']);
+        if (isset($options["partials"])) {
+            $this->setPartials($options["partials"]);
         }
 
-        if (isset($options['helpers'])) {
-            $this->setHelpers($options['helpers']);
+        if (isset($options["helpers"])) {
+            $this->setHelpers($options["helpers"]);
         }
 
-        if (isset($options['escape'])) {
-            if (!is_callable($options['escape'])) {
+        if (isset($options["escape"])) {
+            if (!is_callable($options["escape"])) {
                 throw new InvalidArgumentException('Mustache Constructor "escape" option must be callable');
             }
 
-            $this->escape = $options['escape'];
+            $this->escape = $options["escape"];
         }
 
-        if (isset($options['entity_flags'])) {
-            $this->entityFlags = $options['entity_flags'];
+        if (isset($options["entity_flags"])) {
+            $this->entityFlags = $options["entity_flags"];
         }
 
-        if (isset($options['charset'])) {
-            $this->charset = $options['charset'];
+        if (isset($options["charset"])) {
+            $this->charset = $options["charset"];
         }
 
-        if (isset($options['debug_rendering'])) {
-            $this->debugRendering = self::normalizeDebugRendering($options['debug_rendering']);
+        if (isset($options["debug_rendering"])) {
+            $this->debugRendering = self::normalizeDebugRendering($options["debug_rendering"]);
         }
 
-        if (isset($options['logger'])) {
-            $this->setLogger($options['logger']);
+        if (isset($options["logger"])) {
+            $this->setLogger($options["logger"]);
         }
 
-        if (isset($options['delimiters'])) {
-            $this->delimiters = $options['delimiters'];
+        if (isset($options["delimiters"])) {
+            $this->delimiters = $options["delimiters"];
         }
 
         // Optional Mustache features
 
-        if (isset($options['dynamic_names'])) {
-            $this->dynamicNames = $options['dynamic_names'] != false;
+        if (isset($options["dynamic_names"])) {
+            $this->dynamicNames = $options["dynamic_names"] != false;
         }
 
-        if (isset($options['inheritance'])) {
-            $this->inheritance = $options['inheritance'] != false;
+        if (isset($options["inheritance"])) {
+            $this->inheritance = $options["inheritance"] != false;
         }
 
-        if (isset($options['lambdas'])) {
-            $this->lambdas = $options['lambdas'] != false;
+        if (isset($options["lambdas"])) {
+            $this->lambdas = $options["lambdas"] != false;
         }
 
-        if (isset($options['pragmas'])) {
-            foreach ($options['pragmas'] as $pragma) {
+        if (isset($options["pragmas"])) {
+            foreach ($options["pragmas"] as $pragma) {
                 if (!isset(self::$knownPragmas[$pragma])) {
                     throw new InvalidArgumentException(sprintf('Unknown pragma: "%s"', $pragma));
                 }
@@ -351,20 +351,20 @@ class Engine
 
         // Backwards compatibility
 
-        if (isset($options['strict_callables'])) {
-            $this->strictCallables = (bool) $options['strict_callables'];
+        if (isset($options["strict_callables"])) {
+            $this->strictCallables = (bool) $options["strict_callables"];
         }
 
-        if (isset($options['strict_tags'])) {
-            $this->strictTags = self::normalizeStrictTags($options['strict_tags']);
+        if (isset($options["strict_tags"])) {
+            $this->strictTags = self::normalizeStrictTags($options["strict_tags"]);
         }
 
-        if (isset($options['buggy_property_shadowing'])) {
-            $this->buggyPropertyShadowing = (bool) $options['buggy_property_shadowing'];
+        if (isset($options["buggy_property_shadowing"])) {
+            $this->buggyPropertyShadowing = (bool) $options["buggy_property_shadowing"];
         }
 
-        if (isset($options['double_render_lambdas'])) {
-            $this->doubleRenderLambdas = (bool) $options['double_render_lambdas'];
+        if (isset($options["double_render_lambdas"])) {
+            $this->doubleRenderLambdas = (bool) $options["double_render_lambdas"];
         }
     }
 
@@ -457,7 +457,7 @@ class Engine
             // Recompiled with debug rendering active; this render is expected to throw a
             // RenderingException with debug context. If it somehow doesn't, fall through and
             // throw the original exception so the failure isn't hidden.
-            $debugTemplate = $this->loadSource($source['source'], null, $source['sourceName']);
+            $debugTemplate = $this->loadSource($source["source"], null, $source["sourceName"]);
             $debugTemplate->render($context);
         } finally {
             $this->debugRenderingRetry = false;
@@ -852,7 +852,7 @@ class Engine
         ];
 
         if ($this->getDebugRendering() && $sourceName != null) {
-            $chunks['debugSource'] = $sourceName;
+            $chunks["debugSource"] = $sourceName;
         }
 
         $key = json_encode($chunks);

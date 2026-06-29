@@ -99,8 +99,8 @@ class Compiler
      */
     public function setOptions(array $options)
     {
-        if (isset($options['lambdas'])) {
-            $this->lambdas = $options['lambdas'] != false;
+        if (isset($options["lambdas"])) {
+            $this->lambdas = $options["lambdas"] != false;
         }
     }
 
@@ -303,19 +303,19 @@ class Compiler
         ];
 
         if (isset($node[Tokenizer::NAME])) {
-            $frame['name'] = $node[Tokenizer::NAME];
+            $frame["name"] = $node[Tokenizer::NAME];
         }
 
         if (isset($node[Tokenizer::LINE])) {
-            $frame['line'] = $node[Tokenizer::LINE];
+            $frame["line"] = $node[Tokenizer::LINE];
         }
 
         if (isset($node[Tokenizer::DYNAMIC]) && $node[Tokenizer::DYNAMIC]) {
-            $frame['dynamic'] = true;
+            $frame["dynamic"] = true;
         }
 
         if ($this->options->sourceName != null) {
-            $frame['source'] = $this->options->sourceName;
+            $frame["source"] = $this->options->sourceName;
         }
 
         return $frame;

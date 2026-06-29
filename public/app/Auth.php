@@ -12,7 +12,7 @@ class Auth {
      * @return array|null
      */
     public static function user(): ?array {
-        return $_SESSION['user'] ?? null;
+        return $_SESSION["user"] ?? null;
     }
 
     /**
@@ -21,7 +21,7 @@ class Auth {
      * @return bool
      */
     public static function check(): bool {
-        return !empty($_SESSION['user']);
+        return !empty($_SESSION["user"]);
     }
 
 
@@ -39,7 +39,7 @@ class Auth {
         }
 
         $info = password_get_info($stored);
-        if (!empty($info['algo'])) {
+        if (!empty($info["algo"])) {
             return password_verify('123456', $stored);
         }
 
@@ -57,14 +57,14 @@ class Auth {
             return null;
         }
 
-        $username = $sessionuser['username'] ?? '';
+        $username = $sessionuser["username"] ?? '';
         if ($username == '') {
             return null;
         }
 
         $users = JsonStorage::read(app_config_path('/data/users.json'));
         foreach ($users as $user) {
-            if (($user['username'] ?? '') == $username) {
+            if (($user["username"] ?? '') == $username) {
                 return is_array($user) ? $user : null;
             }
         }
@@ -83,7 +83,7 @@ class Auth {
             return false;
         }
 
-        return self::isDefaultPassword((string) ($user['password'] ?? ''));
+        return self::isDefaultPassword((string) ($user["password"] ?? ''));
     }
 
     /**
@@ -100,26 +100,26 @@ class Auth {
             throw new \RuntimeException('User is not logged in.');
         }
 
-        $oldusername = $sessionuser['username'] ?? '';
+        $oldusername = $sessionuser["username"] ?? '';
         $usersfile = app_config_path('/data/users.json');
         $users = JsonStorage::read($usersfile);
         $found = false;
 
         foreach ($users as $index => &$user) {
-            if (($user['username'] ?? '') != $oldusername) {
-                if (($user['username'] ?? '') == $username) {
+            if (($user["username"] ?? '') != $oldusername) {
+                if (($user["username"] ?? '') == $username) {
                     throw new \RuntimeException(t('profile.username_already_exists'));
                 }
                 continue;
             }
 
-            $user['username'] = $username;
-            $user['name'] = $name;
-            $user['updated_at'] = now_iso();
+            $user["username"] = $username;
+            $user["name"] = $name;
+            $user["updated_at"] = now_iso();
 
             if ($password !== null && $password !== '') {
-                $user['password'] = password_hash($password, PASSWORD_DEFAULT);
-                $user['password_changed_at'] = now_iso();
+                $user["password"] = password_hash($password, PASSWORD_DEFAULT);
+                $user["password_changed_at"] = now_iso();
             }
 
             $found = true;
@@ -132,7 +132,7 @@ class Auth {
         }
 
         JsonStorage::write($usersfile, $users);
-        $_SESSION['user'] = [
+        $_SESSION["user"] = [
             'username' => $username,
             'name' => $name,
         ];
@@ -164,29 +164,29 @@ class Auth {
         $loggeduser = null;
 
         foreach ($users as &$user) {
-            if (($user['username'] ?? '') != $username) {
+            if (($user["username"] ?? '') != $username) {
                 continue;
             }
 
-            $stored = $user['password'] ?? '';
+            $stored = $user["password"] ?? '';
             $info = password_get_info($stored);
             $valid = false;
 
-            if (!empty($info['algo'])) {
+            if (!empty($info["algo"])) {
                 $valid = password_verify($password, $stored);
             } else {
                 $valid = hash_equals($stored, $password);
                 if ($valid) {
-                    $user['password'] = password_hash($password, PASSWORD_DEFAULT);
-                    $user['password_upgraded_at'] = now_iso();
+                    $user["password"] = password_hash($password, PASSWORD_DEFAULT);
+                    $user["password_upgraded_at"] = now_iso();
                     $changed = true;
                 }
             }
 
             if ($valid) {
                 $loggeduser = [
-                    'username' => $user['username'],
-                    'name' => $user['name'] ?? $user['username'],
+                    'username' => $user["username"],
+                    'name' => $user["name"] ?? $user["username"],
                 ];
             }
             break;
@@ -199,7 +199,7 @@ class Auth {
 
         if ($loggeduser) {
             session_regenerate_id(true);
-            $_SESSION['user'] = $loggeduser;
+            $_SESSION["user"] = $loggeduser;
             csrf_token();
             return true;
         }
@@ -217,7 +217,7 @@ class Auth {
         if (ini_get('session.use_cookies')) {
             $params = session_get_cookie_params();
             setcookie(
-                session_name(), '', time() - 42000, $params['path'], $params['domain'], $params['secure'], $params['httponly']
+                session_name(), '', time() - 42000, $params["path"], $params["domain"], $params["secure"], $params["httponly"]
             );
         }
         session_destroy();

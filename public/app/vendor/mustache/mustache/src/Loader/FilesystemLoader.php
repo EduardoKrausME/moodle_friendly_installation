@@ -78,15 +78,15 @@ class FilesystemLoader implements Loader
         }
 
         if (array_key_exists('extension', $options)) {
-            if (empty($options['extension'])) {
+            if (empty($options["extension"])) {
                 $this->extension = '';
             } else {
-                $this->extension = '.' . ltrim($options['extension'], '.');
+                $this->extension = '.' . ltrim($options["extension"], '.');
             }
         }
 
-        if (isset($options['allow_unsafe_template_names'])) {
-            $this->allowUnsafeTemplateNames = (bool) $options['allow_unsafe_template_names'];
+        if (isset($options["allow_unsafe_template_names"])) {
+            $this->allowUnsafeTemplateNames = (bool) $options["allow_unsafe_template_names"];
         }
     }
 

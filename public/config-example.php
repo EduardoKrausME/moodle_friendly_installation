@@ -1,6 +1,6 @@
 <?php
 
-// Configuration for the MyLearn Moodle Admin dashboard.
+// Configuration for the MyMoodle Moodle Admin dashboard.
 return [
     "app_name" => "Moodle Admin",
     "base_url" => "https://admin.moodle",

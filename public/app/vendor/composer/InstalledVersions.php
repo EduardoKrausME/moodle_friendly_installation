@@ -64,7 +64,7 @@ class InstalledVersions
     {
         $packages = array();
         foreach (self::getInstalled() as $installed) {
-            $packages[] = array_keys($installed['versions']);
+            $packages[] = array_keys($installed["versions"]);
         }
 
         if (1 == \count($packages)) {
@@ -86,8 +86,8 @@ class InstalledVersions
         $packagesByType = array();
 
         foreach (self::getInstalled() as $installed) {
-            foreach ($installed['versions'] as $name => $package) {
-                if (isset($package['type']) && $package['type'] == $type) {
+            foreach ($installed["versions"] as $name => $package) {
+                if (isset($package["type"]) && $package["type"] == $type) {
                     $packagesByType[] = $name;
                 }
             }
@@ -108,8 +108,8 @@ class InstalledVersions
     public static function isInstalled($packageName, $includeDevRequirements = true)
     {
         foreach (self::getInstalled() as $installed) {
-            if (isset($installed['versions'][$packageName])) {
-                return $includeDevRequirements || !isset($installed['versions'][$packageName]['dev_requirement']) || $installed['versions'][$packageName]['dev_requirement'] == false;
+            if (isset($installed["versions"][$packageName])) {
+                return $includeDevRequirements || !isset($installed["versions"][$packageName]["dev_requirement"]) || $installed["versions"][$packageName]["dev_requirement"] == false;
             }
         }
 
@@ -148,22 +148,22 @@ class InstalledVersions
     public static function getVersionRanges($packageName)
     {
         foreach (self::getInstalled() as $installed) {
-            if (!isset($installed['versions'][$packageName])) {
+            if (!isset($installed["versions"][$packageName])) {
                 continue;
             }
 
             $ranges = array();
-            if (isset($installed['versions'][$packageName]['pretty_version'])) {
-                $ranges[] = $installed['versions'][$packageName]['pretty_version'];
+            if (isset($installed["versions"][$packageName]["pretty_version"])) {
+                $ranges[] = $installed["versions"][$packageName]["pretty_version"];
             }
-            if (array_key_exists('aliases', $installed['versions'][$packageName])) {
-                $ranges = array_merge($ranges, $installed['versions'][$packageName]['aliases']);
+            if (array_key_exists('aliases', $installed["versions"][$packageName])) {
+                $ranges = array_merge($ranges, $installed["versions"][$packageName]["aliases"]);
             }
-            if (array_key_exists('replaced', $installed['versions'][$packageName])) {
-                $ranges = array_merge($ranges, $installed['versions'][$packageName]['replaced']);
+            if (array_key_exists('replaced', $installed["versions"][$packageName])) {
+                $ranges = array_merge($ranges, $installed["versions"][$packageName]["replaced"]);
             }
-            if (array_key_exists('provided', $installed['versions'][$packageName])) {
-                $ranges = array_merge($ranges, $installed['versions'][$packageName]['provided']);
+            if (array_key_exists('provided', $installed["versions"][$packageName])) {
+                $ranges = array_merge($ranges, $installed["versions"][$packageName]["provided"]);
             }
 
             return implode(' || ', $ranges);
@@ -179,15 +179,15 @@ class InstalledVersions
     public static function getVersion($packageName)
     {
         foreach (self::getInstalled() as $installed) {
-            if (!isset($installed['versions'][$packageName])) {
+            if (!isset($installed["versions"][$packageName])) {
                 continue;
             }
 
-            if (!isset($installed['versions'][$packageName]['version'])) {
+            if (!isset($installed["versions"][$packageName]["version"])) {
                 return null;
             }
 
-            return $installed['versions'][$packageName]['version'];
+            return $installed["versions"][$packageName]["version"];
         }
 
         throw new \OutOfBoundsException('Package "' . $packageName . '" is not installed');
@@ -200,15 +200,15 @@ class InstalledVersions
     public static function getPrettyVersion($packageName)
     {
         foreach (self::getInstalled() as $installed) {
-            if (!isset($installed['versions'][$packageName])) {
+            if (!isset($installed["versions"][$packageName])) {
                 continue;
             }
 
-            if (!isset($installed['versions'][$packageName]['pretty_version'])) {
+            if (!isset($installed["versions"][$packageName]["pretty_version"])) {
                 return null;
             }
 
-            return $installed['versions'][$packageName]['pretty_version'];
+            return $installed["versions"][$packageName]["pretty_version"];
         }
 
         throw new \OutOfBoundsException('Package "' . $packageName . '" is not installed');
@@ -221,15 +221,15 @@ class InstalledVersions
     public static function getReference($packageName)
     {
         foreach (self::getInstalled() as $installed) {
-            if (!isset($installed['versions'][$packageName])) {
+            if (!isset($installed["versions"][$packageName])) {
                 continue;
             }
 
-            if (!isset($installed['versions'][$packageName]['reference'])) {
+            if (!isset($installed["versions"][$packageName]["reference"])) {
                 return null;
             }
 
-            return $installed['versions'][$packageName]['reference'];
+            return $installed["versions"][$packageName]["reference"];
         }
 
         throw new \OutOfBoundsException('Package "' . $packageName . '" is not installed');
@@ -242,11 +242,11 @@ class InstalledVersions
     public static function getInstallPath($packageName)
     {
         foreach (self::getInstalled() as $installed) {
-            if (!isset($installed['versions'][$packageName])) {
+            if (!isset($installed["versions"][$packageName])) {
                 continue;
             }
 
-            return isset($installed['versions'][$packageName]['install_path']) ? $installed['versions'][$packageName]['install_path'] : null;
+            return isset($installed["versions"][$packageName]["install_path"]) ? $installed["versions"][$packageName]["install_path"] : null;
         }
 
         throw new \OutOfBoundsException('Package "' . $packageName . '" is not installed');
@@ -260,7 +260,7 @@ class InstalledVersions
     {
         $installed = self::getInstalled();
 
-        return $installed[0]['root'];
+        return $installed[0]["root"];
     }
 
     /**

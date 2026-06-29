@@ -20,7 +20,7 @@ $signature = $_GET["signature"];
 if ((time() - $time) > 300) {
     die("Expirado...");
 }
-$expected = hash_hmac('sha256', (string) $time, $CFG->dbname);
+$expected = hash_hmac('sha256', $time, $CFG->dbname);
 if (!hash_equals($expected, $signature)) {
     die("Link Inválido...");
 }

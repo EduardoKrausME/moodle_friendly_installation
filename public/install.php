@@ -27,37 +27,37 @@ $values = [
     'issue_cert' => '1',
 ];
 
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+if ($_SERVER["REQUEST_METHOD"] == 'POST') {
     validate_csrf();
     $values = array_merge($values, $_POST);
     $validation = Validator::validateInstallRequest($_POST, $allowedbranches);
-    $errors = $validation['errors'];
-    $warnings = $validation['warnings'];
+    $errors = $validation["errors"];
+    $warnings = $validation["warnings"];
 
-    if ($validation['valid']) {
+    if ($validation["valid"]) {
         try {
-            if (!empty($_FILES['kopere_backup_zip']) && is_array($_FILES['kopere_backup_zip'])) {
-                $backupzip = Validator::storeKopereBackupUpload($_FILES['kopere_backup_zip'], $validation['data']['domain']);
+            if (!empty($_FILES["kopere_backup_zip"]) && is_array($_FILES["kopere_backup_zip"])) {
+                $backupzip = Validator::storeKopereBackupUpload($_FILES["kopere_backup_zip"], $validation["data"]["domain"]);
                 if ($backupzip !== null) {
-                    $validation['data']['kopere_backup_zip'] = $backupzip;
+                    $validation["data"]["kopere_backup_zip"] = $backupzip;
                 }
             }
         } catch (RuntimeException $e) {
-            $errors['kopere_backup_zip'] = $e->getMessage();
-            $validation['valid'] = false;
+            $errors["kopere_backup_zip"] = $e->getMessage();
+            $validation["valid"] = false;
         }
     }
 
-    if ($validation['valid']) {
-        $job = JobManager::createInstallJob($validation['data']);
-        $_SESSION['flash'] = t('install.queued', ['id' => $job['id']]);
+    if ($validation["valid"]) {
+        $job = JobManager::createInstallJob($validation["data"]);
+        $_SESSION["flash"] = t('install.queued', ['id' => $job["id"]]);
         redirect_to('/jobs.php');
     }
 }
 
-$selectedbranch = $values['moodle_branch'] ?? $defaultbranch;
+$selectedbranch = $values["moodle_branch"] ?? $defaultbranch;
 foreach ($moodlebranches as $index => $branch) {
-    $moodlebranches[$index]['selected'] = $branch['name'] == $selectedbranch;
+    $moodlebranches[$index]["selected"] = $branch["name"] == $selectedbranch;
 }
 
 render_header(t('install.title'));
@@ -69,19 +69,19 @@ echo render_app_template('page/install', [
     'moodle_branch_load_failed' => empty($moodlebranches),
     'moodle_branches' => $moodlebranches,
     'values' => [
-        'domain' => $values['domain'] ?? '',
-        'site_fullname' => $values['site_fullname'] ?? '',
-        'admin_user' => $values['admin_user'],
-        'admin_email' => $values['admin_email'],
-        'issue_cert' => !empty($values['issue_cert']),
+        'domain' => $values["domain"] ?? '',
+        'site_fullname' => $values["site_fullname"] ?? '',
+        'admin_user' => $values["admin_user"],
+        'admin_email' => $values["admin_email"],
+        'issue_cert' => !empty($values["issue_cert"]),
     ],
     'errors' => [
-        'domain' => $errors['domain'] ?? '',
-        'moodle_branch' => $errors['moodle_branch'] ?? '',
-        'admin_user' => $errors['admin_user'] ?? '',
-        'admin_pass' => $errors['admin_pass'] ?? '',
-        'admin_email' => $errors['admin_email'] ?? '',
-        'kopere_backup_zip' => $errors['kopere_backup_zip'] ?? '',
+        'domain' => $errors["domain"] ?? '',
+        'moodle_branch' => $errors["moodle_branch"] ?? '',
+        'admin_user' => $errors["admin_user"] ?? '',
+        'admin_pass' => $errors["admin_pass"] ?? '',
+        'admin_email' => $errors["admin_email"] ?? '',
+        'kopere_backup_zip' => $errors["kopere_backup_zip"] ?? '',
     ],
 ]);
 

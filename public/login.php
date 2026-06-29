@@ -9,9 +9,9 @@ if (Auth::check()) {
 }
 
 $error = null;
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $username = trim($_POST['username'] ?? '');
-    $password = $_POST['password'] ?? '';
+if ($_SERVER["REQUEST_METHOD"] == 'POST') {
+    $username = trim($_POST["username"] ?? '');
+    $password = $_POST["password"] ?? '';
     if (Auth::attempt($username, $password)) {
         redirect_to('/');
     }

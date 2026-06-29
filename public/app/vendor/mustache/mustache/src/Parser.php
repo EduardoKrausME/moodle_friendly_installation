@@ -58,12 +58,12 @@ class Parser
      */
     public function setOptions(array $options)
     {
-        if (isset($options['dynamic_names'])) {
-            $this->dynamicNames = $options['dynamic_names'] != false;
+        if (isset($options["dynamic_names"])) {
+            $this->dynamicNames = $options["dynamic_names"] != false;
         }
 
-        if (isset($options['inheritance'])) {
-            $this->inheritance = $options['inheritance'] != false;
+        if (isset($options["inheritance"])) {
+            $this->inheritance = $options["inheritance"] != false;
         }
     }
 

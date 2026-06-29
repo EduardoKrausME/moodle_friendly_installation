@@ -159,7 +159,7 @@ return [
     ],
     'jobs' => [
         'title' => 'Fila',
-        'heading' => 'Fila de instalação',
+        'heading' => 'Fila',
         'intro' => 'Jobs pendentes são executados por root via CRON.',
         'empty' => 'Nenhum job criado.',
         'job' => 'Job',

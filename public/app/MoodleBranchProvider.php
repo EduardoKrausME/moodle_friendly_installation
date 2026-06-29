@@ -26,7 +26,7 @@ class MoodleBranchProvider {
         }
 
         uasort($branches, static function (array $branch1, array $branch2): int {
-            return $branch2['version'] <=> $branch1['version'];
+            return $branch2["version"] <=> $branch1["version"];
         });
 
         return array_slice(array_values($branches), 0, $limit);
@@ -50,8 +50,8 @@ class MoodleBranchProvider {
             }
 
             foreach ($items as $item) {
-                if (!empty($item['name']) && is_string($item['name'])) {
-                    $branchnames[] = $item['name'];
+                if (!empty($item["name"]) && is_string($item["name"])) {
+                    $branchnames[] = $item["name"];
                 }
             }
 

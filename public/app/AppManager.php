@@ -26,33 +26,33 @@ class AppManager {
         }
 
         $settings = array_merge($defaults, $stored);
-        if (empty($settings['package_uid'])) {
-            $settings['package_uid'] = $defaults['package_uid'];
+        if (empty($settings["package_uid"])) {
+            $settings["package_uid"] = $defaults["package_uid"];
         }
-        if (empty($settings['package_name'])) {
-            $settings['package_name'] = $defaults['package_name'];
+        if (empty($settings["package_name"])) {
+            $settings["package_name"] = $defaults["package_name"];
         }
-        if (empty($settings['statusbarbackgroundcolor'])) {
-            $settings['statusbarbackgroundcolor'] = $defaults['statusbarbackgroundcolor'];
+        if (empty($settings["statusbarbackgroundcolor"])) {
+            $settings["statusbarbackgroundcolor"] = $defaults["statusbarbackgroundcolor"];
         }
 
-        $packageuid =$settings['package_uid'];
-        $settings['package_uid_locked'] = self::isPackageUidLocked($domain);
-        $settings['resource_dir'] = self::resourceDir($packageuid);
-        $settings['icon_path'] = self::iconPath($packageuid);
-        $settings['has_icon'] = self::hasIcon($packageuid);
-        $settings['has_keystore_password'] = self::hasAndroidKeystorePassword($packageuid);
-        $settings['has_android_key_files'] = self::hasAndroidKeyFiles($packageuid);
+        $packageuid =$settings["package_uid"];
+        $settings["package_uid_locked"] = self::isPackageUidLocked($domain);
+        $settings["resource_dir"] = self::resourceDir($packageuid);
+        $settings["icon_path"] = self::iconPath($packageuid);
+        $settings["has_icon"] = self::hasIcon($packageuid);
+        $settings["has_keystore_password"] = self::hasAndroidKeystorePassword($packageuid);
+        $settings["has_android_key_files"] = self::hasAndroidKeyFiles($packageuid);
 
         return $settings;
     }
 
     public static function validateSettings(array $input, string $domain, ?array $current = null): array {
         $errors = [];
-        $locked = !empty($current['package_uid_locked']);
-        $currentpackageuid = $current['package_uid'] ?? '';
+        $locked = !empty($current["package_uid_locked"]);
+        $currentpackageuid = $current["package_uid"] ?? '';
 
-        $postedpackageuid = strtolower($input['package_uid'] ?? '');
+        $postedpackageuid = strtolower($input["package_uid"] ?? '');
         if ($postedpackageuid == '') {
             $postedpackageuid = $currentpackageuid != '' ? $currentpackageuid : self::defaultPackageUid($domain);
         }
@@ -60,25 +60,25 @@ class AppManager {
         $packageuid = self::normalizePackageUid($postedpackageuid);
         if ($locked && $currentpackageuid != '') {
             if ($packageuid != $currentpackageuid) {
-                $errors['package_uid'] = I18n::get('validation.package_uid_locked', ['value' => $currentpackageuid]);
+                $errors["package_uid"] = I18n::get('validation.package_uid_locked', ['value' => $currentpackageuid]);
             }
             $packageuid = $currentpackageuid;
         }
 
         if (!preg_match('/^[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*)+$/', $packageuid)) {
-            $errors['package_uid'] = I18n::get('validation.package_uid_invalid');
+            $errors["package_uid"] = I18n::get('validation.package_uid_invalid');
         }
 
-        $packagename = $input['package_name'] ?? '';
+        $packagename = $input["package_name"] ?? '';
         if ($packagename == '') {
-            $errors['package_name'] = I18n::get('validation.package_name_required');
+            $errors["package_name"] = I18n::get('validation.package_name_required');
         } else if (mb_strlen($packagename) > 80) {
-            $errors['package_name'] = I18n::get('validation.package_name_too_long');
+            $errors["package_name"] = I18n::get('validation.package_name_too_long');
         }
 
-        $color = strtoupper($input['statusbarbackgroundcolor'] ?? '');
+        $color = strtoupper($input["statusbarbackgroundcolor"] ?? '');
         if (!preg_match('/^#[0-9A-F]{6}$/', $color)) {
-            $errors['statusbarbackgroundcolor'] = I18n::get('validation.color_invalid');
+            $errors["statusbarbackgroundcolor"] = I18n::get('validation.color_invalid');
         }
 
         return [
@@ -93,21 +93,21 @@ class AppManager {
     }
 
     public static function validateIconUpload(?array $file, bool $required): array {
-        if (empty($file) || !isset($file['error']) || $file['error'] == UPLOAD_ERR_NO_FILE) {
+        if (empty($file) || !isset($file["error"]) || $file["error"] == UPLOAD_ERR_NO_FILE) {
             return [
                 'valid' => !$required,
                 'error' => $required ? I18n::get('validation.icon_required') : '',
             ];
         }
 
-        if ($file['error'] != UPLOAD_ERR_OK) {
+        if ($file["error"] != UPLOAD_ERR_OK) {
             return [
                 'valid' => false,
                 'error' => I18n::get('validation.upload_failed'),
             ];
         }
 
-        $tmp = $file['tmp_name'] ?? '';
+        $tmp = $file["tmp_name"] ?? '';
         if ($tmp == '' || !is_uploaded_file($tmp)) {
             return [
                 'valid' => false,
@@ -123,7 +123,7 @@ class AppManager {
             ];
         }
 
-        $mime = $info['mime'] ?? '';
+        $mime = $info["mime"] ?? '';
         if ($mime != 'image/png') {
             return [
                 'valid' => false,
@@ -165,40 +165,40 @@ class AppManager {
             $current = [];
         }
 
-        if (!empty($current['package_uid'])) {
-            $data['package_uid'] =$current['package_uid'];
+        if (!empty($current["package_uid"])) {
+            $data["package_uid"] =$current["package_uid"];
         }
 
         $settings = array_merge($current, $data);
-        $packageuid =$settings['package_uid'];
+        $packageuid =$settings["package_uid"];
         self::ensureResourceRootWritable();
         self::ensureDir(self::resourceDir($packageuid), 0750);
 
-        if (!empty($iconfile) && isset($iconfile['error']) && $iconfile['error'] == UPLOAD_ERR_OK) {
+        if (!empty($iconfile) && isset($iconfile["error"]) && $iconfile["error"] == UPLOAD_ERR_OK) {
             $dest = self::iconPath($packageuid);
-            if (!move_uploaded_file($iconfile['tmp_name'], $dest)) {
+            if (!move_uploaded_file($iconfile["tmp_name"], $dest)) {
                 throw new RuntimeException(I18n::get('app_errors.icon_save_failed'));
             }
             chmod($dest, 0640);
         }
 
         if (self::hasIcon($packageuid)) {
-            $settings['icon_path'] = self::iconPath($packageuid);
+            $settings["icon_path"] = self::iconPath($packageuid);
         }
 
-        if (empty($settings['package_uid_locked_at'])) {
-            $settings['package_uid_locked_at'] = now_iso();
+        if (empty($settings["package_uid_locked_at"])) {
+            $settings["package_uid_locked_at"] = now_iso();
         }
-        $settings['updated_at'] = now_iso();
-        $settings['updated_by'] = Auth::user()['username'] ?? 'system';
+        $settings["updated_at"] = now_iso();
+        $settings["updated_by"] = Auth::user()["username"] ?? 'system';
 
         JsonStorage::write(self::settingsFile($domain), $settings);
 
-        $settings['package_uid_locked'] = true;
-        $settings['resource_dir'] = self::resourceDir($packageuid);
-        $settings['has_icon'] = self::hasIcon($packageuid);
-        $settings['has_keystore_password'] = self::hasAndroidKeystorePassword($packageuid);
-        $settings['has_android_key_files'] = self::hasAndroidKeyFiles($packageuid);
+        $settings["package_uid_locked"] = true;
+        $settings["resource_dir"] = self::resourceDir($packageuid);
+        $settings["has_icon"] = self::hasIcon($packageuid);
+        $settings["has_keystore_password"] = self::hasAndroidKeystorePassword($packageuid);
+        $settings["has_android_key_files"] = self::hasAndroidKeyFiles($packageuid);
         return $settings;
     }
 
@@ -220,10 +220,10 @@ class AppManager {
         }
 
         $validation = self::validateKeystorePassword($password, true);
-        if (!$validation['valid']) {
-            throw new RuntimeException($validation['error']);
+        if (!$validation["valid"]) {
+            throw new RuntimeException($validation["error"]);
         }
-        $password =$validation['password'];
+        $password =$validation["password"];
 
         $mustgeneratekeystore = !is_file($keystore);
         if (!is_file($passfile)) {
@@ -264,24 +264,24 @@ class AppManager {
 
     public static function buildReadiness(array $settings, string $domain): array {
         $missing = [];
-        $packageuid = $settings['package_uid'] ?? '';
+        $packageuid = $settings["package_uid"] ?? '';
 
         if (!self::isResourceRootWritable()) {
             $missing[] = ['message' => I18n::get('app_errors.resource_root_missing')];
         }
-        if (empty($settings['package_uid_locked'])) {
+        if (empty($settings["package_uid_locked"])) {
             $missing[] = ['message' => I18n::get('app_errors.save_once_package_uid')];
         }
         if ($packageuid == '' || !preg_match('/^[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*)+$/', $packageuid)) {
             $missing[] = ['message' => I18n::get('app_errors.package_uid_valid')];
         }
-        if (($settings['package_name'] ?? '') == '') {
+        if (($settings["package_name"] ?? '') == '') {
             $missing[] = ['message' => I18n::get('validation.package_name_required')];
         }
-        if (!preg_match('/^#[0-9A-Fa-f]{6}$/', ($settings['statusbarbackgroundcolor'] ?? ''))) {
+        if (!preg_match('/^#[0-9A-Fa-f]{6}$/', ($settings["statusbarbackgroundcolor"] ?? ''))) {
             $missing[] = ['message' => I18n::get('app_errors.color_required')];
         }
-        if (empty($settings['has_icon'])) {
+        if (empty($settings["has_icon"])) {
             $missing[] = ['message' => I18n::get('app_errors.icon_missing')];
         }
         if (!self::hasAndroidKeystorePassword($packageuid)) {
@@ -320,16 +320,16 @@ class AppManager {
         try {
             $json = self::fetchMoodleConfigTestUrl($url);
         } catch (RuntimeException $e) {
-            $result['has_error'] = true;
-            $result['error'] = $e->getMessage();
-            $result['has_install_url'] = $e->getCode() == 404;
+            $result["has_error"] = true;
+            $result["error"] = $e->getMessage();
+            $result["has_install_url"] = $e->getCode() == 404;
             return $result;
         }
 
         $data = json_decode($json, true);
         if (!is_array($data)) {
-            $result['has_error'] = true;
-            $result['error'] = I18n::get('app_errors.moodle_config_invalid_json', [
+            $result["has_error"] = true;
+            $result["error"] = I18n::get('app_errors.moodle_config_invalid_json', [
                 'message' => json_last_error_msg(),
             ]);
             return $result;
@@ -337,7 +337,7 @@ class AppManager {
 
         foreach (self::moodleConfigBooleanChecks() as $key => $description) {
             if (!array_key_exists($key, $data)) {
-                $result['warnings'][] = [
+                $result["warnings"][] = [
                     'key' => $key,
                     'description' => $description,
                     'message' => I18n::get('app_errors.moodle_config_missing_key'),
@@ -348,7 +348,7 @@ class AppManager {
             }
 
             if ($data[$key] === true) {
-                $result['oks'][] = [
+                $result["oks"][] = [
                     'key' => $key,
                     'description' => $description,
                     'message' => I18n::get('status.ok'),
@@ -356,7 +356,7 @@ class AppManager {
                 continue;
             }
 
-            $result['warnings'][] = [
+            $result["warnings"][] = [
                 'key' => $key,
                 'description' => $description,
                 'message' => I18n::get('app_errors.moodle_config_incorrect'),
@@ -370,35 +370,35 @@ class AppManager {
                 continue;
             }
 
-            $result['versions'][] = [
+            $result["versions"][] = [
                 'key' => $label,
-                'value' => (string) $data[$key],
+                'value' => $data[$key],
             ];
         }
 
-        $result['has_warnings'] = !empty($result['warnings']);
-        $result['has_oks'] = !empty($result['oks']);
-        $result['has_versions'] = !empty($result['versions']);
-        $result['valid'] = !$result['has_error'] && !$result['has_warnings'];
+        $result["has_warnings"] = !empty($result["warnings"]);
+        $result["has_oks"] = !empty($result["oks"]);
+        $result["has_versions"] = !empty($result["versions"]);
+        $result["valid"] = !$result["has_error"] && !$result["has_warnings"];
         return $result;
     }
 
     public static function applyMoodleConfigTestToReadiness(array $readiness, array $configtest): array {
-        if (!empty($configtest['has_error'])) {
-            $readiness['missing'][] = [
+        if (!empty($configtest["has_error"])) {
+            $readiness["missing"][] = [
                 'message' => I18n::get('app_errors.moodle_config_test_failed', [
-                    'message' => $configtest['error'] ?? '',
+                    'message' => $configtest["error"] ?? '',
                 ]),
             ];
         }
 
-        foreach (($configtest['warnings'] ?? []) as $warning) {
-            $readiness['missing'][] = [
-                'message' => ($warning['key'] ?? '') . ': ' . ($warning['message'] ?? ''),
+        foreach (($configtest["warnings"] ?? []) as $warning) {
+            $readiness["missing"][] = [
+                'message' => ($warning["key"] ?? '') . ': ' . ($warning["message"] ?? ''),
             ];
         }
 
-        $readiness['valid'] = empty($readiness['missing']);
+        $readiness["valid"] = empty($readiness["missing"]);
         return $readiness;
     }
 
@@ -436,7 +436,7 @@ class AppManager {
         }
 
         usort($items, static function(array $a, array $b): int {
-            return strcmp(($b['created_at'] ?? ''), ($a['created_at'] ?? ''));
+            return strcmp(($b["created_at"] ?? ''), ($a["created_at"] ?? ''));
         });
 
         return $items;
@@ -444,7 +444,7 @@ class AppManager {
 
     public static function latestJob(string $domain): ?array {
         foreach (JobManager::all() as $job) {
-            if (($job['type'] ?? '') == 'app_build' && ($job['domain'] ?? '') == $domain) {
+            if (($job["type"] ?? '') == 'app_build' && ($job["domain"] ?? '') == $domain) {
                 return $job;
             }
         }
@@ -453,10 +453,10 @@ class AppManager {
 
     public static function hasActiveBuildJob(string $domain): bool {
         foreach (JobManager::all() as $job) {
-            if (($job['type'] ?? '') != 'app_build' || ($job['domain'] ?? '') != $domain) {
+            if (($job["type"] ?? '') != 'app_build' || ($job["domain"] ?? '') != $domain) {
                 continue;
             }
-            if (in_array(($job['status'] ?? ''), ['pending', 'running'], true)) {
+            if (in_array(($job["status"] ?? ''), ['pending', 'running'], true)) {
                 return true;
             }
         }
@@ -522,7 +522,7 @@ class AppManager {
         }
 
         if (count($clean) < 2) {
-            $clean = ['app', 'mylearn'];
+            $clean = ['app', 'moodle_friendly_installation'];
         }
 
         return implode('.', $clean);
@@ -530,7 +530,7 @@ class AppManager {
 
     private static function isPackageUidLocked(string $domain): bool {
         $stored = JsonStorage::read(self::settingsFile($domain));
-        return is_array($stored) && !empty($stored['package_uid']);
+        return is_array($stored) && !empty($stored["package_uid"]);
     }
 
     private static function ensureResourceRootWritable(): void {
@@ -656,13 +656,13 @@ class AppManager {
                 throw new RuntimeException(I18n::get('app_errors.moodle_config_plugin_missing'), 404);
             }
             if ($status < 200 || $status >= 300) {
-                throw new RuntimeException(I18n::get('app_errors.moodle_config_http_status', ['status' => (string) $status]), $status);
+                throw new RuntimeException(I18n::get('app_errors.moodle_config_http_status', ['status' => $status]), $status);
             }
-            if (trim((string) $body) == '') {
+            if (trim($body) == '') {
                 throw new RuntimeException(I18n::get('app_errors.moodle_config_empty_response'));
             }
 
-            return (string) $body;
+            return $body;
         }
 
         $context = stream_context_create([
@@ -694,13 +694,13 @@ class AppManager {
             throw new RuntimeException(I18n::get('app_errors.moodle_config_plugin_missing'), 404);
         }
         if ($status != 0 && ($status < 200 || $status >= 300)) {
-            throw new RuntimeException(I18n::get('app_errors.moodle_config_http_status', ['status' => (string) $status]), $status);
+            throw new RuntimeException(I18n::get('app_errors.moodle_config_http_status', ['status' => $status]), $status);
         }
-        if (trim((string) $body) == '') {
+        if (trim($body) == '') {
             throw new RuntimeException(I18n::get('app_errors.moodle_config_empty_response'));
         }
 
-        return (string) $body;
+        return $body;
     }
 
     private static function moodleConfigUserAgent(): string {
@@ -715,13 +715,13 @@ class AppManager {
     }
 
     private static function defaultPackageName(array $site): string {
-        $config = $site['moodle_config'] ?? [];
+        $config = $site["moodle_config"] ?? [];
         $domain = self::siteDomain($site);
-        return ($config['fullname'] ?? $domain);
+        return ($config["fullname"] ?? $domain);
     }
 
     private static function siteDomain(array $site): string {
-        return strtolower( $site['domain'] ?? '');
+        return strtolower( $site["domain"] ?? '');
     }
 
     private static function formatBytes(int $bytes): string {

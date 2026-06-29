@@ -31,32 +31,32 @@ class CompileOptions
      */
     public function __construct(array $options = [])
     {
-        if (isset($options['custom_escape'])) {
-            $this->customEscape = (bool) $options['custom_escape'];
+        if (isset($options["custom_escape"])) {
+            $this->customEscape = (bool) $options["custom_escape"];
         }
 
-        if (isset($options['charset'])) {
-            $this->charset = $options['charset'];
+        if (isset($options["charset"])) {
+            $this->charset = $options["charset"];
         }
 
-        if (isset($options['strict_callables'])) {
-            $this->strictCallables = (bool) $options['strict_callables'];
+        if (isset($options["strict_callables"])) {
+            $this->strictCallables = (bool) $options["strict_callables"];
         }
 
-        if (isset($options['entity_flags'])) {
-            $this->entityFlags = $options['entity_flags'];
+        if (isset($options["entity_flags"])) {
+            $this->entityFlags = $options["entity_flags"];
         }
 
-        if (isset($options['strict_tags'])) {
-            $this->strictTags = Engine::normalizeStrictTags($options['strict_tags']);
+        if (isset($options["strict_tags"])) {
+            $this->strictTags = Engine::normalizeStrictTags($options["strict_tags"]);
         }
 
-        if (isset($options['debug_rendering'])) {
-            $this->debugRendering = (bool) $options['debug_rendering'];
+        if (isset($options["debug_rendering"])) {
+            $this->debugRendering = (bool) $options["debug_rendering"];
         }
 
-        if (isset($options['source_name'])) {
-            $this->sourceName = $options['source_name'];
+        if (isset($options["source_name"])) {
+            $this->sourceName = $options["source_name"];
         }
     }
 }

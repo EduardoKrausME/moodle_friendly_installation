@@ -23,9 +23,9 @@ function render_header(string $title): void {
         'app_name' => $appname,
         'body_class' => $hasuser ? 'has-sidebar' : 'auth-page',
         'has_user' => $hasuser,
-        'user_name' => $user['name'] ?? $user['username'] ?? 'Administrador',
+        'user_name' => $user["name"] ?? $user["username"] ?? 'Administrador',
         'navigation' => render_navigation_items(),
-        'current_language_name' => $currentlanguage['native_name'] ?? $currentlanguage['name'] ?? I18n::current(),
+        'current_language_name' => $currentlanguage["native_name"] ?? $currentlanguage["name"] ?? I18n::current(),
     ]);
 }
 
@@ -35,7 +35,7 @@ function render_header(string $title): void {
  * @return array<int, array<string, string>>
  */
 function render_navigation_items(): array {
-    $current = basename(($_SERVER['SCRIPT_NAME'] ?? ''));
+    $current = basename(($_SERVER["SCRIPT_NAME"] ?? ''));
 
     $items = [];
 
@@ -75,15 +75,15 @@ function render_navigation_items(): array {
 
     foreach ($items as $index => $item) {
         $classes = ['side-nav-link'];
-        if (in_array($current, $item['active_on'], true)) {
+        if (in_array($current, $item["active_on"], true)) {
             $classes[] = 'is-active';
         }
-        if (!empty($item['extra_class'])) {
-            $classes[] = $item['extra_class'];
+        if (!empty($item["extra_class"])) {
+            $classes[] = $item["extra_class"];
         }
 
-        $items[$index]['class'] = implode(' ', $classes);
-        unset($items[$index]['active_on'], $items[$index]['extra_class']);
+        $items[$index]["class"] = implode(' ', $classes);
+        unset($items[$index]["active_on"], $items[$index]["extra_class"]);
     }
 
     return $items;
@@ -147,11 +147,11 @@ function status_badge(string $status, $label = null): string {
  * @return string|null
  */
 function flash_message(): ?string {
-    if (empty($_SESSION['flash'])) {
+    if (empty($_SESSION["flash"])) {
         return null;
     }
-    $message = $_SESSION['flash'];
-    unset($_SESSION['flash']);
+    $message = $_SESSION["flash"];
+    unset($_SESSION["flash"]);
     return $message;
 }
 
@@ -170,9 +170,9 @@ function render_app_template(string $template, array $context = []): string {
             'label' => t('language.label'),
             'change' => t('language.change'),
             'current_code' => I18n::current(),
-            'current_name' => $language['name'] ?? I18n::current(),
-            'current_native_name' => $language['native_name'] ?? $language['name'] ?? I18n::current(),
-            'current_flag' => $language['flag'] ?? '',
+            'current_name' => $language["name"] ?? I18n::current(),
+            'current_native_name' => $language["native_name"] ?? $language["name"] ?? I18n::current(),
+            'current_flag' => $language["flag"] ?? '',
             'items' => I18n::languagesForSelector(),
         ],
     ];

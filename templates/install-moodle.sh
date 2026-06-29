@@ -5,12 +5,6 @@ log() {
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] $*"
 }
 
-log "Created MySQL database and user"
-
-sql_escape() {
-    printf "%s" "$1" | sed "s/'/''/g"
-}
-
 log "Creating base directories"
 mkdir -p "{{BASE_DIR}}" "{{BASE_DIR}}/moodledata"
 chmod -R 777 "{{BASE_DIR}}"
@@ -64,18 +58,22 @@ rm -rf sms/gateway/modica
 rm -rf quiz/accessrule/seb
 rm -rf admin/tool/moodlenet message/output/airnotifier search/engine/solr files/converter/googledrive payment/gateway/paypal
 
-log "Installing Moodle database"
-if [ ! -f "{{BASE_DIR}}/moodledata/.mylearn-installed" ]; then
-    sudo -u "{{APACHE_USER}}" "{{PHP_BIN}}" "{{BASE_DIR}}/moodle/admin/cli/install_database.php" \
-        --agree-license \
-        --fullname="{{SITE_FULLNAME}}" \
-        --lang={{MOODLE_LANG}} \
-        --shortname="{{DOMAIN}}" \
-        --summary="Moodle™ Admin" \
-        --adminuser="{{ADMIN_USER}}" \
-        --adminpass={{ADMIN_PASS_SH}} \
-        --adminemail="{{ADMIN_EMAIL}}"
-    touch "{{BASE_DIR}}/moodledata/.mylearn-installed"
+if [ "{{INSTALL_MODE}}" = "install" ]; then
+    log "Installing Moodle database"
+    if [ ! -f "{{BASE_DIR}}/moodledata/.moodle_friendly_installation-installed" ]; then
+        sudo -u "{{APACHE_USER}}" "{{PHP_BIN}}" "{{BASE_DIR}}/moodle/admin/cli/install_database.php" \
+            --agree-license \
+            --fullname="{{SITE_FULLNAME}}" \
+            --lang={{MOODLE_LANG}} \
+            --shortname="{{DOMAIN}}" \
+            --summary="Moodle™ Admin" \
+            --adminuser="{{ADMIN_USER}}" \
+            --adminpass={{ADMIN_PASS_SH}} \
+            --adminemail="{{ADMIN_EMAIL}}"
+        touch "{{BASE_DIR}}/moodledata/.moodle_friendly_installation-installed"
+    fi
+else
+    log "Restore mode: skipping Moodle install_database.php"
 fi
 
 log "Install Plugins"
@@ -97,42 +95,46 @@ git clone --depth 1 https://github.com/EduardoKrausME/moodle-mod_pdfprotect     
 git clone --depth 1 https://github.com/EduardoKrausME/moodle-mod_childcourse          {{BASE_DIR}}/moodle/public/mod/childcourse
 git clone --depth 1 https://github.com/EduardoKrausME/moodle-mod_scicalc              {{BASE_DIR}}/moodle/public/mod/scicalc
 
-log "Set default info Plugins"
-sudo -u "{{APACHE_USER}}" "{{PHP_BIN}}" {{BASE_DIR}}/moodle/admin/cli/upgrade.php                       --non-interactive
-sudo -u "{{APACHE_USER}}" "{{PHP_BIN}}" {{BASE_DIR}}/moodle/admin/cli/cfg.php --name=theme              --set=eadtraining
-sudo -u "{{APACHE_USER}}" "{{PHP_BIN}}" {{BASE_DIR}}/moodle/admin/cli/cfg.php --name=enabledashboard    --set=0
-sudo -u "{{APACHE_USER}}" "{{PHP_BIN}}" {{BASE_DIR}}/moodle/admin/cli/cfg.php --name=defaulthomepage    --set=0
-sudo -u "{{APACHE_USER}}" "{{PHP_BIN}}" {{BASE_DIR}}/moodle/admin/cli/cfg.php --name=enablemyhome       --set=1
-sudo -u "{{APACHE_USER}}" "{{PHP_BIN}}" {{BASE_DIR}}/moodle/admin/cli/cfg.php --name=navshowallcourses  --set=0
-sudo -u "{{APACHE_USER}}" "{{PHP_BIN}}" {{BASE_DIR}}/moodle/admin/cli/cfg.php --name=allowframembedding --set=1
-sudo -u "{{APACHE_USER}}" "{{PHP_BIN}}" {{BASE_DIR}}/moodle/admin/cli/cfg.php --name=autolang           --set=1
-sudo -u "{{APACHE_USER}}" "{{PHP_BIN}}" {{BASE_DIR}}/moodle/admin/cli/cfg.php --name=lang               --set={{MOODLE_LANG}}
-sudo -u "{{APACHE_USER}}" "{{PHP_BIN}}" {{BASE_DIR}}/moodle/admin/cli/cfg.php --name=langmenu           --set=0
-sudo -u "{{APACHE_USER}}" "{{PHP_BIN}}" {{BASE_DIR}}/moodle/admin/cli/cfg.php --name=autologinguests    --set=0
-sudo -u "{{APACHE_USER}}" "{{PHP_BIN}}" {{BASE_DIR}}/moodle/admin/cli/cfg.php --name=guestloginbutton   --set=0
-sudo -u "{{APACHE_USER}}" "{{PHP_BIN}}" {{BASE_DIR}}/moodle/admin/cli/cfg.php --name=passwordpolicy     --set=0
-sudo -u "{{APACHE_USER}}" "{{PHP_BIN}}" {{BASE_DIR}}/moodle/admin/cli/cfg.php --name=cronremotepassword --set=123456
-sudo -u "{{APACHE_USER}}" "{{PHP_BIN}}" {{BASE_DIR}}/moodle/admin/cli/cfg.php --name=cronclionly        --set=0
-sudo -u "{{APACHE_USER}}" "{{PHP_BIN}}" {{BASE_DIR}}/moodle/admin/cli/cfg.php --name=siteadmins         --set=3,2
+if [ "{{INSTALL_MODE}}" = "install" ]; then
+    log "Set default info Plugins"
+    sudo -u "{{APACHE_USER}}" "{{PHP_BIN}}" {{BASE_DIR}}/moodle/admin/cli/upgrade.php                       --non-interactive
+    sudo -u "{{APACHE_USER}}" "{{PHP_BIN}}" {{BASE_DIR}}/moodle/admin/cli/cfg.php --name=theme              --set=eadtraining
+    sudo -u "{{APACHE_USER}}" "{{PHP_BIN}}" {{BASE_DIR}}/moodle/admin/cli/cfg.php --name=enabledashboard    --set=0
+    sudo -u "{{APACHE_USER}}" "{{PHP_BIN}}" {{BASE_DIR}}/moodle/admin/cli/cfg.php --name=defaulthomepage    --set=0
+    sudo -u "{{APACHE_USER}}" "{{PHP_BIN}}" {{BASE_DIR}}/moodle/admin/cli/cfg.php --name=enablemyhome       --set=1
+    sudo -u "{{APACHE_USER}}" "{{PHP_BIN}}" {{BASE_DIR}}/moodle/admin/cli/cfg.php --name=navshowallcourses  --set=0
+    sudo -u "{{APACHE_USER}}" "{{PHP_BIN}}" {{BASE_DIR}}/moodle/admin/cli/cfg.php --name=allowframembedding --set=1
+    sudo -u "{{APACHE_USER}}" "{{PHP_BIN}}" {{BASE_DIR}}/moodle/admin/cli/cfg.php --name=autolang           --set=1
+    sudo -u "{{APACHE_USER}}" "{{PHP_BIN}}" {{BASE_DIR}}/moodle/admin/cli/cfg.php --name=lang               --set={{MOODLE_LANG}}
+    sudo -u "{{APACHE_USER}}" "{{PHP_BIN}}" {{BASE_DIR}}/moodle/admin/cli/cfg.php --name=langmenu           --set=0
+    sudo -u "{{APACHE_USER}}" "{{PHP_BIN}}" {{BASE_DIR}}/moodle/admin/cli/cfg.php --name=autologinguests    --set=0
+    sudo -u "{{APACHE_USER}}" "{{PHP_BIN}}" {{BASE_DIR}}/moodle/admin/cli/cfg.php --name=guestloginbutton   --set=0
+    sudo -u "{{APACHE_USER}}" "{{PHP_BIN}}" {{BASE_DIR}}/moodle/admin/cli/cfg.php --name=passwordpolicy     --set=0
+    sudo -u "{{APACHE_USER}}" "{{PHP_BIN}}" {{BASE_DIR}}/moodle/admin/cli/cfg.php --name=cronremotepassword --set=123456
+    sudo -u "{{APACHE_USER}}" "{{PHP_BIN}}" {{BASE_DIR}}/moodle/admin/cli/cfg.php --name=cronclionly        --set=0
+    sudo -u "{{APACHE_USER}}" "{{PHP_BIN}}" {{BASE_DIR}}/moodle/admin/cli/cfg.php --name=siteadmins         --set=3,2
 
-sudo -u "{{APACHE_USER}}" "{{PHP_BIN}}" {{BASE_DIR}}/moodle/admin/cli/cfg.php --name=loglifetime --set=3 --component=backup
+    sudo -u "{{APACHE_USER}}" "{{PHP_BIN}}" {{BASE_DIR}}/moodle/admin/cli/cfg.php --name=loglifetime --set=3 --component=backup
 
-# Hub
-sudo -u "{{APACHE_USER}}" "{{PHP_BIN}}" {{BASE_DIR}}/moodle/admin/cli/cfg.php --name=site_policyagreed    --set=1 --component=hub
-sudo -u "{{APACHE_USER}}" "{{PHP_BIN}}" {{BASE_DIR}}/moodle/admin/cli/cfg.php --name=site_language        --set={{MOODLE_HUB_LANG}} --component=hub
-sudo -u "{{APACHE_USER}}" "{{PHP_BIN}}" {{BASE_DIR}}/moodle/admin/cli/cfg.php --name=site_countrycode     --set=BR --component=hub
-sudo -u "{{APACHE_USER}}" "{{PHP_BIN}}" {{BASE_DIR}}/moodle/admin/cli/cfg.php --name=site_privacy         --set=notdisplayed --component=hub
-sudo -u "{{APACHE_USER}}" "{{PHP_BIN}}" {{BASE_DIR}}/moodle/admin/cli/cfg.php --name=site_contactemail    --set=kraus@eduardokraus.com --component=hub
-sudo -u "{{APACHE_USER}}" "{{PHP_BIN}}" {{BASE_DIR}}/moodle/admin/cli/cfg.php --name=site_contactable     --set=0 --component=hub
-sudo -u "{{APACHE_USER}}" "{{PHP_BIN}}" {{BASE_DIR}}/moodle/admin/cli/cfg.php --name=site_emailalert      --set=0 --component=hub
-sudo -u "{{APACHE_USER}}" "{{PHP_BIN}}" {{BASE_DIR}}/moodle/admin/cli/cfg.php --name=site_commnews        --set=0 --component=hub
-sudo -u "{{APACHE_USER}}" "{{PHP_BIN}}" {{BASE_DIR}}/moodle/admin/cli/cfg.php --name=site_name            --set=. --component=hub
-sudo -u "{{APACHE_USER}}" "{{PHP_BIN}}" {{BASE_DIR}}/moodle/admin/cli/cfg.php --name=site_description     --set=. --component=hub
-sudo -u "{{APACHE_USER}}" "{{PHP_BIN}}" {{BASE_DIR}}/moodle/admin/cli/cfg.php --name=site_imageurl        --set=. --component=hub
-sudo -u "{{APACHE_USER}}" "{{PHP_BIN}}" {{BASE_DIR}}/moodle/admin/cli/cfg.php --name=site_contactphone    --set=. --component=hub
-sudo -u "{{APACHE_USER}}" "{{PHP_BIN}}" {{BASE_DIR}}/moodle/admin/cli/cfg.php --name=site_regioncode      --set=- --component=hub
-sudo -u "{{APACHE_USER}}" "{{PHP_BIN}}" {{BASE_DIR}}/moodle/admin/cli/cfg.php --name=site_geolocation     --set=. --component=hub
-sudo -u "{{APACHE_USER}}" "{{PHP_BIN}}" {{BASE_DIR}}/moodle/admin/cli/cfg.php --name=site_street          --set=. --component=hub
+    # Hub
+    sudo -u "{{APACHE_USER}}" "{{PHP_BIN}}" {{BASE_DIR}}/moodle/admin/cli/cfg.php --name=site_policyagreed    --set=1 --component=hub
+    sudo -u "{{APACHE_USER}}" "{{PHP_BIN}}" {{BASE_DIR}}/moodle/admin/cli/cfg.php --name=site_language        --set={{MOODLE_HUB_LANG}} --component=hub
+    sudo -u "{{APACHE_USER}}" "{{PHP_BIN}}" {{BASE_DIR}}/moodle/admin/cli/cfg.php --name=site_countrycode     --set=BR --component=hub
+    sudo -u "{{APACHE_USER}}" "{{PHP_BIN}}" {{BASE_DIR}}/moodle/admin/cli/cfg.php --name=site_privacy         --set=notdisplayed --component=hub
+    sudo -u "{{APACHE_USER}}" "{{PHP_BIN}}" {{BASE_DIR}}/moodle/admin/cli/cfg.php --name=site_contactemail    --set=kraus@eduardokraus.com --component=hub
+    sudo -u "{{APACHE_USER}}" "{{PHP_BIN}}" {{BASE_DIR}}/moodle/admin/cli/cfg.php --name=site_contactable     --set=0 --component=hub
+    sudo -u "{{APACHE_USER}}" "{{PHP_BIN}}" {{BASE_DIR}}/moodle/admin/cli/cfg.php --name=site_emailalert      --set=0 --component=hub
+    sudo -u "{{APACHE_USER}}" "{{PHP_BIN}}" {{BASE_DIR}}/moodle/admin/cli/cfg.php --name=site_commnews        --set=0 --component=hub
+    sudo -u "{{APACHE_USER}}" "{{PHP_BIN}}" {{BASE_DIR}}/moodle/admin/cli/cfg.php --name=site_name            --set=. --component=hub
+    sudo -u "{{APACHE_USER}}" "{{PHP_BIN}}" {{BASE_DIR}}/moodle/admin/cli/cfg.php --name=site_description     --set=. --component=hub
+    sudo -u "{{APACHE_USER}}" "{{PHP_BIN}}" {{BASE_DIR}}/moodle/admin/cli/cfg.php --name=site_imageurl        --set=. --component=hub
+    sudo -u "{{APACHE_USER}}" "{{PHP_BIN}}" {{BASE_DIR}}/moodle/admin/cli/cfg.php --name=site_contactphone    --set=. --component=hub
+    sudo -u "{{APACHE_USER}}" "{{PHP_BIN}}" {{BASE_DIR}}/moodle/admin/cli/cfg.php --name=site_regioncode      --set=- --component=hub
+    sudo -u "{{APACHE_USER}}" "{{PHP_BIN}}" {{BASE_DIR}}/moodle/admin/cli/cfg.php --name=site_geolocation     --set=. --component=hub
+    sudo -u "{{APACHE_USER}}" "{{PHP_BIN}}" {{BASE_DIR}}/moodle/admin/cli/cfg.php --name=site_street          --set=. --component=hub
+else
+    log "Restore mode: skipping Moodle upgrade/config before database import"
+fi
 
 log "SSO file"
 cp "{{TEMPLATES_DIR}}/moodle-logar-admin.php"  "{{BASE_DIR}}/moodle/public/"
@@ -172,7 +174,11 @@ if [ "{{ISSUE_CERT}}" = "1" ]; then
         -d "{{DOMAIN}}"
 fi
 
-log "Purging Moodle caches"
-sudo -u "{{APACHE_USER}}" "{{PHP_BIN}}" "{{BASE_DIR}}/moodle/admin/cli/purge_caches.php" || true
+if [ "{{INSTALL_MODE}}" = "install" ]; then
+    log "Purging Moodle caches"
+    sudo -u "{{APACHE_USER}}" "{{PHP_BIN}}" "{{BASE_DIR}}/moodle/admin/cli/purge_caches.php" || true
+else
+    log "Restore mode: Moodle caches will be purged after database import"
+fi
 
 log "Done"

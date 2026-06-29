@@ -4,7 +4,7 @@ namespace app;
 
 class I18n {
     private const DEFAULT_LANGUAGE = 'pt_br';
-    private const COOKIE_NAME = 'mylearn_admin_lang';
+    private const COOKIE_NAME = 'moodle_friendly_installation_admin_lang';
 
     /** @var array<string, array<string, mixed>> */
     private static array $cache = [];
@@ -13,20 +13,20 @@ class I18n {
     public static function init(): void {
         self::$current = self::detectLanguage();
 
-        $requested = isset($_GET['lang']) && is_string($_GET['lang']) ? self::normalizeLanguage($_GET['lang']) : '';
+        $requested = isset($_GET["lang"]) && is_string($_GET["lang"]) ? self::normalizeLanguage($_GET["lang"]) : '';
         if ($requested != '' && self::isSupported($requested)) {
             self::$current = $requested;
             if (PHP_SAPI != 'cli') {
-                $_SESSION['lang'] = $requested;
+                $_SESSION["lang"] = $requested;
                 setcookie(self::COOKIE_NAME, $requested, [
                     'expires' => time() + 60 * 60 * 24 * 365,
                     'path' => '/',
-                    'secure' => (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] != 'off'),
+                    'secure' => (!empty($_SERVER["HTTPS"]) && $_SERVER["HTTPS"] != 'off'),
                     'httponly' => false,
                     'samesite' => 'Lax',
                 ]);
 
-                if (($_SERVER['REQUEST_METHOD'] ?? 'GET') == 'GET') {
+                if (($_SERVER["REQUEST_METHOD"] ?? 'GET') == 'GET') {
                     $cleanurl = self::urlWithoutLang();
                     header('Location: ' . $cleanurl);
                     exit;
@@ -54,11 +54,11 @@ class I18n {
     }
 
     public static function htmlLang(): string {
-        return (self::languageData(self::$current)['meta']['html_lang'] ?? 'pt-BR');
+        return (self::languageData(self::$current)["meta"]["html_lang"] ?? 'pt-BR');
     }
 
     public static function currentMeta(): array {
-        return self::languageData(self::$current)['meta'] ?? [];
+        return self::languageData(self::$current)["meta"] ?? [];
     }
 
     public static function get(string $key, array $params = []): string {
@@ -84,13 +84,13 @@ class I18n {
     public static function languagesForSelector(): array {
         $items = [];
         foreach (self::supportedLanguages() as $code) {
-            $meta = self::languageData($code)['meta'] ?? [];
+            $meta = self::languageData($code)["meta"] ?? [];
             $current = $code == self::$current;
             $items[] = [
                 'code' => $code,
-                'name' => $meta['name'] ?? $code,
-                'native_name' => $meta['native_name'] ?? ($meta['name'] ?? $code),
-                'flag' => $meta['flag'] ?? '',
+                'name' => $meta["name"] ?? $code,
+                'native_name' => $meta["native_name"] ?? ($meta["name"] ?? $code),
+                'flag' => $meta["flag"] ?? '',
                 'url' => self::urlWithLang($code),
                 'selected' => $current,
                 'class' => $current ? 'language-option is-active' : 'language-option',
@@ -114,7 +114,7 @@ class I18n {
     }
 
     private static function detectLanguage(): string {
-        $sessionlang = isset($_SESSION['lang']) && is_string($_SESSION['lang']) ? self::normalizeLanguage($_SESSION['lang']) : '';
+        $sessionlang = isset($_SESSION["lang"]) && is_string($_SESSION["lang"]) ? self::normalizeLanguage($_SESSION["lang"]) : '';
         if ($sessionlang != '' && self::isSupported($sessionlang)) {
             return $sessionlang;
         }
@@ -124,7 +124,7 @@ class I18n {
             return $cookielang;
         }
 
-        $accepted = isset($_SERVER['HTTP_ACCEPT_LANGUAGE']) && is_string($_SERVER['HTTP_ACCEPT_LANGUAGE']) ? $_SERVER['HTTP_ACCEPT_LANGUAGE'] : '';
+        $accepted = isset($_SERVER["HTTP_ACCEPT_LANGUAGE"]) && is_string($_SERVER["HTTP_ACCEPT_LANGUAGE"]) ? $_SERVER["HTTP_ACCEPT_LANGUAGE"] : '';
         foreach (explode(',', $accepted) as $part) {
             $language = self::normalizeLanguage(trim(explode(';', $part)[0] ?? ''));
             if ($language != '' && self::isSupported($language)) {
@@ -196,26 +196,26 @@ class I18n {
     }
 
     private static function urlWithLang(string $language): string {
-        $uri = $_SERVER['REQUEST_URI'] ?? '/';
+        $uri = $_SERVER["REQUEST_URI"] ?? '/';
         $parts = parse_url($uri) ?: [];
-        $path = $parts['path'] ?? '/';
+        $path = $parts["path"] ?? '/';
         $query = [];
-        if (!empty($parts['query'])) {
-            parse_str($parts['query'], $query);
+        if (!empty($parts["query"])) {
+            parse_str($parts["query"], $query);
         }
-        $query['lang'] = $language;
+        $query["lang"] = $language;
         return $path . '?' . http_build_query($query);
     }
 
     private static function urlWithoutLang(): string {
-        $uri = $_SERVER['REQUEST_URI'] ?? '/';
+        $uri = $_SERVER["REQUEST_URI"] ?? '/';
         $parts = parse_url($uri) ?: [];
-        $path = $parts['path'] ?? '/';
+        $path = $parts["path"] ?? '/';
         $query = [];
-        if (!empty($parts['query'])) {
-            parse_str($parts['query'], $query);
+        if (!empty($parts["query"])) {
+            parse_str($parts["query"], $query);
         }
-        unset($query['lang']);
+        unset($query["lang"]);
         $querystring = http_build_query($query);
         return $path . ($querystring != '' ? '?' . $querystring : '');
     }

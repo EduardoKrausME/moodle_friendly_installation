@@ -99,10 +99,10 @@ class RenderingException extends RuntimeException implements Exception
      */
     private static function formatFrame(array $frame)
     {
-        $type = isset($frame['type']) ? $frame['type'] : 'tag';
-        $name = isset($frame['name']) ? sprintf(' "%s"', $frame['name']) : '';
-        $line = isset($frame['line']) ? sprintf(' on line %d', $frame['line']) : '';
-        $source = isset($frame['source']) ? sprintf(' of %s', $frame['source']) : '';
+        $type = isset($frame["type"]) ? $frame["type"] : 'tag';
+        $name = isset($frame["name"]) ? sprintf(' "%s"', $frame["name"]) : '';
+        $line = isset($frame["line"]) ? sprintf(' on line %d', $frame["line"]) : '';
+        $source = isset($frame["source"]) ? sprintf(' of %s', $frame["source"]) : '';
 
         return $type . $name . $line . $source;
     }

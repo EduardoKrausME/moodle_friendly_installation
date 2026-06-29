@@ -10,20 +10,20 @@ $jobs = [];
 $shouldrefresh = false;
 
 foreach (JobManager::all() as $job) {
-    $status = $job['status'] ?? 'pending';
+    $status = $job["status"] ?? 'pending';
     $statusclass = preg_replace('/[^a-z0-9_-]/', '-', $status);
     $createdat = '';
     $log = '';
 
-    if (!empty($job['created_at'])) {
-        $timestamp = strtotime($job['created_at']);
+    if (!empty($job["created_at"])) {
+        $timestamp = strtotime($job["created_at"]);
         if ($timestamp != false) {
             $createdat = date('d/m/Y H:i', $timestamp);
         }
     }
 
-    if (!empty($job['log_file']) && is_readable($job['log_file'])) {
-        $log = file_get_contents($job['log_file']);
+    if (!empty($job["log_file"]) && is_readable($job["log_file"])) {
+        $log = file_get_contents($job["log_file"]);
     }
 
     if (in_array($status, ['running', 'pending', 'waiting_dns'], true)) {
@@ -31,14 +31,14 @@ foreach (JobManager::all() as $job) {
     }
 
     $jobs[] = [
-        'id' => $job['id'] ?? '',
-        'domain' => $job['domain'] ?? '',
+        'id' => $job["id"] ?? '',
+        'domain' => $job["domain"] ?? '',
         'status_class' => $statusclass,
         'status_badge' => status_badge($status),
         'status' => $status,
         'created_at' => $createdat,
-        'has_error' => !empty($job['error']),
-        'error' => $job['error'] ?? '',
+        'has_error' => !empty($job["error"]),
+        'error' => $job["error"] ?? '',
         'has_log' => $log != '',
         'log' => $log,
     ];

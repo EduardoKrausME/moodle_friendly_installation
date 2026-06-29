@@ -160,7 +160,7 @@ return [
     ],
     'jobs' => [
         'title' => 'Cola',
-        'heading' => 'Cola de instalación',
+        'heading' => 'Cola',
         'intro' => 'Los jobs pendientes son ejecutados por root vía CRON.',
         'empty' => 'Ningún job creado.',
         'job' => 'Job',

@@ -19,13 +19,11 @@ require_once __DIR__ . '/AppManager.php';
 require_once __DIR__ . '/render.php';
 require_once __DIR__ . '/MoodleBranchProvider.php';
 
-date_default_timezone_set('America/Sao_Paulo');
-
 if (PHP_SAPI != 'cli') {
     ini_set('session.cookie_httponly', '1');
-    ini_set('session.cookie_secure', (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] != 'off') ? '1' : '0');
+    ini_set('session.cookie_secure', (!empty($_SERVER["HTTPS"]) && $_SERVER["HTTPS"] != 'off') ? '1' : '0');
     ini_set('session.use_strict_mode', '1');
-    session_name('MYLEARNADMINSESSID');
+    session_name('MOODLEFRIENDLYSESSID');
     session_start();
 }
 
@@ -50,15 +48,15 @@ function redirect_to(string $path): never {
 }
 
 function csrf_token(): string {
-    if (empty($_SESSION['csrf_token'])) {
-        $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+    if (empty($_SESSION["csrf_token"])) {
+        $_SESSION["csrf_token"] = bin2hex(random_bytes(32));
     }
-    return $_SESSION['csrf_token'];
+    return $_SESSION["csrf_token"];
 }
 
 function validate_csrf(): void {
-    $token = $_POST['csrf_token'] ?? '';
-    if (!is_string($token) || empty($_SESSION['csrf_token']) || !hash_equals($_SESSION['csrf_token'], $token)) {
+    $token = $_POST["csrf_token"] ?? '';
+    if (!is_string($token) || empty($_SESSION["csrf_token"]) || !hash_equals($_SESSION["csrf_token"], $token)) {
         http_response_code(400);
         exit('CSRF token invalid.');
     }
@@ -69,7 +67,7 @@ function now_iso(): string {
 }
 
 if (PHP_SAPI != 'cli' && Auth::check()) {
-    $scriptname = basename((string) ($_SERVER['SCRIPT_NAME'] ?? ''));
+    $scriptname = basename((string) ($_SERVER["SCRIPT_NAME"] ?? ''));
     if (Auth::requiresPasswordChange() && $scriptname != 'profile.php') {
         redirect_to('/profile.php?force=1');
     }

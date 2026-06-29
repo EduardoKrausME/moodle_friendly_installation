@@ -3,21 +3,21 @@
 use app\AppManager;
 use app\JobManager;
 
-$job = JobManager::markRunning((string) $job['id']);
+$job = JobManager::markRunning($job["id"]);
 if (!$job) {
     throw new RuntimeException('Cannot mark app build job as running.');
 }
 
 $result = executeAppBuildJob($job);
-if ($result['exitcode'] === 0) {
-    JobManager::markDone((string) $job['id'], [
-        'artifact_files' => $result['artifact_files'],
-        'app_version' => $result['app_version'],
+if ($result["exitcode"] === 0) {
+    JobManager::markDone($job["id"], [
+        "artifact_files" => $result["artifact_files"],
+        "app_version" => $result["app_version"],
     ]);
-    echo "App build completed: {$job['id']}\n";
+    echo "App build completed: {$job["id"]}\n";
 } else {
-    JobManager::markFailed((string) $job['id'], $result['message']);
-    echo "App build failed: {$job['id']} - {$result['message']}\n";
+    JobManager::markFailed($job["id"], $result["message"]);
+    echo "App build failed: {$job["id"]} - {$result["message"]}\n";
 }
 
 /**
@@ -27,15 +27,15 @@ if ($result['exitcode'] === 0) {
  * @return array
  */
 function executeAppBuildJob(array $job): array {
-    $domain = sanitizeDomain((string) ($job['domain'] ?? ''));
-    if ($job['moodle_url'] === '') {
-        $job['moodle_url'] = "https://{$domain}";
+    $domain = sanitizeDomain((string) ($job["domain"] ?? ''));
+    if ($job["moodle_url"] === '') {
+        $job["moodle_url"] = "https://{$domain}";
     }
-    $job['moodle_url'] = rtrim($job['moodle_url'], '/');
-    $color = $job['statusbarbackgroundcolor'] ?? '#08422A';
-    $version = $job['app_version'] ?? AppManager::appVersion();
-    $iconpath = $job['icon_path'] ?? '';
-    $logfile = $job['log_file'] ?? app_config_path('/logs/app-build-' . $domain . '.log');
+    $job["moodle_url"] = rtrim($job["moodle_url"], '/');
+    $color = $job["statusbarbackgroundcolor"] ?? '#08422A';
+    $version = $job["app_version"] ?? AppManager::appVersion();
+    $iconpath = $job["icon_path"] ?? '';
+    $logfile = $job["log_file"] ?? app_config_path('/logs/app-build-' . $domain . '.log');
 
     ensureDir(dirname($logfile), 0750);
     appendAppBuildLog($logfile, 'Starting APP build for ' . $domain . '.');
@@ -48,13 +48,13 @@ function executeAppBuildJob(array $job): array {
         return failAppBuild($logfile, 'APP icon not found or not readable.');
     }
 
-    $workroot = app_config_path('/runtime/app-builds/' . $job['id']);
+    $workroot = app_config_path('/runtime/app-builds/' . $job["id"]);
     $workdir = $workroot . '/app';
     removeDir($workroot);
     ensureDir($workroot, 0700);
     copyRecursive($source, $workdir, ['node_modules', 'platforms', 'plugins']);
 
-    $resfolder = sanitizePackageUid($job['package_uid']);
+    $resfolder = sanitizePackageUid($job["package_uid"]);
     $resdir = $workdir . '/res/' . $resfolder;
     ensureDir($resdir, 0750);
     copy($iconpath, $resdir . '/logo.png');
@@ -62,8 +62,8 @@ function executeAppBuildJob(array $job): array {
 
     try {
         generateAppImages($resdir, $color, $logfile);
-        updateCordovaConfig($workdir . '/config.xml', $resfolder, $job['package_uid'], $job['package_name'], $color, $version);
-        updateIndexHtml($workdir . '/www/index.html', $job['package_uid'], $job['package_name'], $version, $job['moodle_url']);
+        updateCordovaConfig($workdir . '/config.xml', $resfolder, $job["package_uid"], $job["package_name"], $color, $version);
+        updateIndexHtml($workdir . '/www/index.html', $job["package_uid"], $job["package_name"], $version, $job["moodle_url"]);
         $buildconfig = createAndroidBuildConfig($resfolder, $workdir, $logfile);
 
         runBuildCommand('npm install --no-audit --fund=false', $workdir, $logfile);
@@ -75,7 +75,7 @@ function executeAppBuildJob(array $job): array {
 
         signReleaseApk($workdir, $resfolder, $logfile);
 
-        $artifacts = moveBuildArtifacts($workdir, $domain, $job['package_uid'], $version, $logfile);
+        $artifacts = moveBuildArtifacts($workdir, $domain, $job["package_uid"], $version, $logfile);
         appendAppBuildLog($logfile, 'Build completed successfully.');
 
         return [
@@ -733,7 +733,7 @@ function ensureDir(string $dir, int $mode): void {
 function sanitizePackageUid(string $packageuid): string {
     $packageuid = strtolower(trim($packageuid));
     $packageuid = preg_replace('/[^a-z0-9_.]+/', '_', $packageuid);
-    return trim((string) $packageuid, '._');
+    return trim($packageuid, '._');
 }
 
 /**
@@ -745,5 +745,5 @@ function sanitizePackageUid(string $packageuid): string {
 function sanitizeDomain(string $domain): string {
     $domain = strtolower(trim($domain));
     $domain = preg_replace('/[^a-z0-9.-]+/', '-', $domain);
-    return trim((string) $domain, '.-');
+    return trim($domain, '.-');
 }

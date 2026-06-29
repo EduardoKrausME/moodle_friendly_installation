@@ -42,7 +42,7 @@ use Mustache\Loader;
  *     ]);
  *
  *     $app->get('/{name}', function ($name) use ($app) {
- *         return $app['mustache']->render('hello', compact('name'));
+ *         return $app["mustache"]->render('hello', compact('name'));
  *     })
  *     ->value('name', 'world');
  *

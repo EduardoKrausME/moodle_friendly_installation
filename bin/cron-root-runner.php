@@ -1,6 +1,9 @@
 #!/usr/bin/env php
 <?php
 
+error_reporting(E_ALL);
+ini_set("display_errors", "On");
+
 // Root cron runner. It executes one pending job per run.
 
 use app\JobManager;
@@ -35,7 +38,7 @@ try {
 
 } catch (Throwable $e) {
     if (!empty($job["id"])) {
-        JobManager::markFailed((string) $job["id"], $e->getMessage());
+        JobManager::markFailed($job["id"], $e->getMessage());
     }
     fwrite(STDERR, $e->getMessage() . "\n");
     exit(1);

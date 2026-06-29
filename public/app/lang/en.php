@@ -160,7 +160,7 @@ return [
     ],
     'jobs' => [
         'title' => 'Queue',
-        'heading' => 'Installation queue',
+        'heading' => 'Queue',
         'intro' => 'Pending jobs are executed by root through CRON.',
         'empty' => 'No job created.',
         'job' => 'Job',

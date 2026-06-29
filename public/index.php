@@ -7,12 +7,12 @@ require_once __DIR__ . '/app/bootstrap.php';
 Auth::requireLogin();
 
 $sites = array_map(static function(array $site): array {
-    $domain = $site['domain'] ?? '';
+    $domain = $site["domain"] ?? '';
 
     return [
         'domain' => $domain,
-        'webroot' => $site['webroot'] ?? '',
-        'moodle_branch' => $site['moodle_branch'] ?? '',
+        'webroot' => $site["webroot"] ?? '',
+        'moodle_branch' => $site["moodle_branch"] ?? '',
         'details_url' => '/details.php?domain=' . rawurlencode($domain),
         'status_badge' => status_badge('active'),
     ];
