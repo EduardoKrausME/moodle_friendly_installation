@@ -17,16 +17,17 @@ function render_header(string $title): void {
     $hasuser = (bool) $user;
     $currentlanguage = I18n::currentMeta();
 
-    echo render_app_template('layout/header', [
+    $mustachedata = [
         'html_lang' => I18n::htmlLang(),
-        'page_title' => $title . ' - ' . $appname,
+        'page_title' =>   "{$title} - {$appname}" ,
         'app_name' => $appname,
         'body_class' => $hasuser ? 'has-sidebar' : 'auth-page',
         'has_user' => $hasuser,
         'user_name' => $user["name"] ?? $user["username"] ?? 'Administrador',
         'navigation' => render_navigation_items(),
         'current_language_name' => $currentlanguage["native_name"] ?? $currentlanguage["name"] ?? I18n::current(),
-    ]);
+    ];
+    echo render_app_template('layout/header', $mustachedata);
 }
 
 /**
