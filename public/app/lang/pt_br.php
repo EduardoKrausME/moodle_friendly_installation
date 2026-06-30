@@ -300,7 +300,7 @@ return [
         'cron_debug_label' => 'Debug do cron',
         'cron_debug_description' => 'Define $CFG->showcrondebugging = true para detalhar problemas no cron.',
         'slow_sql_label' => 'Log de SQL lenta do Moodle',
-        'slow_sql_description' => 'Ativa dboptions logslow=3 e logerrors=true. Use por pouco tempo em produção.',
+        'slow_sql_description' => 'Mantém dboptions logslow=3 ativo por padrão. Ao criar slow-sql.disable, o log de SQL lenta é desativado.',
         'perf_label' => 'Performance info',
         'perf_description' => 'Define MDL_PERF, MDL_PERFDB e MDL_PERFTOLOG para diagnóstico de lentidão.',
     ],

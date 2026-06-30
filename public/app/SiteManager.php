@@ -794,7 +794,9 @@ class SiteManager {
             return self::setMaintenanceMode($site, $enabled);
         }
 
-        if (!empty($definition["value_type"]) && $definition["value_type"] == 'email' && $enabled) {
+        $fileenabled = !empty($definition["inverted"]) ? !$enabled : $enabled;
+
+        if (!empty($definition["value_type"]) && $definition["value_type"] == 'email' && $fileenabled) {
             $email = trim($value);
             if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
                 return [
@@ -805,7 +807,14 @@ class SiteManager {
             return self::writeFeatureFlagFile($site, $definition, true, $email . PHP_EOL);
         }
 
-        return self::writeFeatureFlagFile($site, $definition, $enabled);
+        $result = self::writeFeatureFlagFile($site, $definition, $fileenabled);
+        if (!empty($definition["inverted"]) && !empty($result["ok"])) {
+            $result["message"] = I18n::get(
+                $enabled ? 'diagnostic.flag_enabled' : 'diagnostic.flag_disabled',
+                ['label' => ($definition["label"] ?? 'Flag'), 'domain' => ($site["domain"] ?? 'este Moodle')]
+            );
+        }
+        return $result;
     }
 
     /**
@@ -889,11 +898,12 @@ class SiteManager {
             ],
             'slow_sql' => [
                 'label' => I18n::get('feature_flags.slow_sql_label'),
-                'file' => 'slow-sql.enable',
+                'file' => 'slow-sql.disable',
                 'description' => I18n::get('feature_flags.slow_sql_description'),
                 'enabled_label' => I18n::get('status.enabled'),
                 'disabled_label' => I18n::get('status.disabled'),
                 'enabled_status' => 'warning',
+                'inverted' => true,
                 'dangerous' => true,
             ],
             'perf' => [
@@ -918,10 +928,11 @@ class SiteManager {
         $items = [];
         foreach (self::featureFlagDefinitions() as $key => $definition) {
             $file = self::featureFlagFile($site, $definition["file"]);
-            $enabled = $file != '' && is_file($file);
+            $fileexists = $file != '' && is_file($file);
+            $enabled = !empty($definition["inverted"]) ? !$fileexists : $fileexists;
             $value = '';
 
-            if ($enabled && !empty($definition["value_type"]) && is_readable($file)) {
+            if ($fileexists && !empty($definition["value_type"]) && is_readable($file)) {
                 $value = trim(file_get_contents($file));
             }
 

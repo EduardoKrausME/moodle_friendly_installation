@@ -69,9 +69,8 @@ if (file_exists("{$domainroot}/cron-debug.enable")) {
     $CFG->showcrondebugging = true;
 }
 
-if (file_exists("{$domainroot}/slow-sql.enable")) {
-    $CFG->dboptions["logslow"] = 3;
-    $CFG->dboptions["logerrors"] = true;
+if (file_exists("{$domainroot}/slow-sql.disable")) {
+    unset($CFG->dboptions["logslow"]);
 }
 
 if (file_exists("{$domainroot}/perf.enable")) {
