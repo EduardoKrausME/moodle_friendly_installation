@@ -32,6 +32,8 @@ $CFG->site_is_public                = false;
 //$CFG->disableupdatenotifications    = true;
 $CFG->routerconfigured              = true;
 
+$CFG->alternative_file_system_class = '\local_alternative_file_system\external_file_system';
+
 $domainroot = dirname(__DIR__);
 if (file_exists("{$domainroot}/../debug.enable")) {
     set_time_limit(0);
