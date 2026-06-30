@@ -39,13 +39,13 @@ if ($_SERVER["REQUEST_METHOD"] == 'POST') {
     }
 }
 
-$config = $site["moodle_config"] ?? [];
+$config += $site["moodle_config"] ?? [];
 $diagnostics = $site["diagnostics"] ?? [];
 $stats = $site["database_stats"] ?? ['connected' => false, 'items' => [], 'error' => ''];
 $featureflags = $diagnostics["feature_flags"] ?? [];
 $flash = flash_message();
 
-render_header(t('details.title'));
+render_header($domain);
 echo render_app_template('page/details', details_page_context($site, $config, $diagnostics, $stats, $featureflags, $flash));
 render_footer();
 
