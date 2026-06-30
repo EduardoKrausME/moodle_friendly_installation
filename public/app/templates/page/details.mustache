@@ -10,36 +10,42 @@
     <div class="alert ok">{{flash}}</div>
 {{/has_flash}}
 
-<div class="card hero-card">
-    <div>
-        <h2>{{i18n.details.shortcuts_heading}}</h2>
-        <p>{{i18n.details.shortcuts_intro}}</p>
-    </div>
-    <div class="hero-actions">
-        <a class="button" href="{{url}}" target="_blank" rel="noopener">{{i18n.actions.open_moodle}}</a>
-        {{#sso_url}}
-            <a class="button secondary" href="{{sso_url}}" target="_blank"
-               rel="noopener">{{i18n.actions.access_admin}}</a>
-        {{/sso_url}}
-    </div>
-</div>
 
 {{#app_exist}}
+    <div class="details-grid">
+{{/app_exist}}
     <div class="card hero-card">
         <div>
-            <h2>{{i18n.details.app_heading}}</h2>
-            <p>{{i18n.details.app_intro}}</p>
+            <h2>{{i18n.details.shortcuts_heading}}</h2>
+            <p>{{i18n.details.shortcuts_intro}}</p>
         </div>
         <div class="hero-actions">
-            <a class="button" href="{{app_manage_url}}">{{i18n.actions.manage_app}}</a>
-            {{#app_has_files}}
-                {{#app_files}}
-                    <a class="button secondary" href="{{download_url}}">{{i18n.actions.download}} {{label}}</a>
-                {{/app_files}}
-            {{/app_has_files}}
+            <a class="button" href="{{url}}" target="_blank" rel="noopener">{{i18n.actions.open_moodle}}</a>
+            {{#sso_url}}
+                <a class="button secondary" href="{{sso_url}}" target="_blank"
+                   rel="noopener">{{i18n.actions.access_admin}}</a>
+            {{/sso_url}}
+        </div>
+    </div>
+
+{{#app_exist}}
+        <div class="card hero-card">
+            <div>
+                <h2>{{i18n.details.app_heading}}</h2>
+                <p>{{i18n.details.app_intro}}</p>
+            </div>
+            <div class="hero-actions">
+                <a class="button" href="{{app_manage_url}}">{{i18n.actions.manage_app}}</a>
+                {{#app_has_files}}
+                    {{#app_files}}
+                        <a class="button secondary" href="{{download_url}}">{{i18n.actions.download}} {{label}}</a>
+                    {{/app_files}}
+                {{/app_has_files}}
+            </div>
         </div>
     </div>
 {{/app_exist}}
+
 
 <div class="details-grid">
     <div class="card">
