@@ -691,7 +691,7 @@ function restoreImportCsvRows(
 ): int {
     $columns = array_map(static fn(array $field): string => $field["name"], $insertfields);
     $placeholders = implode(", ", array_fill(0, count($columns), "?"));
-    $sql = "INSERT INTO " . restoreQuoteIdentifier($table) . " (" . ") VALUES (" . "{$placeholders})";
+    $sql = "INSERT INTO " . restoreQuoteIdentifier($table) . " () VALUES ({$placeholders})";
     $stmt = $pdo->prepare($sql);
 
     $handle = fopen($csvfile, "rb");
@@ -945,7 +945,7 @@ function restorePdo(array $target): PDO {
         throw new RuntimeException("Database credentials are missing for restore.");
     }
 
-    $dsn = "mysql:host={$host}" . ";dbname=" . ";charset=utf8mb4";
+    $dsn = "mysql:host={$host};dbname=;charset=utf8mb4";
     return new PDO($dsn, $user, $pass, [
         PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
         PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,

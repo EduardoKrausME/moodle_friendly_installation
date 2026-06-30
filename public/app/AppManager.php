@@ -752,7 +752,7 @@ class AppManager {
             "-keypass " . escapeshellarg($password) . " " .
             "-dname " . escapeshellarg("CN=Android, OU=Dev, O=App, L=Sao Paulo, ST=SP, C=BR");
 
-        $script = "cd " . escapeshellarg($resdir) . " && " . "{$command} 2>&1";
+        $script = "cd " . escapeshellarg($resdir) . " && {$command} 2>&1";
         exec("/usr/bin/env bash -lc " . escapeshellarg($script), $output, $exitcode);
         if ($exitcode != 0) {
             $message = trim(implode("\n", $output));

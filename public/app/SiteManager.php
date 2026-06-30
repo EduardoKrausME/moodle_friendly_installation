@@ -627,7 +627,7 @@ class SiteManager {
         $errno = 0;
         $errstr = "";
         $client = @stream_socket_client(
-            "ssl://{$domain}" . ":443",
+            "ssl://{$domain}:443",
             $errno,
             $errstr,
             5,

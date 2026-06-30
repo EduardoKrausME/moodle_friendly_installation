@@ -121,7 +121,7 @@ class I18n {
         if (!empty($params)) {
             $replace = [];
             foreach ($params as $name => $paramvalue) {
-                $replace["{" . "{$name}}"] =$paramvalue;
+                $replace["{{$name}}"] =$paramvalue;
             }
             $value = strtr($value, $replace);
         }

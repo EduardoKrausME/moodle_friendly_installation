@@ -126,9 +126,9 @@ function generateAppImages(string $resdir, string $color, string $logfile): void
     foreach ($screens as $density => $data) {
         [$square, $short, $long] = $data;
         runImageCommand("magick logo.png -resize {$square}x{$square} splash-tmp.png", $resdir, $logfile);
-        runImageCommand("magick splash-tmp.png -gravity center -crop {$short}x{$long}" . "+0+0 android-screen/drawable-port-" . "{$density}-screen.png", $resdir, $logfile);
-        runImageCommand("magick splash-tmp.png -gravity center -crop {$long}x{$short}" . "+0+0 android-screen/drawable-land-" . "{$density}-screen.png", $resdir, $logfile);
-        runImageCommand("magick splash-tmp.png -gravity center -crop {$square}x{$square}" . "+0+0 android-screen/drawable-" . "{$density}-screen.png", $resdir, $logfile);
+        runImageCommand("magick splash-tmp.png -gravity center -crop {$short}x{$long}+0+0 android-screen/drawable-port-{$density}-screen.png", $resdir, $logfile);
+        runImageCommand("magick splash-tmp.png -gravity center -crop {$long}x{$short}+0+0 android-screen/drawable-land-{$density}-screen.png", $resdir, $logfile);
+        runImageCommand("magick splash-tmp.png -gravity center -crop {$square}x{$square}+0+0 android-screen/drawable-{$density}-screen.png", $resdir, $logfile);
     }
     @unlink("{$resdir}/splash-tmp.png");
 }
@@ -558,7 +558,7 @@ function findAndroidBuildTool(string $tool): string {
         return $command;
     }
 
-    throw new RuntimeException("Android build tool not found: {$tool}" . ". Install Android SDK build-tools.");
+    throw new RuntimeException("Android build tool not found: {$tool}. Install Android SDK build-tools.");
 }
 
 /**
