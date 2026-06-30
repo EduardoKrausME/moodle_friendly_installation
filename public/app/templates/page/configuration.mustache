@@ -1,0 +1,59 @@
+<section class="page-title">
+    <div>
+        <h1>{{i18n.configuration.heading}}</h1>
+        <p>{{i18n.configuration.intro}}</p>
+    </div>
+</section>
+
+{{#has_flash}}
+    <div class="alert ok">{{flash}}</div>
+{{/has_flash}}
+
+{{#has_errors}}
+    <div class="alert danger">
+        <strong>{{i18n.configuration.check_fields}}</strong>
+        <ul>
+            {{#errors}}
+                <li>{{message}}</li>
+            {{/errors}}
+        </ul>
+    </div>
+{{/has_errors}}
+
+<div class="card">
+    <p><strong>{{i18n.configuration.config_file}}</strong>: <code>{{config_file}}</code></p>
+    <p><strong>{{i18n.configuration.json_file}}</strong>: <code>{{json_file}}</code></p>
+</div>
+
+<form method="post" class="card form">
+    <input type="hidden" name="csrf_token" value="{{csrf_token}}">
+
+    {{#fields}}
+        <label>
+            {{label}}
+
+            {{#is_select}}
+                <select name="{{name}}">
+                    {{#values}}
+                        <option value="{{name}}">{{label}}</option>
+                    {{/values}}
+                </select>
+            {{/is_select}}
+            {{^is_select}}
+                {{#is_textarea}}
+                    <textarea name="{{name}}" rows="4" autocomplete="off">{{value}}</textarea>
+                    {{#help}}
+                        <small>{{{help}}}</small>
+                    {{/help}}
+                {{/is_textarea}}
+                {{#is_input}}
+                    <input type="{{type}}" name="{{name}}" value="{{value}}" autocomplete="off">
+                {{/is_input}}
+            {{/is_select}}
+        </label>
+    {{/fields}}
+
+    <div class="form-actions">
+        <button type="submit">{{i18n.actions.save}}</button>
+    </div>
+</form>
