@@ -5,7 +5,7 @@ use app\JobManager;
 
 $job = JobManager::markRunning($job["id"]);
 if (!$job) {
-    throw new RuntimeException('Cannot mark app build job as running.');
+    throw new RuntimeException("Cannot mark app build job as running.");
 }
 
 $result = executeAppBuildJob($job);
@@ -27,62 +27,62 @@ if ($result["exitcode"] === 0) {
  * @return array
  */
 function executeAppBuildJob(array $job): array {
-    $domain = sanitizeDomain((string) ($job["domain"] ?? ''));
-    if ($job["moodle_url"] === '') {
+    $domain = sanitizeDomain((string) ($job["domain"] ?? ""));
+    if ($job["moodle_url"] === "") {
         $job["moodle_url"] = "https://{$domain}";
     }
-    $job["moodle_url"] = rtrim($job["moodle_url"], '/');
-    $color = $job["statusbarbackgroundcolor"] ?? '#08422A';
+    $job["moodle_url"] = rtrim($job["moodle_url"], "/");
+    $color = $job["statusbarbackgroundcolor"] ?? "#08422A";
     $version = $job["app_version"] ?? AppManager::appVersion();
-    $iconpath = $job["icon_path"] ?? '';
-    $logfile = $job["log_file"] ?? app_config_path('/logs/app-build-' . $domain . '.log');
+    $iconpath = $job["icon_path"] ?? "";
+    $logfile = $job["log_file"] ?? app_config_path("/logs/app-build-{$domain}.log");
 
     ensureDir(dirname($logfile), 0750);
-    appendAppBuildLog($logfile, 'Starting APP build for ' . $domain . '.');
+    appendAppBuildLog($logfile, "Starting APP build for {$domain}.");
 
-    $source = app_config_path('/app-MoodleMobile-V2');
+    $source = app_config_path("/app-MoodleMobile-V2");
     if (!is_dir($source)) {
-        return failAppBuild($logfile, 'app-MoodleMobile-V2 directory not found.');
+        return failAppBuild($logfile, "app-MoodleMobile-V2 directory not found.");
     }
     if (!is_file($iconpath) || !is_readable($iconpath)) {
-        return failAppBuild($logfile, 'APP icon not found or not readable.');
+        return failAppBuild($logfile, "APP icon not found or not readable.");
     }
 
-    $workroot = app_config_path('/runtime/app-builds/' . $job["id"]);
-    $workdir = $workroot . '/app';
+    $workroot = app_config_path("/runtime/app-builds/{$job["id"]}");
+    $workdir = "{$workroot}/app";
     removeDir($workroot);
     ensureDir($workroot, 0700);
-    copyRecursive($source, $workdir, ['node_modules', 'platforms', 'plugins']);
+    copyRecursive($source, $workdir, ["node_modules", "platforms", "plugins"]);
 
     $resfolder = sanitizePackageUid($job["package_uid"]);
-    $resdir = $workdir . '/res/' . $resfolder;
+    $resdir = "{$workdir}/res/{$resfolder}";
     ensureDir($resdir, 0750);
-    copy($iconpath, $resdir . '/logo.png');
-    chmod($resdir . '/logo.png', 0777);
+    copy($iconpath, "{$resdir}/logo.png");
+    chmod("{$resdir}/logo.png", 0777);
 
     try {
         generateAppImages($resdir, $color, $logfile);
-        updateCordovaConfig($workdir . '/config.xml', $resfolder, $job["package_uid"], $job["package_name"], $color, $version);
-        updateIndexHtml($workdir . '/www/index.html', $job["package_uid"], $job["package_name"], $version, $job["moodle_url"]);
+        updateCordovaConfig("{$workdir}/config.xml", $resfolder, $job["package_uid"], $job["package_name"], $color, $version);
+        updateIndexHtml("{$workdir}/www/index.html", $job["package_uid"], $job["package_name"], $version, $job["moodle_url"]);
         $buildconfig = createAndroidBuildConfig($resfolder, $workdir, $logfile);
 
-        runBuildCommand('npm install --no-audit --fund=false', $workdir, $logfile);
-        runBuildCommand('npx cordova platform remove android || true', $workdir, $logfile);
-        runBuildCommand('npx cordova platform add android@15.0.0', $workdir, $logfile);
-        runBuildCommand('npx cordova requirements android', $workdir, $logfile);
-        runBuildCommand('npx cordova build android --release -- --packageType=apk --buildConfig ' . escapeshellarg($buildconfig), $workdir, $logfile);
-        runBuildCommand('npx cordova build android --release -- --packageType=bundle --buildConfig ' . escapeshellarg($buildconfig), $workdir, $logfile);
+        runBuildCommand("npm install --no-audit --fund=false", $workdir, $logfile);
+        runBuildCommand("npx cordova platform remove android || true", $workdir, $logfile);
+        runBuildCommand("npx cordova platform add android@15.0.0", $workdir, $logfile);
+        runBuildCommand("npx cordova requirements android", $workdir, $logfile);
+        runBuildCommand("npx cordova build android --release -- --packageType=apk --buildConfig " . escapeshellarg($buildconfig), $workdir, $logfile);
+        runBuildCommand("npx cordova build android --release -- --packageType=bundle --buildConfig " . escapeshellarg($buildconfig), $workdir, $logfile);
 
         signReleaseApk($workdir, $resfolder, $logfile);
 
         $artifacts = moveBuildArtifacts($workdir, $domain, $job["package_uid"], $version, $logfile);
-        appendAppBuildLog($logfile, 'Build completed successfully.');
+        appendAppBuildLog($logfile, "Build completed successfully.");
 
         return [
-            'exitcode' => 0,
-            'message' => 'OK',
-            'artifact_files' => $artifacts,
-            'app_version' => $version,
+            "exitcode" => 0,
+            "message" => "OK",
+            "artifact_files" => $artifacts,
+            "app_version" => $version,
         ];
     } catch (Throwable $e) {
         return failAppBuild($logfile, $e->getMessage());
@@ -98,39 +98,39 @@ function executeAppBuildJob(array $job): array {
  * @return void
  */
 function generateAppImages(string $resdir, string $color, string $logfile): void {
-    ensureDir($resdir . '/android', 0750);
-    ensureDir($resdir . '/android-notification', 0750);
-    ensureDir($resdir . '/android-screen', 0750);
+    ensureDir("{$resdir}/android", 0750);
+    ensureDir("{$resdir}/android-notification", 0750);
+    ensureDir("{$resdir}/android-screen", 0750);
 
     $sizes = [512, 192, 144, 96, 72, 48, 36];
     foreach ($sizes as $size) {
-        runImageCommand('magick logo.png -resize ' . $size . 'x' . $size . ' android/' . $size . 'x' . $size . '.png', $resdir, $logfile);
+        runImageCommand("magick logo.png -resize {$size}x{$size} android/{$size}x{$size}.png", $resdir, $logfile);
     }
 
     foreach ([48, 72, 96, 144, 192] as $size) {
-        runImageCommand('magick logo.png -resize ' . $size . 'x' . $size . ' android-notification/' . $size . 'x' . $size . '.png', $resdir, $logfile);
+        runImageCommand("magick logo.png -resize {$size}x{$size} android-notification/{$size}x{$size}.png", $resdir, $logfile);
     }
 
-    runImageCommand('magick logo.png -resize 1024x1024 -background ' . escapeshellarg($color) . ' -gravity center -extent 1024x1024 splash.png', $resdir, $logfile);
-    runImageCommand('magick logo.png -resize 1024x1024 splash-tmp.png', $resdir, $logfile);
-    runImageCommand('magick splash-tmp.png -gravity center -crop 1024x500+0+0 tela-recursos.png', $resdir, $logfile);
-    @unlink($resdir . '/splash-tmp.png');
+    runImageCommand("magick logo.png -resize 1024x1024 -background " . escapeshellarg($color) . " -gravity center -extent 1024x1024 splash.png", $resdir, $logfile);
+    runImageCommand("magick logo.png -resize 1024x1024 splash-tmp.png", $resdir, $logfile);
+    runImageCommand("magick splash-tmp.png -gravity center -crop 1024x500+0+0 tela-recursos.png", $resdir, $logfile);
+    @unlink("{$resdir}/splash-tmp.png");
 
     $screens = [
-        'ldpi' => [320, 200, 320],
-        'hdpi' => [800, 480, 800],
-        'xhdpi' => [1280, 720, 1280],
-        'xxhdpi' => [1600, 960, 1600],
-        'xxxhdpi' => [1920, 1280, 1920],
+        "ldpi" => [320, 200, 320],
+        "hdpi" => [800, 480, 800],
+        "xhdpi" => [1280, 720, 1280],
+        "xxhdpi" => [1600, 960, 1600],
+        "xxxhdpi" => [1920, 1280, 1920],
     ];
     foreach ($screens as $density => $data) {
         [$square, $short, $long] = $data;
-        runImageCommand('magick logo.png -resize ' . $square . 'x' . $square . ' splash-tmp.png', $resdir, $logfile);
-        runImageCommand('magick splash-tmp.png -gravity center -crop ' . $short . 'x' . $long . '+0+0 android-screen/drawable-port-' . $density . '-screen.png', $resdir, $logfile);
-        runImageCommand('magick splash-tmp.png -gravity center -crop ' . $long . 'x' . $short . '+0+0 android-screen/drawable-land-' . $density . '-screen.png', $resdir, $logfile);
-        runImageCommand('magick splash-tmp.png -gravity center -crop ' . $square . 'x' . $square . '+0+0 android-screen/drawable-' . $density . '-screen.png', $resdir, $logfile);
+        runImageCommand("magick logo.png -resize {$square}x{$square} splash-tmp.png", $resdir, $logfile);
+        runImageCommand("magick splash-tmp.png -gravity center -crop {$short}x{$long}" . "+0+0 android-screen/drawable-port-" . "{$density}-screen.png", $resdir, $logfile);
+        runImageCommand("magick splash-tmp.png -gravity center -crop {$long}x{$short}" . "+0+0 android-screen/drawable-land-" . "{$density}-screen.png", $resdir, $logfile);
+        runImageCommand("magick splash-tmp.png -gravity center -crop {$square}x{$square}" . "+0+0 android-screen/drawable-" . "{$density}-screen.png", $resdir, $logfile);
     }
-    @unlink($resdir . '/splash-tmp.png');
+    @unlink("{$resdir}/splash-tmp.png");
 }
 
 /**
@@ -143,54 +143,55 @@ function generateAppImages(string $resdir, string $color, string $logfile): void
  * @param string $color
  * @param string $version
  * @return void
+ * @throws \DOMException
  */
 function updateCordovaConfig(string $configfile, string $resfolder, string $packageuid, string $packagename, string $color, string $version): void {
-    $dom = new DOMDocument('1.0', 'UTF-8');
+    $dom = new DOMDocument("1.0", "UTF-8");
     $dom->preserveWhiteSpace = false;
     $dom->formatOutput = true;
     if (!$dom->load($configfile)) {
-        throw new RuntimeException('Could not read the APP config.xml.');
+        throw new RuntimeException("Could not read the APP config.xml.");
     }
 
     $root = $dom->documentElement;
-    $root->setAttribute('id', $packageuid);
-    $root->setAttribute('android-packageName', $packageuid);
-    $root->setAttribute('version', $version);
+    $root->setAttribute("id", $packageuid);
+    $root->setAttribute("android-packageName", $packageuid);
+    $root->setAttribute("version", $version);
 
-    setElementText($dom, 'name', $packagename);
-    setPreference($dom, 'AppendUserAgent', ' AppMoodleMobileV2/' . $version);
-    setPreference($dom, 'StatusBarBackgroundColor', $color);
-    setPreference($dom, 'SplashScreenBackgroundColor', $color);
-    setPreference($dom, 'AndroidWindowSplashScreenIconBackgroundColor', $color);
+    setElementText($dom, "name", $packagename);
+    setPreference($dom, "AppendUserAgent", " AppMoodleMobileV2/{$version}");
+    setPreference($dom, "StatusBarBackgroundColor", $color);
+    setPreference($dom, "SplashScreenBackgroundColor", $color);
+    setPreference($dom, "AndroidWindowSplashScreenIconBackgroundColor", $color);
 
     $icons = [
-        'ldpi' => '36x36.png',
-        'mdpi' => '48x48.png',
-        'hdpi' => '72x72.png',
-        'xhdpi' => '96x96.png',
-        'xxhdpi' => '144x144.png',
-        'xxxhdpi' => '192x192.png',
+        "ldpi" => "36x36.png",
+        "mdpi" => "48x48.png",
+        "hdpi" => "72x72.png",
+        "xhdpi" => "96x96.png",
+        "xxhdpi" => "144x144.png",
+        "xxxhdpi" => "192x192.png",
     ];
-    foreach ($dom->getElementsByTagName('icon') as $icon) {
-        $density = $icon->getAttribute('density');
+    foreach ($dom->getElementsByTagName("icon") as $icon) {
+        $density = $icon->getAttribute("density");
         if (isset($icons[$density])) {
-            $icon->setAttribute('src', 'res/' . $resfolder . '/android/' . $icons[$density]);
+            $icon->setAttribute("src", "res/{$resfolder}/android/{$icons[$density]}");
         }
     }
 
-    foreach ($dom->getElementsByTagName('splash') as $splash) {
-        $splash->setAttribute('src', 'res/' . $resfolder . '/splash.png');
+    foreach ($dom->getElementsByTagName("splash") as $splash) {
+        $splash->setAttribute("src", "res/{$resfolder}/splash.png");
     }
 
-    foreach ($dom->getElementsByTagName('resource-file') as $resource) {
-        $target = $resource->getAttribute('target');
-        $src = $resource->getAttribute('src');
+    foreach ($dom->getElementsByTagName("resource-file") as $resource) {
+        $target = $resource->getAttribute("target");
+        $src = $resource->getAttribute("src");
         if (preg_match('/ic_stat_onesignal_default\.png$/', $target) && preg_match('/(48|72|96|144|192)x\1\.png$/', $src, $matches)) {
-            $resource->setAttribute('src', 'res/' . $resfolder . '/android-notification/' . $matches[0]);
+            $resource->setAttribute("src", "res/{$resfolder}/android-notification/{$matches[0]}");
             continue;
         }
-        if (str_contains($target, 'ic_menu_share.png')) {
-            $resource->setAttribute('src', preg_replace('#^src/img/#', 'www/img/', $src));
+        if (str_contains($target, "ic_menu_share.png")) {
+            $resource->setAttribute("src", preg_replace('#^src/img/#', "www/img/", $src));
         }
     }
 
@@ -222,16 +223,16 @@ function setElementText(DOMDocument $dom, string $tagname, string $value): void 
  * @throws \DOMException
  */
 function setPreference(DOMDocument $dom, string $name, string $value): void {
-    foreach ($dom->getElementsByTagName('preference') as $pref) {
-        if ($pref->getAttribute('name') === $name) {
-            $pref->setAttribute('value', $value);
+    foreach ($dom->getElementsByTagName("preference") as $pref) {
+        if ($pref->getAttribute("name") === $name) {
+            $pref->setAttribute("value", $value);
             return;
         }
     }
 
-    $pref = $dom->createElement('preference');
-    $pref->setAttribute('name', $name);
-    $pref->setAttribute('value', $value);
+    $pref = $dom->createElement("preference");
+    $pref->setAttribute("name", $name);
+    $pref->setAttribute("value", $value);
     $dom->documentElement->appendChild($pref);
 }
 
@@ -248,7 +249,7 @@ function setPreference(DOMDocument $dom, string $name, string $value): void {
 function updateIndexHtml(string $file, string $packageuid, string $packagename, string $version, string $moodleurl): void {
     $content = file_get_contents($file);
     if ($content === false) {
-        throw new RuntimeException('Could not read www/index.html.');
+        throw new RuntimeException("Could not read www/index.html.");
     }
 
     $content = preg_replace_callback(
@@ -257,13 +258,13 @@ function updateIndexHtml(string $file, string $packageuid, string $packagename, 
         $content,
         1
     );
-    $content = replaceDataAttribute($content, 'data-versao', 'data-package_uid', $packageuid);
-    $content = replaceDataAttribute($content, 'data-versao', 'data-package_name', $packagename);
-    $content = replaceDataAttribute($content, 'data-versao', 'data-wwwroot_web', $moodleurl);
-    $content = replaceElementTextById($content, 'config-package_version', $version);
+    $content = replaceDataAttribute($content, "data-versao", "data-package_uid", $packageuid);
+    $content = replaceDataAttribute($content, "data-versao", "data-package_name", $packagename);
+    $content = replaceDataAttribute($content, "data-versao", "data-wwwroot_web", $moodleurl);
+    $content = replaceElementTextById($content, "config-package_version", $version);
 
     if (file_put_contents($file, $content) === false) {
-        throw new RuntimeException('Could not save www/index.html.');
+        throw new RuntimeException("Could not save www/index.html.");
     }
 }
 
@@ -278,8 +279,8 @@ function updateIndexHtml(string $file, string $packageuid, string $packagename, 
  */
 function replaceDataAttribute(string $content, string $elementid, string $attribute, string $value): string {
     $escapedvalue = htmlSpecialCharsValue($value);
-    $elementidpattern = preg_quote($elementid, '/');
-    $attributepattern = preg_quote($attribute, '/');
+    $elementidpattern = preg_quote($elementid, "/");
+    $attributepattern = preg_quote($attribute, "/");
 
     $pattern = '/(<[^>]*\bid=["\']' . $elementidpattern . '["\'][^>]*\b' . $attributepattern . '\s*=\s*)(["\'])(.*?)(\2)/is';
     $updated = preg_replace_callback(
@@ -291,7 +292,7 @@ function replaceDataAttribute(string $content, string $elementid, string $attrib
     );
 
     if ($updated === null) {
-        throw new RuntimeException('Error updating attribute ' . $attribute . ' in #' . $elementid . '.');
+        throw new RuntimeException("Error updating attribute {$attribute} in #{$elementid}.");
     }
     if ($count > 0) {
         return $updated;
@@ -300,14 +301,14 @@ function replaceDataAttribute(string $content, string $elementid, string $attrib
     $insertpattern = '/(<[^>]*\bid=["\']' . $elementidpattern . '["\'][^>]*)(>)/is';
     $updated = preg_replace_callback(
         $insertpattern,
-        static fn(array $matches): string => rtrim($matches[1]) . ' ' . $attribute . '="' . $escapedvalue . '"' . $matches[2],
+        static fn(array $matches): string => rtrim($matches[1]) . " {$attribute}" . '="' . $escapedvalue . '"' . $matches[2],
         $content,
         1,
         $count
     );
 
     if ($updated === null || $count === 0) {
-        throw new RuntimeException('Element #' . $elementid . ' not found in www/index.html.');
+        throw new RuntimeException("Element #{$elementid} not found in www/index.html.");
     }
 
     return $updated;
@@ -322,7 +323,7 @@ function replaceDataAttribute(string $content, string $elementid, string $attrib
  * @return string
  */
 function replaceElementTextById(string $content, string $elementid, string $value): string {
-    $elementidpattern = preg_quote($elementid, '/');
+    $elementidpattern = preg_quote($elementid, "/");
     $pattern = '/(<([a-z0-9:-]+)\b[^>]*\bid=["\']' . $elementidpattern . '["\'][^>]*>)(.*?)(<\/\2>)/is';
     $updated = preg_replace_callback(
         $pattern,
@@ -333,10 +334,10 @@ function replaceElementTextById(string $content, string $elementid, string $valu
     );
 
     if ($updated === null) {
-        throw new RuntimeException('Error updating text for #' . $elementid . '.');
+        throw new RuntimeException("Error updating text for #{$elementid}.");
     }
     if ($count === 0) {
-        throw new RuntimeException('Element #' . $elementid . ' not found in www/index.html.');
+        throw new RuntimeException("Element #{$elementid} not found in www/index.html.");
     }
 
     return $updated;
@@ -349,7 +350,7 @@ function replaceElementTextById(string $content, string $elementid, string $valu
  * @return string
  */
 function htmlSpecialCharsValue(string $value): string {
-    return htmlspecialchars($value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+    return htmlspecialchars($value, ENT_QUOTES | ENT_SUBSTITUTE, "UTF-8");
 }
 
 /**
@@ -361,21 +362,21 @@ function htmlSpecialCharsValue(string $value): string {
  * @return string
  */
 function createAndroidBuildConfig(string $resfolder, string $workdir, string $logfile): string {
-    $keydir = $workdir . '/res/' . $resfolder . '/key-android';
-    $keystore = $keydir . '/keystore';
-    $passfile = $keydir . '/keystore.txt';
-    $buildconfig = $keydir . '/build.json';
+    $keydir = "{$workdir}/res/{$resfolder}/key-android";
+    $keystore = "{$keydir}/keystore";
+    $passfile = "{$keydir}/keystore.txt";
+    $buildconfig = "{$keydir}/build.json";
 
     if (!is_file($keystore) || !is_readable($keystore)) {
-        throw new RuntimeException('Android keystore not found at res/' . $resfolder . '/key-android/keystore.');
+        throw new RuntimeException("Android keystore not found at res/{$resfolder}/key-android/keystore.");
     }
     if (!is_file($passfile) || !is_readable($passfile)) {
-        throw new RuntimeException('Android keystore password not found at res/' . $resfolder . '/key-android/keystore.txt.');
+        throw new RuntimeException("Android keystore password not found at res/{$resfolder}/key-android/keystore.txt.");
     }
 
     $password = trim((string) file_get_contents($passfile));
-    if ($password === '') {
-        throw new RuntimeException('The keystore.txt file is empty.');
+    if ($password === "") {
+        throw new RuntimeException("The keystore.txt file is empty.");
     }
 
     file_put_contents(
@@ -383,7 +384,7 @@ function createAndroidBuildConfig(string $resfolder, string $workdir, string $lo
         json_encode(AppManager::androidBuildConfig($keystore, $password), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . PHP_EOL
     );
     chmod($buildconfig, 0600);
-    appendAppBuildLog($logfile, 'Android build config prepared at ' . $buildconfig . '.');
+    appendAppBuildLog($logfile, "Android build config prepared at {$buildconfig}.");
 
     return $buildconfig;
 }
@@ -399,35 +400,35 @@ function createAndroidBuildConfig(string $resfolder, string $workdir, string $lo
  * @return array
  */
 function moveBuildArtifacts(string $workdir, string $domain, string $packageuid, string $version, string $logfile): array {
-    $apkdir = $workdir . '/platforms/android/app/build/outputs/apk/release';
-    $apk = newestFile($apkdir . '/*-signed.apk')
-        ?? newestFile($apkdir . '/*-release.apk')
-        ?? newestFile($apkdir . '/*.apk');
-    $aab = newestFile($workdir . '/platforms/android/app/build/outputs/bundle/release/*.aab');
+    $apkdir = "{$workdir}/platforms/android/app/build/outputs/apk/release";
+    $apk = newestFile("{$apkdir}/*-signed.apk")
+        ?? newestFile("{$apkdir}/*-release.apk")
+        ?? newestFile("{$apkdir}/*.apk");
+    $aab = newestFile("{$workdir}/platforms/android/app/build/outputs/bundle/release/*.aab");
 
     if ($apk === null) {
-        throw new RuntimeException('APK not found after the build.');
+        throw new RuntimeException("APK not found after the build.");
     }
-    if (str_contains(basename($apk), 'unsigned')) {
-        throw new RuntimeException('Only unsigned APK was found after the build: ' . $apk);
+    if (str_contains(basename($apk), "unsigned")) {
+        throw new RuntimeException("Only unsigned APK was found after the build: {$apk}");
     }
     if ($aab === null) {
-        throw new RuntimeException('AAB not found after the build.');
+        throw new RuntimeException("AAB not found after the build.");
     }
 
     $destdir = AppManager::storageDir($domain);
     ensureDir($destdir, 0750);
-    $basename = preg_replace('/[^a-z0-9_.-]+/i', '_', $packageuid . '.' . $version);
-    $apkdest = $destdir . '/' . $basename . '.apk';
-    $aabdest = $destdir . '/' . $basename . '.aab';
+    $basename = preg_replace('/[^a-z0-9_.-]+/i', "_", "{$packageuid}.{$version}");
+    $apkdest = "{$destdir}/{$basename}.apk";
+    $aabdest = "{$destdir}/{$basename}.aab";
 
     copy($apk, $apkdest);
     copy($aab, $aabdest);
     chmod($apkdest, 0777);
     chmod($aabdest, 0777);
 
-    appendAppBuildLog($logfile, 'APK moved to ' . $apkdest . '.');
-    appendAppBuildLog($logfile, 'AAB moved to ' . $aabdest . '.');
+    appendAppBuildLog($logfile, "APK moved to {$apkdest}.");
+    appendAppBuildLog($logfile, "AAB moved to {$aabdest}.");
 
     return [basename($apkdest), basename($aabdest)];
 }
@@ -441,66 +442,66 @@ function moveBuildArtifacts(string $workdir, string $domain, string $packageuid,
  * @return void
  */
 function signReleaseApk(string $workdir, string $resfolder, string $logfile): void {
-    $apkdir = $workdir . '/platforms/android/app/build/outputs/apk/release';
-    $unsignedapk = newestFile($apkdir . '/*-unsigned.apk');
-    $signedapk = $apkdir . '/app-release-signed.apk';
+    $apkdir = "{$workdir}/platforms/android/app/build/outputs/apk/release";
+    $unsignedapk = newestFile("{$apkdir}/*-unsigned.apk");
+    $signedapk = "{$apkdir}/app-release-signed.apk";
 
     if ($unsignedapk === null) {
-        $candidate = newestFile($apkdir . '/*-signed.apk') ?? newestFile($apkdir . '/*-release.apk');
+        $candidate = newestFile("{$apkdir}/*-signed.apk") ?? newestFile("{$apkdir}/*-release.apk");
         if ($candidate !== null && verifyApkSignature($candidate, $workdir, $logfile)) {
-            appendAppBuildLog($logfile, 'APK already signed: ' . $candidate . '.');
+            appendAppBuildLog($logfile, "APK already signed: {$candidate}.");
             return;
         }
-        throw new RuntimeException('Unsigned APK not found and no signed APK could be verified.');
+        throw new RuntimeException("Unsigned APK not found and no signed APK could be verified.");
     }
 
-    $keydir = $workdir . '/res/' . $resfolder . '/key-android';
-    $keystore = $keydir . '/keystore';
-    $passfile = $keydir . '/keystore.txt';
+    $keydir = "{$workdir}/res/{$resfolder}/key-android";
+    $keystore = "{$keydir}/keystore";
+    $passfile = "{$keydir}/keystore.txt";
     if (!is_file($keystore) || !is_readable($keystore)) {
-        throw new RuntimeException('Android keystore not found for APK signing.');
+        throw new RuntimeException("Android keystore not found for APK signing.");
     }
     if (!is_file($passfile) || !is_readable($passfile)) {
-        throw new RuntimeException('Android keystore password not found for APK signing.');
+        throw new RuntimeException("Android keystore password not found for APK signing.");
     }
 
     $password = trim((string) file_get_contents($passfile));
-    if ($password === '') {
-        throw new RuntimeException('The keystore.txt file is empty.');
+    if ($password === "") {
+        throw new RuntimeException("The keystore.txt file is empty.");
     }
 
-    $zipalign = findAndroidBuildTool('zipalign');
-    $apksigner = findAndroidBuildTool('apksigner');
-    $alignedapk = $apkdir . '/app-release-aligned.apk';
+    $zipalign = findAndroidBuildTool("zipalign");
+    $apksigner = findAndroidBuildTool("apksigner");
+    $alignedapk = "{$apkdir}/app-release-aligned.apk";
 
     @unlink($alignedapk);
     @unlink($signedapk);
 
     runBuildCommand(
-        escapeshellarg($zipalign) . ' -f -p 4 ' . escapeshellarg($unsignedapk) . ' ' . escapeshellarg($alignedapk),
+        escapeshellarg($zipalign) . " -f -p 4 " . escapeshellarg($unsignedapk) . " " . escapeshellarg($alignedapk),
         $workdir,
         $logfile
     );
 
     runBuildCommand(
         escapeshellarg($apksigner) .
-            ' sign' .
-            ' --ks ' . escapeshellarg($keystore) .
-            ' --ks-type PKCS12' .
-            ' --ks-key-alias ' . escapeshellarg('app') .
-            ' --ks-pass ' . escapeshellarg('pass:' . $password) .
-            ' --key-pass ' . escapeshellarg('pass:' . $password) .
-            ' --out ' . escapeshellarg($signedapk) .
-            ' ' . escapeshellarg($alignedapk),
+            " sign" .
+            " --ks " . escapeshellarg($keystore) .
+            " --ks-type PKCS12" .
+            " --ks-key-alias " . escapeshellarg("app") .
+            " --ks-pass " . escapeshellarg("pass:{$password}") .
+            " --key-pass " . escapeshellarg("pass:{$password}") .
+            " --out " . escapeshellarg($signedapk) .
+            " " . escapeshellarg($alignedapk),
         $workdir,
         $logfile
     );
 
     if (!verifyApkSignature($signedapk, $workdir, $logfile)) {
-        throw new RuntimeException('Signed APK verification failed: ' . $signedapk);
+        throw new RuntimeException("Signed APK verification failed: {$signedapk}");
     }
 
-    appendAppBuildLog($logfile, 'Signed APK prepared at ' . $signedapk . '.');
+    appendAppBuildLog($logfile, "Signed APK prepared at {$signedapk}.");
 }
 
 /**
@@ -516,13 +517,13 @@ function verifyApkSignature(string $apk, string $workdir, string $logfile): bool
         return false;
     }
 
-    $apksigner = findAndroidBuildTool('apksigner');
-    appendAppBuildLog($logfile, '$ ' . escapeshellarg($apksigner) . ' verify --verbose --print-certs ' . escapeshellarg($apk));
+    $apksigner = findAndroidBuildTool("apksigner");
+    appendAppBuildLog($logfile, '$ ' . escapeshellarg($apksigner) . " verify --verbose --print-certs " . escapeshellarg($apk));
 
-    $script = 'cd ' . escapeshellarg($workdir) . ' && ' .
-        escapeshellarg($apksigner) . ' verify --verbose --print-certs ' . escapeshellarg($apk) .
-        ' >> ' . escapeshellarg($logfile) . ' 2>&1';
-    exec('/usr/bin/env bash -lc ' . escapeshellarg($script), $output, $exitcode);
+    $script = "cd " . escapeshellarg($workdir) . " && " .
+        escapeshellarg($apksigner) . " verify --verbose --print-certs " . escapeshellarg($apk) .
+        " >> " . escapeshellarg($logfile) . " 2>&1";
+    exec("/usr/bin/env bash -lc " . escapeshellarg($script), $output, $exitcode);
     return $exitcode === 0;
 }
 
@@ -534,14 +535,14 @@ function verifyApkSignature(string $apk, string $workdir, string $logfile): bool
  */
 function findAndroidBuildTool(string $tool): string {
     $sdkroots = array_filter([
-        getenv('ANDROID_HOME') ?: '',
-        getenv('ANDROID_SDK_ROOT') ?: '',
-        '/root/Android/Sdk',
-        '/opt/android-sdk',
+        getenv("ANDROID_HOME") ?: "",
+        getenv("ANDROID_SDK_ROOT") ?: "",
+        "/root/Android/Sdk",
+        "/opt/android-sdk",
     ]);
 
     foreach ($sdkroots as $sdkroot) {
-        $matches = glob(rtrim($sdkroot, '/') . '/build-tools/*/' . $tool) ?: [];
+        $matches = glob(rtrim($sdkroot, "/") . "/build-tools/*/{$tool}") ?: [];
         usort($matches, static function(string $a, string $b): int {
             return version_compare(basename(dirname($b)), basename(dirname($a)));
         });
@@ -552,12 +553,12 @@ function findAndroidBuildTool(string $tool): string {
         }
     }
 
-    $command = trim((string) shell_exec('command -v ' . escapeshellarg($tool) . ' 2>/dev/null'));
-    if ($command !== '' && is_executable($command)) {
+    $command = trim((string) shell_exec("command -v " . escapeshellarg($tool) . " 2>/dev/null"));
+    if ($command !== "" && is_executable($command)) {
         return $command;
     }
 
-    throw new RuntimeException('Android build tool not found: ' . $tool . '. Install Android SDK build-tools.');
+    throw new RuntimeException("Android build tool not found: {$tool}" . ". Install Android SDK build-tools.");
 }
 
 /**
@@ -610,15 +611,15 @@ function runBuildCommand(string $command, string $cwd, string $logfile): void {
  */
 function runCommand(string $command, string $cwd, string $logfile, bool $withjava): void {
     appendAppBuildLog($logfile, '$ ' . $command);
-    $env = 'export npm_config_unsafe_perm=true; ';
+    $env = "export npm_config_unsafe_perm=true; ";
     if ($withjava) {
         $env .= 'if command -v javac >/dev/null 2>&1; then export JAVA_HOME="$(dirname "$(dirname "$(readlink -f "$(command -v javac)")")")"; export CORDOVA_JAVA_HOME="$JAVA_HOME"; export PATH="$JAVA_HOME/bin:$PATH"; fi; ';
     }
 
-    $script = 'cd ' . escapeshellarg($cwd) . ' && ' . $env . $command . ' >> ' . escapeshellarg($logfile) . ' 2>&1';
-    exec('/usr/bin/env bash -lc ' . escapeshellarg($script), $output, $exitcode);
+    $script = "cd " . escapeshellarg($cwd) . " && {$env}{$command} >> " . escapeshellarg($logfile) . " 2>&1";
+    exec("/usr/bin/env bash -lc " . escapeshellarg($script), $output, $exitcode);
     if ($exitcode !== 0) {
-        throw new RuntimeException('Command failed with code ' . $exitcode . ': ' . $command . '. See the log: ' . $logfile);
+        throw new RuntimeException("Command failed with code {$exitcode}: {$command}. See the log: {$logfile}");
     }
 }
 
@@ -631,7 +632,7 @@ function runCommand(string $command, string $cwd, string $logfile, bool $withjav
  */
 function appendAppBuildLog(string $logfile, string $message): void {
     ensureDir(dirname($logfile), 0750);
-    file_put_contents($logfile, '[' . date('Y-m-d H:i:s') . '] ' . $message . PHP_EOL, FILE_APPEND | LOCK_EX);
+    file_put_contents($logfile, "[" . date("Y-m-d H:i:s") . "] {$message}" . PHP_EOL, FILE_APPEND | LOCK_EX);
 }
 
 /**
@@ -642,12 +643,12 @@ function appendAppBuildLog(string $logfile, string $message): void {
  * @return array
  */
 function failAppBuild(string $logfile, string $message): array {
-    appendAppBuildLog($logfile, 'ERROR: ' . $message);
+    appendAppBuildLog($logfile, "ERROR: {$message}");
     return [
-        'exitcode' => 1,
-        'message' => $message,
-        'artifact_files' => [],
-        'app_version' => AppManager::appVersion(),
+        "exitcode" => 1,
+        "message" => $message,
+        "artifact_files" => [],
+        "app_version" => AppManager::appVersion(),
     ];
 }
 
@@ -661,7 +662,7 @@ function failAppBuild(string $logfile, string $message): array {
  */
 function copyRecursive(string $source, string $dest, array $skipnames = []): void {
     ensureDir($dest, 0750);
-    $source = rtrim($source, '/');
+    $source = rtrim($source, "/");
     $iterator = new RecursiveIteratorIterator(
         new RecursiveDirectoryIterator($source, FilesystemIterator::SKIP_DOTS),
         RecursiveIteratorIterator::SELF_FIRST
@@ -674,7 +675,7 @@ function copyRecursive(string $source, string $dest, array $skipnames = []): voi
         if (array_intersect($parts, $skipnames)) {
             continue;
         }
-        $target = $dest . '/' . $relative;
+        $target = "{$dest}/{$relative}";
 
         if ($item->isDir()) {
             ensureDir($target, 0750);
@@ -732,8 +733,8 @@ function ensureDir(string $dir, int $mode): void {
  */
 function sanitizePackageUid(string $packageuid): string {
     $packageuid = strtolower(trim($packageuid));
-    $packageuid = preg_replace('/[^a-z0-9_.]+/', '_', $packageuid);
-    return trim($packageuid, '._');
+    $packageuid = preg_replace('/[^a-z0-9_.]+/', "_", $packageuid);
+    return trim($packageuid, "._");
 }
 
 /**
@@ -744,6 +745,6 @@ function sanitizePackageUid(string $packageuid): string {
  */
 function sanitizeDomain(string $domain): string {
     $domain = strtolower(trim($domain));
-    $domain = preg_replace('/[^a-z0-9.-]+/', '-', $domain);
-    return trim($domain, '.-');
+    $domain = preg_replace('/[^a-z0-9.-]+/', "-", $domain);
+    return trim($domain, ".-");
 }

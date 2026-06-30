@@ -6,7 +6,7 @@ namespace app;
  * Class MoodleBranchProvider
  */
 class MoodleBranchProvider {
-    private const string GITHUB_BRANCHES_URL = 'https://api.github.com/repos/moodle/moodle/branches';
+    private const string GITHUB_BRANCHES_URL = "https://api.github.com/repos/moodle/moodle/branches";
 
     /**
      * Function getInstallBranches
@@ -29,9 +29,9 @@ class MoodleBranchProvider {
             }
 
             $branches[$branchname] = [
-                'name' => $branchname,
-                'label' => $branchname,
-                'version' => $version,
+                "name" => $branchname,
+                "label" => $branchname,
+                "version" => $version,
             ];
         }
 
@@ -49,7 +49,7 @@ class MoodleBranchProvider {
         $branchnames = [];
 
         for ($page = 1; $page <= 10; $page++) {
-            $payload = self::fetchUrl(self::GITHUB_BRANCHES_URL . '?per_page=100&page=' . $page);
+            $payload = self::fetchUrl(self::GITHUB_BRANCHES_URL . "?per_page=100&page={$page}");
             if ($payload == null) {
                 break;
             }
@@ -80,7 +80,7 @@ class MoodleBranchProvider {
      * @return string|null
      */
     private static function fetchUrl(string $url): ?string {
-        if (function_exists('curl_init')) {
+        if (function_exists("curl_init")) {
             $curl = curl_init($url);
             curl_setopt_array($curl, [
                 CURLOPT_RETURNTRANSFER => true,
@@ -88,8 +88,8 @@ class MoodleBranchProvider {
                 CURLOPT_CONNECTTIMEOUT => 5,
                 CURLOPT_TIMEOUT => 10,
                 CURLOPT_HTTPHEADER => [
-                    'Accept: application/vnd.github+json',
-                    'User-Agent: Moodle-Admin',
+                    "Accept: application/vnd.github+json",
+                    "User-Agent: Moodle-Admin",
                 ],
             ]);
 
@@ -97,7 +97,7 @@ class MoodleBranchProvider {
             $statuscode = curl_getinfo($curl, CURLINFO_RESPONSE_CODE);
             curl_close($curl);
 
-            if (is_string($response) && $response != '' && $statuscode >= 200 && $statuscode < 300) {
+            if (is_string($response) && $response != "" && $statuscode >= 200 && $statuscode < 300) {
                 return $response;
             }
 
@@ -105,17 +105,17 @@ class MoodleBranchProvider {
         }
 
         $context = stream_context_create([
-            'http' => [
-                'method' => 'GET',
-                'timeout' => 10,
-                'header' => implode("\r\n", [
-                    'Accept: application/vnd.github+json',
-                    'User-Agent: Moodle-Admin',
+            "http" => [
+                "method" => "GET",
+                "timeout" => 10,
+                "header" => implode("\r\n", [
+                    "Accept: application/vnd.github+json",
+                    "User-Agent: Moodle-Admin",
                 ]),
             ],
         ]);
 
         $response = @file_get_contents($url, false, $context);
-        return is_string($response) && $response != '' ? $response : null;
+        return is_string($response) && $response != "" ? $response : null;
     }
 }

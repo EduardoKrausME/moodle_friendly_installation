@@ -60,13 +60,13 @@ function runInstallMoodleQueueJob(array $job): void {
  */
 function domainHasDnsRecord(string $domain): bool {
     $domain = trim($domain);
-    if ($domain === '') {
+    if ($domain === "") {
         return false;
     }
-    if (!function_exists('checkdnsrr')) {
+    if (!function_exists("checkdnsrr")) {
         return true;
     }
-    return checkdnsrr($domain, 'A') || checkdnsrr($domain, 'AAAA');
+    return checkdnsrr($domain, "A") || checkdnsrr($domain, "AAAA");
 }
 
 /**
@@ -77,16 +77,16 @@ function domainHasDnsRecord(string $domain): bool {
  * @param string $level
  * @return void
  */
-function appendJobLog(array $job, string $message, string $level = 'info'): void {
-    $domain = $job["domain"] ?? 'domain';
+function appendJobLog(array $job, string $message, string $level = "info"): void {
+    $domain = $job["domain"] ?? "domain";
     $logfile = $job["log_file"] ?? (app_config_path("/logs/install-{$domain}.log"));
     if (!is_dir(dirname($logfile))) {
         mkdir(dirname($logfile), 0750, true);
     }
 
-    $line = '[' . date('Y-m-d H:i:s') . '] ' . $message;
-    if ($level === 'danger') {
-        $line = '<span class="log-danger">' . htmlspecialchars($line, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') . '</span>';
+    $line = "[" . date("Y-m-d H:i:s") . "] {$message}";
+    if ($level === "danger") {
+        $line = '<span class="log-danger">' . htmlspecialchars($line, ENT_QUOTES | ENT_SUBSTITUTE, "UTF-8") . '</span>';
     }
     file_put_contents($logfile, "{$line}\n", FILE_APPEND | LOCK_EX);
 }
@@ -101,9 +101,9 @@ function apacheConfPath(string $domain): string {
     $os = detectOperatingSystem();
 
     return match ($os) {
-        'debian' => "/etc/apache2/sites-enabled/{$domain}.conf",
-        'redhat' => "/etc/httpd/sites-enabled/{$domain}.conf",
-        default => is_dir('/etc/apache2/sites-enabled')
+        "debian" => "/etc/apache2/sites-enabled/{$domain}.conf",
+        "redhat" => "/etc/httpd/sites-enabled/{$domain}.conf",
+        default => is_dir("/etc/apache2/sites-enabled")
             ? "/etc/apache2/sites-enabled/{$domain}.conf"
             : "/etc/httpd/sites-enabled/{$domain}.conf",
     };
@@ -116,19 +116,19 @@ function apacheConfPath(string $domain): string {
  */
 function detectOperatingSystem(): string {
     $release = readOsRelease();
-    $id = strtolower($release["ID"] ?? '');
-    $idlike = strtolower($release["ID_LIKE"] ?? '');
+    $id = strtolower($release["ID"] ?? "");
+    $idlike = strtolower($release["ID_LIKE"] ?? "");
     $tokens = preg_split('/\s+/', trim("{$id} {$idlike}")) ?: [];
 
-    if (array_intersect($tokens, ['debian', 'ubuntu'])) {
-        return 'debian';
+    if (array_intersect($tokens, ["debian", "ubuntu"])) {
+        return "debian";
     }
 
-    if (array_intersect($tokens, ['rhel', 'fedora', 'centos', 'rocky', 'almalinux'])) {
-        return 'redhat';
+    if (array_intersect($tokens, ["rhel", "fedora", "centos", "rocky", "almalinux"])) {
+        return "redhat";
     }
 
-    return 'unknown';
+    return "unknown";
 }
 
 /**
@@ -137,7 +137,7 @@ function detectOperatingSystem(): string {
  * @return array
  */
 function readOsRelease(): array {
-    $files = ['/etc/os-release', '/usr/lib/os-release'];
+    $files = ["/etc/os-release", "/usr/lib/os-release"];
 
     foreach ($files as $file) {
         if (is_readable($file)) {
@@ -204,14 +204,9 @@ function executeInstallJob(array $job, string $mode = "install"): array {
         "BASE_DIR" => $base,
     ]);
 
-    $dbengine = strtolower((string) (app_config("db_engine") ?: "mysql"));
-    $configtemplatefile = match ($dbengine) {
-        "mariadb" => "/templates/config-mariadb.php",
-        "mysql", "mysqli" => "/templates/config-mysqli.php",
-        default => throw new RuntimeException("Invalid database engine configured: {$dbengine}. Use mariadb or mysql."),
-    };
-
-    $configTemplate = renderTemplateFile(app_config_path($configtemplatefile), [
+    $dbengine = strtolower(app_config("db_engine") ?: "mysql");
+    $configTemplate = renderTemplateFile(app_config_path("/templates/config-mysqli.php"), [
+        "DB_ENGINE"=>$dbengine,
         "DB_NAME" => $dbname,
         "DB_USER" => $dbuser,
         "DB_PASS" => $dbpass,
@@ -406,5 +401,5 @@ function createMysqlDatabaseAndUser(string $dbname, string $dbuser, string $dbpa
  * @return string
  */
 function quoteMysqlIdentifier(string $identifier): string {
-    return '`' . str_replace('`', '``', $identifier) . '`';
+    return "`" . str_replace("`", "``", $identifier) . "`";
 }

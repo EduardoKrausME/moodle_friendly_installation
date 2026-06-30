@@ -8,7 +8,7 @@ use RuntimeException;
  * Class AppManager
  */
 class AppManager {
-    private const string ICON_FILENAME = 'logo.png';
+    private const string ICON_FILENAME = "logo.png";
 
     /**
      * Function getSettings
@@ -19,13 +19,13 @@ class AppManager {
     public static function getSettings(array $site): array {
         $domain = self::siteDomain($site);
         $defaults = [
-            'domain' => $domain,
-            'package_uid' => self::defaultPackageUid($domain),
-            'package_name' => self::defaultPackageName($site),
-            'statusbarbackgroundcolor' => '#08422a',
-            'icon_path' => '',
-            'updated_at' => '',
-            'updated_by' => '',
+            "domain" => $domain,
+            "package_uid" => self::defaultPackageUid($domain),
+            "package_name" => self::defaultPackageName($site),
+            "statusbarbackgroundcolor" => "#08422a",
+            "icon_path" => "",
+            "updated_at" => "",
+            "updated_by" => "",
         ];
 
         $settingsfile = self::settingsFile($domain);
@@ -45,7 +45,7 @@ class AppManager {
             $settings["statusbarbackgroundcolor"] = $defaults["statusbarbackgroundcolor"];
         }
 
-        $packageuid =$settings["package_uid"];
+        $packageuid = $settings["package_uid"];
         $settings["package_uid_locked"] = self::isPackageUidLocked($domain);
         $settings["resource_dir"] = self::resourceDir($packageuid);
         $settings["icon_path"] = self::iconPath($packageuid);
@@ -67,44 +67,44 @@ class AppManager {
     public static function validateSettings(array $input, string $domain, ?array $current = null): array {
         $errors = [];
         $locked = !empty($current["package_uid_locked"]);
-        $currentpackageuid = $current["package_uid"] ?? '';
+        $currentpackageuid = $current["package_uid"] ?? "";
 
-        $postedpackageuid = strtolower($input["package_uid"] ?? '');
-        if ($postedpackageuid == '') {
-            $postedpackageuid = $currentpackageuid != '' ? $currentpackageuid : self::defaultPackageUid($domain);
+        $postedpackageuid = strtolower($input["package_uid"] ?? "");
+        if ($postedpackageuid == "") {
+            $postedpackageuid = $currentpackageuid != "" ? $currentpackageuid : self::defaultPackageUid($domain);
         }
 
         $packageuid = self::normalizePackageUid($postedpackageuid);
-        if ($locked && $currentpackageuid != '') {
+        if ($locked && $currentpackageuid != "") {
             if ($packageuid != $currentpackageuid) {
-                $errors["package_uid"] = I18n::get('validation.package_uid_locked', ['value' => $currentpackageuid]);
+                $errors["package_uid"] = I18n::get("validation.package_uid_locked", ["value" => $currentpackageuid]);
             }
             $packageuid = $currentpackageuid;
         }
 
         if (!preg_match('/^[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*)+$/', $packageuid)) {
-            $errors["package_uid"] = I18n::get('validation.package_uid_invalid');
+            $errors["package_uid"] = I18n::get("validation.package_uid_invalid");
         }
 
-        $packagename = $input["package_name"] ?? '';
-        if ($packagename == '') {
-            $errors["package_name"] = I18n::get('validation.package_name_required');
+        $packagename = $input["package_name"] ?? "";
+        if ($packagename == "") {
+            $errors["package_name"] = I18n::get("validation.package_name_required");
         } else if (mb_strlen($packagename) > 80) {
-            $errors["package_name"] = I18n::get('validation.package_name_too_long');
+            $errors["package_name"] = I18n::get("validation.package_name_too_long");
         }
 
-        $color = strtoupper($input["statusbarbackgroundcolor"] ?? '');
+        $color = strtoupper($input["statusbarbackgroundcolor"] ?? "");
         if (!preg_match('/^#[0-9A-F]{6}$/', $color)) {
-            $errors["statusbarbackgroundcolor"] = I18n::get('validation.color_invalid');
+            $errors["statusbarbackgroundcolor"] = I18n::get("validation.color_invalid");
         }
 
         return [
-            'valid' => empty($errors),
-            'errors' => $errors,
-            'data' => [
-                'package_uid' => $packageuid,
-                'package_name' => $packagename,
-                'statusbarbackgroundcolor' => $color,
+            "valid" => empty($errors),
+            "errors" => $errors,
+            "data" => [
+                "package_uid" => $packageuid,
+                "package_name" => $packagename,
+                "statusbarbackgroundcolor" => $color,
             ],
         ];
     }
@@ -119,43 +119,43 @@ class AppManager {
     public static function validateIconUpload(?array $file, bool $required): array {
         if (empty($file) || !isset($file["error"]) || $file["error"] == UPLOAD_ERR_NO_FILE) {
             return [
-                'valid' => !$required,
-                'error' => $required ? I18n::get('validation.icon_required') : '',
+                "valid" => !$required,
+                "error" => $required ? I18n::get("validation.icon_required") : "",
             ];
         }
 
         if ($file["error"] != UPLOAD_ERR_OK) {
             return [
-                'valid' => false,
-                'error' => I18n::get('validation.upload_failed'),
+                "valid" => false,
+                "error" => I18n::get("validation.upload_failed"),
             ];
         }
 
-        $tmp = $file["tmp_name"] ?? '';
-        if ($tmp == '' || !is_uploaded_file($tmp)) {
+        $tmp = $file["tmp_name"] ?? "";
+        if ($tmp == "" || !is_uploaded_file($tmp)) {
             return [
-                'valid' => false,
-                'error' => I18n::get('validation.upload_invalid'),
+                "valid" => false,
+                "error" => I18n::get("validation.upload_invalid"),
             ];
         }
 
         $info = @getimagesize($tmp);
-        if (!$info || $info[0]  != 1024 || $info[1] != 1024) {
+        if (!$info || $info[0] != 1024 || $info[1] != 1024) {
             return [
-                'valid' => false,
-                'error' => I18n::get('validation.icon_size'),
+                "valid" => false,
+                "error" => I18n::get("validation.icon_size"),
             ];
         }
 
-        $mime = $info["mime"] ?? '';
-        if ($mime != 'image/png') {
+        $mime = $info["mime"] ?? "";
+        if ($mime != "image/png") {
             return [
-                'valid' => false,
-                'error' => I18n::get('validation.icon_png'),
+                "valid" => false,
+                "error" => I18n::get("validation.icon_png"),
             ];
         }
 
-        return ['valid' => true, 'error' => ''];
+        return ["valid" => true, "error" => ""];
     }
 
     /**
@@ -167,27 +167,27 @@ class AppManager {
      */
     public static function validateKeystorePassword(?string $password, bool $required): array {
         $password = trim($password);
-        if (!$required && $password == '') {
-            return ['valid' => true, 'error' => '', 'password' => ''];
+        if (!$required && $password == "") {
+            return ["valid" => true, "error" => "", "password" => ""];
         }
 
-        if ($password == '') {
+        if ($password == "") {
             return [
-                'valid' => false,
-                'error' => I18n::get('validation.keystore_password_required'),
-                'password' => '',
+                "valid" => false,
+                "error" => I18n::get("validation.keystore_password_required"),
+                "password" => "",
             ];
         }
 
         if (strlen($password) < 6) {
             return [
-                'valid' => false,
-                'error' => I18n::get('validation.keystore_password_short'),
-                'password' => '',
+                "valid" => false,
+                "error" => I18n::get("validation.keystore_password_short"),
+                "password" => "",
             ];
         }
 
-        return ['valid' => true, 'error' => '', 'password' => $password];
+        return ["valid" => true, "error" => "", "password" => $password];
     }
 
     /**
@@ -207,18 +207,18 @@ class AppManager {
         }
 
         if (!empty($current["package_uid"])) {
-            $data["package_uid"] =$current["package_uid"];
+            $data["package_uid"] = $current["package_uid"];
         }
 
         $settings = array_merge($current, $data);
-        $packageuid =$settings["package_uid"];
+        $packageuid = $settings["package_uid"];
         self::ensureResourceRootWritable();
         self::ensureDir(self::resourceDir($packageuid), 0750);
 
         if (!empty($iconfile) && isset($iconfile["error"]) && $iconfile["error"] == UPLOAD_ERR_OK) {
             $dest = self::iconPath($packageuid);
             if (!move_uploaded_file($iconfile["tmp_name"], $dest)) {
-                throw new RuntimeException(I18n::get('app_errors.icon_save_failed'));
+                throw new RuntimeException(I18n::get("app_errors.icon_save_failed"));
             }
             chmod($dest, 0640);
         }
@@ -231,7 +231,7 @@ class AppManager {
             $settings["package_uid_locked_at"] = now_iso();
         }
         $settings["updated_at"] = now_iso();
-        $settings["updated_by"] = Auth::user()["username"] ?? 'system';
+        $settings["updated_by"] = Auth::user()["username"] ?? "system";
 
         JsonStorage::write(self::settingsFile($domain), $settings);
 
@@ -256,13 +256,13 @@ class AppManager {
         $keydir = self::androidKeyDir($packageuid);
         self::ensureDir($keydir, 0700);
 
-        $keystore = $keydir . '/keystore';
-        $passfile = $keydir . '/keystore.txt';
-        $buildjson = $keydir . '/build.json';
+        $keystore = "{$keydir}/keystore";
+        $passfile = "{$keydir}/keystore.txt";
+        $buildjson = "{$keydir}/build.json";
 
-        if ($password == null || $password == '') {
+        if ($password == null || $password == "") {
             if (!is_file($passfile) || !is_readable($passfile)) {
-                throw new RuntimeException(I18n::get('app_errors.keystore_password_missing'));
+                throw new RuntimeException(I18n::get("app_errors.keystore_password_missing"));
             }
             $password = trim(file_get_contents($passfile));
         }
@@ -271,7 +271,7 @@ class AppManager {
         if (!$validation["valid"]) {
             throw new RuntimeException($validation["error"]);
         }
-        $password =$validation["password"];
+        $password = $validation["password"];
 
         $mustgeneratekeystore = !is_file($keystore);
         if (!is_file($passfile)) {
@@ -290,7 +290,8 @@ class AppManager {
 
         file_put_contents(
             $buildjson,
-            json_encode(self::androidBuildConfig('key-android/keystore', $password), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . PHP_EOL,
+            json_encode(self::androidBuildConfig("key-android/keystore", $password), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) .
+            PHP_EOL,
             LOCK_EX
         );
         chmod($buildjson, 0600);
@@ -305,13 +306,13 @@ class AppManager {
      */
     public static function androidBuildConfig(string $keystore, string $password): array {
         return [
-            'android' => [
-                'release' => [
-                    'keystore' => $keystore,
-                    'storePassword' => $password,
-                    'alias' => 'app',
-                    'password' => $password,
-                    'keystoreType' => 'pkcs12',
+            "android" => [
+                "release" => [
+                    "keystore" => $keystore,
+                    "storePassword" => $password,
+                    "alias" => "app",
+                    "password" => $password,
+                    "keystoreType" => "pkcs12",
                 ],
             ],
         ];
@@ -326,38 +327,38 @@ class AppManager {
      */
     public static function buildReadiness(array $settings, string $domain): array {
         $missing = [];
-        $packageuid = $settings["package_uid"] ?? '';
+        $packageuid = $settings["package_uid"] ?? "";
 
         if (!self::isResourceRootWritable()) {
-            $missing[] = ['message' => I18n::get('app_errors.resource_root_missing')];
+            $missing[] = ["message" => I18n::get("app_errors.resource_root_missing")];
         }
         if (empty($settings["package_uid_locked"])) {
-            $missing[] = ['message' => I18n::get('app_errors.save_once_package_uid')];
+            $missing[] = ["message" => I18n::get("app_errors.save_once_package_uid")];
         }
-        if ($packageuid == '' || !preg_match('/^[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*)+$/', $packageuid)) {
-            $missing[] = ['message' => I18n::get('app_errors.package_uid_valid')];
+        if ($packageuid == "" || !preg_match('/^[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*)+$/', $packageuid)) {
+            $missing[] = ["message" => I18n::get("app_errors.package_uid_valid")];
         }
-        if (($settings["package_name"] ?? '') == '') {
-            $missing[] = ['message' => I18n::get('validation.package_name_required')];
+        if (($settings["package_name"] ?? "") == "") {
+            $missing[] = ["message" => I18n::get("validation.package_name_required")];
         }
-        if (!preg_match('/^#[0-9A-Fa-f]{6}$/', ($settings["statusbarbackgroundcolor"] ?? ''))) {
-            $missing[] = ['message' => I18n::get('app_errors.color_required')];
+        if (!preg_match('/^#[0-9A-Fa-f]{6}$/', ($settings["statusbarbackgroundcolor"] ?? ""))) {
+            $missing[] = ["message" => I18n::get("app_errors.color_required")];
         }
         if (empty($settings["has_icon"])) {
-            $missing[] = ['message' => I18n::get('app_errors.icon_missing')];
+            $missing[] = ["message" => I18n::get("app_errors.icon_missing")];
         }
         if (!self::hasAndroidKeystorePassword($packageuid)) {
-            $missing[] = ['message' => I18n::get('app_errors.keystore_missing')];
+            $missing[] = ["message" => I18n::get("app_errors.keystore_missing")];
         } else if (!self::hasAndroidKeyFiles($packageuid)) {
-            $missing[] = ['message' => I18n::get('app_errors.key_files_missing')];
+            $missing[] = ["message" => I18n::get("app_errors.key_files_missing")];
         }
         if (self::hasActiveBuildJob($domain)) {
-            $missing[] = ['message' => I18n::get('app_errors.build_active')];
+            $missing[] = ["message" => I18n::get("app_errors.build_active")];
         }
 
         return [
-            'valid' => empty($missing),
-            'missing' => $missing,
+            "valid" => empty($missing),
+            "missing" => $missing,
         ];
     }
 
@@ -370,18 +371,18 @@ class AppManager {
     public static function moodleConfigTest(string $domain): array {
         $url = self::moodleConfigTestUrl($domain);
         $result = [
-            'url' => $url,
-            'valid' => false,
-            'has_error' => false,
-            'error' => '',
-            'has_install_url' => false,
-            'install_url' => self::moodleConfigInstallUrl(),
-            'warnings' => [],
-            'has_warnings' => false,
-            'oks' => [],
-            'has_oks' => false,
-            'versions' => [],
-            'has_versions' => false,
+            "url" => $url,
+            "valid" => false,
+            "has_error" => false,
+            "error" => "",
+            "has_install_url" => false,
+            "install_url" => self::moodleConfigInstallUrl(),
+            "warnings" => [],
+            "has_warnings" => false,
+            "oks" => [],
+            "has_oks" => false,
+            "versions" => [],
+            "has_versions" => false,
         ];
 
         try {
@@ -396,8 +397,8 @@ class AppManager {
         $data = json_decode($json, true);
         if (!is_array($data)) {
             $result["has_error"] = true;
-            $result["error"] = I18n::get('app_errors.moodle_config_invalid_json', [
-                'message' => json_last_error_msg(),
+            $result["error"] = I18n::get("app_errors.moodle_config_invalid_json", [
+                "message" => json_last_error_msg(),
             ]);
             return $result;
         }
@@ -405,30 +406,30 @@ class AppManager {
         foreach (self::moodleConfigBooleanChecks() as $key => $description) {
             if (!array_key_exists($key, $data)) {
                 $result["warnings"][] = [
-                    'key' => $key,
-                    'description' => $description,
-                    'message' => I18n::get('app_errors.moodle_config_missing_key'),
-                    'edit_url' => self::moodleConfigEditUrl($domain, $key),
-                    'has_edit_url' => true,
+                    "key" => $key,
+                    "description" => $description,
+                    "message" => I18n::get("app_errors.moodle_config_missing_key"),
+                    "edit_url" => self::moodleConfigEditUrl($domain, $key),
+                    "has_edit_url" => true,
                 ];
                 continue;
             }
 
             if ($data[$key] === true) {
                 $result["oks"][] = [
-                    'key' => $key,
-                    'description' => $description,
-                    'message' => I18n::get('status.ok'),
+                    "key" => $key,
+                    "description" => $description,
+                    "message" => I18n::get("status.ok"),
                 ];
                 continue;
             }
 
             $result["warnings"][] = [
-                'key' => $key,
-                'description' => $description,
-                'message' => I18n::get('app_errors.moodle_config_incorrect'),
-                'edit_url' => self::moodleConfigEditUrl($domain, $key),
-                'has_edit_url' => true,
+                "key" => $key,
+                "description" => $description,
+                "message" => I18n::get("app_errors.moodle_config_incorrect"),
+                "edit_url" => self::moodleConfigEditUrl($domain, $key),
+                "has_edit_url" => true,
             ];
         }
 
@@ -438,8 +439,8 @@ class AppManager {
             }
 
             $result["versions"][] = [
-                'key' => $label,
-                'value' => $data[$key],
+                "key" => $label,
+                "value" => $data[$key],
             ];
         }
 
@@ -460,15 +461,15 @@ class AppManager {
     public static function applyMoodleConfigTestToReadiness(array $readiness, array $configtest): array {
         if (!empty($configtest["has_error"])) {
             $readiness["missing"][] = [
-                'message' => I18n::get('app_errors.moodle_config_test_failed', [
-                    'message' => $configtest["error"] ?? '',
+                "message" => I18n::get("app_errors.moodle_config_test_failed", [
+                    "message" => $configtest["error"] ?? "",
                 ]),
             ];
         }
 
         foreach (($configtest["warnings"] ?? []) as $warning) {
             $readiness["missing"][] = [
-                'message' => ($warning["key"] ?? '') . ': ' . ($warning["message"] ?? ''),
+                "message" => ($warning["key"] ?? "") . ": " . ($warning["message"] ?? ""),
             ];
         }
 
@@ -482,9 +483,9 @@ class AppManager {
      * @return string
      */
     public static function appVersion(): string {
-        $configfile = app_config_path('/app-MoodleMobile-V2/config.xml');
+        $configfile = app_config_path("/app-MoodleMobile-V2/config.xml");
         if (!is_readable($configfile)) {
-            return '1.0.0';
+            return "1.0.0";
         }
 
         $content = file_get_contents($configfile);
@@ -492,7 +493,7 @@ class AppManager {
             return $matches[1];
         }
 
-        return '1.0.0';
+        return "1.0.0";
     }
 
     /**
@@ -504,7 +505,7 @@ class AppManager {
     public static function buildFiles(string $domain): array {
         $dir = self::storageDir($domain);
         $items = [];
-        foreach (glob($dir . '/*.{apk,aab}', GLOB_BRACE) ?: [] as $file) {
+        foreach (glob("{$dir}/*.{apk,aab}", GLOB_BRACE) ?: [] as $file) {
             if (!is_file($file)) {
                 continue;
             }
@@ -512,16 +513,16 @@ class AppManager {
             $ext = strtoupper(pathinfo($file, PATHINFO_EXTENSION));
             $mtime = filemtime($file) ?: time();
             $items[] = [
-                'filename' => $basename,
-                'label' => $ext,
-                'size' => self::formatBytes(filesize($file) ?: 0),
-                'created_at' => date('d/m/Y H:i', $mtime),
-                'download_url' => '/app_download.php?domain=' . urlencode($domain) . '&file=' . urlencode($basename),
+                "filename" => $basename,
+                "label" => $ext,
+                "size" => self::formatBytes(filesize($file) ?: 0),
+                "created_at" => date("d/m/Y H:i", $mtime),
+                "download_url" => "/app_download.php?domain=" . urlencode($domain) . "&file=" . urlencode($basename),
             ];
         }
 
         usort($items, static function(array $a, array $b): int {
-            return strcmp(($b["created_at"] ?? ''), ($a["created_at"] ?? ''));
+            return strcmp(($b["created_at"] ?? ""), ($a["created_at"] ?? ""));
         });
 
         return $items;
@@ -535,7 +536,7 @@ class AppManager {
      */
     public static function latestJob(string $domain): ?array {
         foreach (JobManager::all() as $job) {
-            if (($job["type"] ?? '') == 'app_build' && ($job["domain"] ?? '') == $domain) {
+            if (($job["type"] ?? "") == "app_build" && ($job["domain"] ?? "") == $domain) {
                 return $job;
             }
         }
@@ -550,10 +551,10 @@ class AppManager {
      */
     public static function hasActiveBuildJob(string $domain): bool {
         foreach (JobManager::all() as $job) {
-            if (($job["type"] ?? '') != 'app_build' || ($job["domain"] ?? '') != $domain) {
+            if (($job["type"] ?? "") != "app_build" || ($job["domain"] ?? "") != $domain) {
                 continue;
             }
-            if (in_array(($job["status"] ?? ''), ['pending', 'running'], true)) {
+            if (in_array(($job["status"] ?? ""), ["pending", "running"], true)) {
                 return true;
             }
         }
@@ -567,9 +568,9 @@ class AppManager {
      * @return string
      */
     public static function storageDir(string $domain): string {
-        $domain = preg_replace('/[^a-z0-9.-]+/', '-', strtolower(trim($domain)));
-        $domain = trim($domain, '.-');
-        return app_config_path('/data/' . $domain);
+        $domain = preg_replace('/[^a-z0-9.-]+/', "-", strtolower(trim($domain)));
+        $domain = trim($domain, ".-");
+        return app_config_path("/data/{$domain}");
     }
 
     /**
@@ -579,7 +580,7 @@ class AppManager {
      * @return string
      */
     public static function settingsFile(string $domain): string {
-        return self::storageDir($domain) . '/app-settings.json';
+        return self::storageDir($domain) . "/app-settings.json";
     }
 
     /**
@@ -589,7 +590,7 @@ class AppManager {
      * @return string
      */
     public static function resourceDir(string $packageuid): string {
-        return app_config_path('/app-MoodleMobile-V2/res/' . self::normalizePackageUid($packageuid));
+        return app_config_path("/app-MoodleMobile-V2/res/" . self::normalizePackageUid($packageuid));
     }
 
     /**
@@ -599,7 +600,7 @@ class AppManager {
      * @return string
      */
     public static function iconPath(string $packageuid): string {
-        return self::storageDir($packageuid) . '/' . self::ICON_FILENAME;
+        return self::storageDir($packageuid) . "/" . self::ICON_FILENAME;
     }
 
     /**
@@ -620,7 +621,7 @@ class AppManager {
      * @return string
      */
     public static function androidKeyDir(string $packageuid): string {
-        return self::resourceDir($packageuid) . '/key-android';
+        return self::resourceDir($packageuid) . "/key-android";
     }
 
     /**
@@ -630,7 +631,7 @@ class AppManager {
      * @return bool
      */
     public static function hasAndroidKeystorePassword(string $packageuid): bool {
-        $file = self::androidKeyDir($packageuid) . '/keystore.txt';
+        $file = self::androidKeyDir($packageuid) . "/keystore.txt";
         return is_file($file) && is_readable($file);
     }
 
@@ -642,12 +643,12 @@ class AppManager {
      */
     public static function hasAndroidKeyFiles(string $packageuid): bool {
         $keydir = self::androidKeyDir($packageuid);
-        return is_file($keydir . '/keystore')
-            && is_readable($keydir . '/keystore')
-            && is_file($keydir . '/keystore.txt')
-            && is_readable($keydir . '/keystore.txt')
-            && is_file($keydir . '/build.json')
-            && is_readable($keydir . '/build.json');
+        return is_file("{$keydir}/keystore")
+            && is_readable("{$keydir}/keystore")
+            && is_file("{$keydir}/keystore.txt")
+            && is_readable("{$keydir}/keystore.txt")
+            && is_file("{$keydir}/build.json")
+            && is_readable("{$keydir}/build.json");
     }
 
     /**
@@ -658,25 +659,25 @@ class AppManager {
      */
     public static function defaultPackageUid(string $domain): string {
         $domain = strtolower(trim($domain));
-        $parts = array_filter(explode('.', $domain), static fn(string $part): bool => $part != '');
+        $parts = array_filter(explode(".", $domain), static fn(string $part): bool => $part != "");
         $clean = [];
         foreach ($parts as $part) {
-            $part = preg_replace('/[^a-z0-9_]+/', '_', $part);
-            $part = trim($part, '_');
-            if ($part == '') {
+            $part = preg_replace('/[^a-z0-9_]+/', "_", $part);
+            $part = trim($part, "_");
+            if ($part == "") {
                 continue;
             }
             if (!preg_match('/^[a-z]/', $part)) {
-                $part = 'app' . $part;
+                $part = "app{$part}";
             }
             $clean[] = $part;
         }
 
         if (count($clean) < 2) {
-            $clean = ['app', 'moodle_friendly_installation'];
+            $clean = ["app", "moodle_friendly_installation"];
         }
 
-        return implode('.', $clean);
+        return implode(".", $clean);
     }
 
     /**
@@ -696,12 +697,12 @@ class AppManager {
      * @return void
      */
     private static function ensureResourceRootWritable(): void {
-        $root = app_config_path('/app-MoodleMobile-V2/res');
+        $root = app_config_path("/app-MoodleMobile-V2/res");
         if (!is_dir($root)) {
             mkdir($root, 0750, true);
         }
         if (!is_writable($root)) {
-            throw new RuntimeException(I18n::get('app_errors.resource_not_writable'));
+            throw new RuntimeException(I18n::get("app_errors.resource_not_writable"));
         }
     }
 
@@ -711,7 +712,7 @@ class AppManager {
      * @return bool
      */
     private static function isResourceRootWritable(): bool {
-        $root = app_config_path('/app-MoodleMobile-V2/res');
+        $root = app_config_path("/app-MoodleMobile-V2/res");
         return is_dir($root) && is_writable($root);
     }
 
@@ -723,8 +724,8 @@ class AppManager {
      */
     private static function normalizePackageUid(string $packageuid): string {
         $packageuid = strtolower(trim($packageuid));
-        $packageuid = preg_replace('/[^a-z0-9_.]+/', '_', $packageuid);
-        return trim($packageuid, '._');
+        $packageuid = preg_replace('/[^a-z0-9_.]+/', "_", $packageuid);
+        return trim($packageuid, "._");
     }
 
     /**
@@ -739,24 +740,24 @@ class AppManager {
             self::ensureDir($resdir, 0750);
         }
 
-        $command = 'keytool -genkeypair ' .
-            '-v ' .
-            '-keystore ' . escapeshellarg('key-android/keystore') . ' ' .
-            '-alias ' . escapeshellarg('app') . ' ' .
-            '-keyalg RSA ' .
-            '-keysize 2048 ' .
-            '-validity 10000 ' .
-            '-storetype PKCS12 ' .
-            '-storepass ' . escapeshellarg($password) . ' ' .
-            '-keypass ' . escapeshellarg($password) . ' ' .
-            '-dname ' . escapeshellarg('CN=Android, OU=Dev, O=App, L=Sao Paulo, ST=SP, C=BR');
+        $command = "keytool -genkeypair " .
+            "-v " .
+            "-keystore " . escapeshellarg("key-android/keystore") . " " .
+            "-alias " . escapeshellarg("app") . " " .
+            "-keyalg RSA " .
+            "-keysize 2048 " .
+            "-validity 10000 " .
+            "-storetype PKCS12 " .
+            "-storepass " . escapeshellarg($password) . " " .
+            "-keypass " . escapeshellarg($password) . " " .
+            "-dname " . escapeshellarg("CN=Android, OU=Dev, O=App, L=Sao Paulo, ST=SP, C=BR");
 
-        $script = 'cd ' . escapeshellarg($resdir) . ' && ' . $command . ' 2>&1';
-        exec('/usr/bin/env bash -lc ' . escapeshellarg($script), $output, $exitcode);
+        $script = "cd " . escapeshellarg($resdir) . " && " . "{$command} 2>&1";
+        exec("/usr/bin/env bash -lc " . escapeshellarg($script), $output, $exitcode);
         if ($exitcode != 0) {
             $message = trim(implode("\n", $output));
-            throw new RuntimeException(I18n::get('app_errors.keytool_failed', [
-                'message' => $message != '' ? I18n::get('app_errors.keytool_return', ['message' => $message]) : '',
+            throw new RuntimeException(I18n::get("app_errors.keytool_failed", [
+                "message" => $message != "" ? I18n::get("app_errors.keytool_return", ["message" => $message]) : "",
             ]));
         }
     }
@@ -768,7 +769,7 @@ class AppManager {
      * @return string
      */
     private static function moodleConfigTestUrl(string $domain): string {
-        return self::moodleConfigBaseUrl($domain) . '/local/kopere_mobile/index.php?action=test-config';
+        return self::moodleConfigBaseUrl($domain) . "/local/kopere_mobile/index.php?action=test-config";
     }
 
     /**
@@ -779,8 +780,8 @@ class AppManager {
      */
     private static function moodleConfigBaseUrl(string $domain): string {
         $domain = strtolower(trim($domain));
-        $domain = preg_replace('/[^a-z0-9.-]+/', '', $domain);
-        return 'https://' . $domain;
+        $domain = preg_replace('/[^a-z0-9.-]+/', "", $domain);
+        return "https://{$domain}";
     }
 
     /**
@@ -793,16 +794,16 @@ class AppManager {
     private static function moodleConfigEditUrl(string $domain, string $key): string {
         $baseurl = self::moodleConfigBaseUrl($domain);
         $targets = [
-            'is_moodle_cookie_secure' => ['/admin/search.php', ['query' => 'cookiesecure']],
-            'allowframembedding' => ['/admin/search.php', ['query' => 'allowframembedding']],
-            'enablemobilewebservice' => ['/admin/search.php', ['query' => 'enablemobilewebservice']],
-            'external_services_moodle_mobile_app' => ['/admin/settings.php', ['section' => 'externalservices']],
-            'is_chrome' => ['/admin/settings.php', ['section' => 'local_kopere_mobile']],
-            'check_chrome_version_78' => ['/admin/settings.php', ['section' => 'local_kopere_mobile']],
+            "is_moodle_cookie_secure" => ["/admin/search.php", ["query" => "cookiesecure"]],
+            "allowframembedding" => ["/admin/search.php", ["query" => "allowframembedding"]],
+            "enablemobilewebservice" => ["/admin/search.php", ["query" => "enablemobilewebservice"]],
+            "external_services_moodle_mobile_app" => ["/admin/settings.php", ["section" => "externalservices"]],
+            "is_chrome" => ["/admin/settings.php", ["section" => "local_kopere_mobile"]],
+            "check_chrome_version_78" => ["/admin/settings.php", ["section" => "local_kopere_mobile"]],
         ];
 
-        $target = $targets[$key] ?? ['/admin/search.php', ['query' => $key]];
-        $query = !empty($target[1]) ? '?' . http_build_query($target[1]) : '';
+        $target = $targets[$key] ?? ["/admin/search.php", ["query" => $key]];
+        $query = !empty($target[1]) ? "?" . http_build_query($target[1]) : "";
         return $baseurl . $target[0] . $query;
     }
 
@@ -812,7 +813,7 @@ class AppManager {
      * @return string
      */
     private static function moodleConfigInstallUrl(): string {
-        return 'https://moodle.org/plugins/local_kopere_mobile';
+        return "https://moodle.org/plugins/local_kopere_mobile";
     }
 
     /**
@@ -822,12 +823,14 @@ class AppManager {
      */
     private static function moodleConfigBooleanChecks(): array {
         return [
-            'is_moodle_cookie_secure' => I18n::get('app_manager.moodle_config_descriptions.is_moodle_cookie_secure'),
-            'allowframembedding' => I18n::get('app_manager.moodle_config_descriptions.allowframembedding'),
-            'enablemobilewebservice' => I18n::get('app_manager.moodle_config_descriptions.enablemobilewebservice'),
-            'external_services_moodle_mobile_app' => I18n::get('app_manager.moodle_config_descriptions.external_services_moodle_mobile_app'),
-            'is_chrome' => I18n::get('app_manager.moodle_config_descriptions.is_chrome'),
-            'check_chrome_version_78' => I18n::get('app_manager.moodle_config_descriptions.check_chrome_version_78'),
+            "is_moodle_cookie_secure" => I18n::get("app_manager.moodle_config_descriptions.is_moodle_cookie_secure"),
+            "allowframembedding" => I18n::get("app_manager.moodle_config_descriptions.allowframembedding"),
+            "enablemobilewebservice" => I18n::get("app_manager.moodle_config_descriptions.enablemobilewebservice"),
+            "external_services_moodle_mobile_app" => I18n::get(
+                "app_manager.moodle_config_descriptions.external_services_moodle_mobile_app"
+            ),
+            "is_chrome" => I18n::get("app_manager.moodle_config_descriptions.is_chrome"),
+            "check_chrome_version_78" => I18n::get("app_manager.moodle_config_descriptions.check_chrome_version_78"),
         ];
     }
 
@@ -838,7 +841,7 @@ class AppManager {
      */
     private static function moodleConfigVersionChecks(): array {
         return [
-            'local_kopere_mobile_version' => 'local_kopere_mobile',
+            "local_kopere_mobile_version" => "local_kopere_mobile",
         ];
     }
 
@@ -849,7 +852,7 @@ class AppManager {
      * @return string
      */
     private static function fetchMoodleConfigTestUrl(string $url): string {
-        if (function_exists('curl_init')) {
+        if (function_exists("curl_init")) {
             $curl = curl_init($url);
             curl_setopt_array($curl, [
                 CURLOPT_RETURNTRANSFER => true,
@@ -860,7 +863,7 @@ class AppManager {
                 CURLOPT_SSL_VERIFYPEER => true,
                 CURLOPT_SSL_VERIFYHOST => 2,
                 CURLOPT_USERAGENT => self::moodleConfigUserAgent(),
-                CURLOPT_HTTPHEADER => ['Accept: application/json'],
+                CURLOPT_HTTPHEADER => ["Accept: application/json"],
             ]);
 
             $body = curl_exec($curl);
@@ -869,31 +872,31 @@ class AppManager {
             curl_close($curl);
 
             if ($body === false) {
-                throw new RuntimeException(I18n::get('app_errors.moodle_config_fetch_failed', ['message' => $error]));
+                throw new RuntimeException(I18n::get("app_errors.moodle_config_fetch_failed", ["message" => $error]));
             }
             if ($status == 404) {
-                throw new RuntimeException(I18n::get('app_errors.moodle_config_plugin_missing'), 404);
+                throw new RuntimeException(I18n::get("app_errors.moodle_config_plugin_missing"), 404);
             }
             if ($status < 200 || $status >= 300) {
-                throw new RuntimeException(I18n::get('app_errors.moodle_config_http_status', ['status' => $status]), $status);
+                throw new RuntimeException(I18n::get("app_errors.moodle_config_http_status", ["status" => $status]), $status);
             }
-            if (trim($body) == '') {
-                throw new RuntimeException(I18n::get('app_errors.moodle_config_empty_response'));
+            if (trim($body) == "") {
+                throw new RuntimeException(I18n::get("app_errors.moodle_config_empty_response"));
             }
 
             return $body;
         }
 
         $context = stream_context_create([
-            'http' => [
-                'method' => 'GET',
-                'timeout' => 10,
-                'ignore_errors' => true,
-                'header' => "Accept: application/json\r\nUser-Agent: " . self::moodleConfigUserAgent() . "\r\n",
+            "http" => [
+                "method" => "GET",
+                "timeout" => 10,
+                "ignore_errors" => true,
+                "header" => "Accept: application/json\r\nUser-Agent: " . self::moodleConfigUserAgent() . "\r\n",
             ],
-            'ssl' => [
-                'verify_peer' => true,
-                'verify_peer_name' => true,
+            "ssl" => [
+                "verify_peer" => true,
+                "verify_peer_name" => true,
             ],
         ]);
 
@@ -907,16 +910,16 @@ class AppManager {
         }
 
         if ($body === false) {
-            throw new RuntimeException(I18n::get('app_errors.moodle_config_fetch_failed', ['message' => 'file_get_contents']));
+            throw new RuntimeException(I18n::get("app_errors.moodle_config_fetch_failed", ["message" => "file_get_contents"]));
         }
         if ($status == 404) {
-            throw new RuntimeException(I18n::get('app_errors.moodle_config_plugin_missing'), 404);
+            throw new RuntimeException(I18n::get("app_errors.moodle_config_plugin_missing"), 404);
         }
         if ($status != 0 && ($status < 200 || $status >= 300)) {
-            throw new RuntimeException(I18n::get('app_errors.moodle_config_http_status', ['status' => $status]), $status);
+            throw new RuntimeException(I18n::get("app_errors.moodle_config_http_status", ["status" => $status]), $status);
         }
-        if (trim($body) == '') {
-            throw new RuntimeException(I18n::get('app_errors.moodle_config_empty_response'));
+        if (trim($body) == "") {
+            throw new RuntimeException(I18n::get("app_errors.moodle_config_empty_response"));
         }
 
         return $body;
@@ -928,8 +931,8 @@ class AppManager {
      * @return string
      */
     private static function moodleConfigUserAgent(): string {
-        return 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 ' .
-            '(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
+        return "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 " .
+            "(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
     }
 
     /**
@@ -964,7 +967,7 @@ class AppManager {
      * @return string
      */
     private static function siteDomain(array $site): string {
-        return strtolower( $site["domain"] ?? '');
+        return strtolower($site["domain"] ?? "");
     }
 
     /**
@@ -975,14 +978,14 @@ class AppManager {
      */
     private static function formatBytes(int $bytes): string {
         if ($bytes >= 1073741824) {
-            return number_format($bytes / 1073741824, 2, ',', '.') . ' GB';
+            return number_format($bytes / 1073741824, 2, t("decimal_separator"), t("thousands_separator")) . " GB";
         }
         if ($bytes >= 1048576) {
-            return number_format($bytes / 1048576, 2, ',', '.') . ' MB';
+            return number_format($bytes / 1048576, 2, t("decimal_separator"), t("thousands_separator")) . " MB";
         }
         if ($bytes >= 1024) {
-            return number_format($bytes / 1024, 2, ',', '.') . ' KB';
+            return number_format($bytes / 1024, 2, t("decimal_separator"), t("thousands_separator")) . " KB";
         }
-        return $bytes . ' B';
+        return "{$bytes} B";
     }
 }

@@ -8,23 +8,26 @@ ini_set("display_errors", "1");
 ini_set("display_startup_errors", "1");
 
 require_once "vendor/autoload.php";
-$config = require __DIR__ . '/../config.php';
 
-require_once __DIR__ . '/I18n.php';
-require_once __DIR__ . '/JsonStorage.php';
-require_once __DIR__ . '/Auth.php';
-require_once __DIR__ . '/Validator.php';
-require_once __DIR__ . '/JobManager.php';
-require_once __DIR__ . '/SiteManager.php';
-require_once __DIR__ . '/AppManager.php';
-require_once __DIR__ . '/render.php';
-require_once __DIR__ . '/MoodleBranchProvider.php';
+require_once __DIR__ . "/JsonStorage.php";
+require_once __DIR__ . "/PanelConfigManager.php";
 
-if (PHP_SAPI != 'cli') {
-    ini_set('session.cookie_httponly', '1');
-    ini_set('session.cookie_secure', (!empty($_SERVER["HTTPS"]) && $_SERVER["HTTPS"] != 'off') ? '1' : '0');
-    ini_set('session.use_strict_mode', '1');
-    session_name('MOODLEFRIENDLYSESSID');
+$config = app\PanelConfigManager::effectiveConfig(app\PanelConfigManager::baseConfig());
+
+require_once __DIR__ . "/I18n.php";
+require_once __DIR__ . "/Auth.php";
+require_once __DIR__ . "/Validator.php";
+require_once __DIR__ . "/JobManager.php";
+require_once __DIR__ . "/SiteManager.php";
+require_once __DIR__ . "/AppManager.php";
+require_once __DIR__ . "/render.php";
+require_once __DIR__ . "/MoodleBranchProvider.php";
+
+if (PHP_SAPI != "cli") {
+    ini_set("session.cookie_httponly", "1");
+    ini_set("session.cookie_secure", (!empty($_SERVER["HTTPS"]) && $_SERVER["HTTPS"] != "off") ? "1" : "0");
+    ini_set("session.use_strict_mode", "1");
+    session_name("MOODLEFRIENDLYSESSID");
     session_start();
 }
 
@@ -69,7 +72,7 @@ function app_config_path(string $path): string {
  * @return never
  */
 function redirect_to(string $path): never {
-    header('Location: ' . $path);
+    header("Location: {$path}");
     exit;
 }
 
@@ -92,10 +95,10 @@ function csrf_token(): string {
  * @return void
  */
 function validate_csrf(): void {
-    $token = $_POST["csrf_token"] ?? '';
+    $token = $_POST["csrf_token"] ?? "";
     if (!is_string($token) || empty($_SESSION["csrf_token"]) || !hash_equals($_SESSION["csrf_token"], $token)) {
         http_response_code(400);
-        exit('CSRF token invalid.');
+        exit("CSRF token invalid.");
     }
 }
 
@@ -106,12 +109,12 @@ function validate_csrf(): void {
  * @throws \DateMalformedStringException
  */
 function now_iso(): string {
-    return (new DateTimeImmutable('now', new DateTimeZone('America/Sao_Paulo')))->format(DateTimeInterface::ATOM);
+    return (new DateTimeImmutable("now", new DateTimeZone("America/Sao_Paulo")))->format(DateTimeInterface::ATOM);
 }
 
-if (PHP_SAPI != 'cli' && Auth::check()) {
-    $scriptname = basename((string) ($_SERVER["SCRIPT_NAME"] ?? ''));
-    if (Auth::requiresPasswordChange() && $scriptname != 'profile.php') {
-        redirect_to('/profile.php?force=1');
+if (PHP_SAPI != "cli" && Auth::check()) {
+    $scriptname = basename((string) ($_SERVER["SCRIPT_NAME"] ?? ""));
+    if (Auth::requiresPasswordChange() && $scriptname != "profile.php") {
+        redirect_to("/profile.php?force=1");
     }
 }

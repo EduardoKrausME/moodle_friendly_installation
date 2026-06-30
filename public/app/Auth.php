@@ -36,16 +36,16 @@ class Auth {
      * @return bool
      */
     public static function isDefaultPassword(string $stored): bool {
-        if ($stored === '') {
+        if ($stored === "") {
             return false;
         }
 
         $info = password_get_info($stored);
         if (!empty($info["algo"])) {
-            return password_verify('123456', $stored);
+            return password_verify("123456", $stored);
         }
 
-        return hash_equals($stored, '123456');
+        return hash_equals($stored, "123456");
     }
 
     /**
@@ -59,14 +59,14 @@ class Auth {
             return null;
         }
 
-        $username = $sessionuser["username"] ?? '';
-        if ($username == '') {
+        $username = $sessionuser["username"] ?? "";
+        if ($username == "") {
             return null;
         }
 
-        $users = JsonStorage::read(app_config_path('/data/users.json'));
+        $users = JsonStorage::read(app_config_path("/data/users.json"));
         foreach ($users as $user) {
-            if (($user["username"] ?? '') == $username) {
+            if (($user["username"] ?? "") == $username) {
                 return is_array($user) ? $user : null;
             }
         }
@@ -85,7 +85,7 @@ class Auth {
             return false;
         }
 
-        return self::isDefaultPassword((string) ($user["password"] ?? ''));
+        return self::isDefaultPassword((string) ($user["password"] ?? ""));
     }
 
     /**
@@ -101,18 +101,18 @@ class Auth {
     public static function updateCurrentUser(string $username, string $name, ?string $password = null): void {
         $sessionuser = self::user();
         if (!$sessionuser) {
-            throw new RuntimeException('User is not logged in.');
+            throw new RuntimeException("User is not logged in.");
         }
 
-        $oldusername = $sessionuser["username"] ?? '';
-        $usersfile = app_config_path('/data/users.json');
+        $oldusername = $sessionuser["username"] ?? "";
+        $usersfile = app_config_path("/data/users.json");
         $users = JsonStorage::read($usersfile);
         $found = false;
 
         foreach ($users as &$user) {
-            if (($user["username"] ?? '') != $oldusername) {
-                if (($user["username"] ?? '') == $username) {
-                    throw new RuntimeException(t('profile.username_already_exists'));
+            if (($user["username"] ?? "") != $oldusername) {
+                if (($user["username"] ?? "") == $username) {
+                    throw new RuntimeException(t("profile.username_already_exists"));
                 }
                 continue;
             }
@@ -121,7 +121,7 @@ class Auth {
             $user["name"] = $name;
             $user["updated_at"] = now_iso();
 
-            if ($password !== null && $password !== '') {
+            if ($password !== null && $password !== "") {
                 $user["password"] = password_hash($password, PASSWORD_DEFAULT);
                 $user["password_changed_at"] = now_iso();
             }
@@ -132,13 +132,13 @@ class Auth {
         unset($user);
 
         if (!$found) {
-            throw new RuntimeException(t('profile.current_user_not_found'));
+            throw new RuntimeException(t("profile.current_user_not_found"));
         }
 
         JsonStorage::write($usersfile, $users);
         $_SESSION["user"] = [
-            'username' => $username,
-            'name' => $name,
+            "username" => $username,
+            "name" => $name,
         ];
         csrf_token();
     }
@@ -150,7 +150,7 @@ class Auth {
      */
     public static function requireLogin(): void {
         if (!self::check()) {
-            redirect_to('/login.php');
+            redirect_to("/login.php");
         }
     }
 
@@ -170,11 +170,11 @@ class Auth {
         $loggeduser = null;
 
         foreach ($users as &$user) {
-            if (($user["username"] ?? '') != $username) {
+            if (($user["username"] ?? "") != $username) {
                 continue;
             }
 
-            $stored = $user["password"] ?? '';
+            $stored = $user["password"] ?? "";
             $info = password_get_info($stored);
 
             if (!empty($info["algo"])) {
@@ -190,8 +190,8 @@ class Auth {
 
             if ($valid) {
                 $loggeduser = [
-                    'username' => $user["username"],
-                    'name' => $user["name"] ?? $user["username"],
+                    "username" => $user["username"],
+                    "name" => $user["name"] ?? $user["username"],
                 ];
             }
             break;
@@ -219,10 +219,10 @@ class Auth {
      */
     public static function logout(): void {
         $_SESSION = [];
-        if (ini_get('session.use_cookies')) {
+        if (ini_get("session.use_cookies")) {
             $params = session_get_cookie_params();
             setcookie(
-                session_name(), '', time() - 42000, $params["path"], $params["domain"], $params["secure"], $params["httponly"]
+                session_name(), "", time() - 42000, $params["path"], $params["domain"], $params["secure"], $params["httponly"]
             );
         }
         session_destroy();

@@ -21,7 +21,7 @@ class JsonStorage {
         }
 
         $raw = file_get_contents($file);
-        if (!$raw || trim($raw) == '') {
+        if (!$raw || trim($raw) == "") {
             return $default;
         }
 
@@ -46,25 +46,25 @@ class JsonStorage {
         $owner = file_exists($file) ? @fileowner($file) : false;
         $group = file_exists($file) ? @filegroup($file) : false;
 
-        $lockfile = $file . '.lock';
-        $lock = fopen($lockfile, 'c');
+        $lockfile = "{$file}.lock";
+        $lock = fopen($lockfile, "c");
         if (!$lock) {
-            throw new RuntimeException('Cannot open lock file: ' . $lockfile);
+            throw new RuntimeException("Cannot open lock file: {$lockfile}");
         }
 
         try {
             if (!flock($lock, LOCK_EX)) {
-                throw new RuntimeException('Cannot lock file: ' . $lockfile);
+                throw new RuntimeException("Cannot lock file: {$lockfile}");
             }
 
             $json = json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
             if (!$json) {
-                throw new RuntimeException('Cannot encode JSON for: ' . $file);
+                throw new RuntimeException("Cannot encode JSON for: {$file}");
             }
 
-            $tmp = $file . '.tmp.' . bin2hex(random_bytes(6));
+            $tmp = "{$file}.tmp." . bin2hex(random_bytes(6));
             if (!file_put_contents($tmp, $json . PHP_EOL, LOCK_EX)) {
-                throw new RuntimeException('Cannot write temporary file: ' . $tmp);
+                throw new RuntimeException("Cannot write temporary file: {$tmp}");
             }
 
             chmod($tmp, 0640);

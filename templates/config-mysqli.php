@@ -3,24 +3,24 @@ unset($CFG);
 global $CFG;
 $CFG = new stdClass();
 
-$CFG->dbtype    = 'mysqli';
-$CFG->dblibrary = 'native';
-$CFG->dbhost    = 'localhost';
+$CFG->dbtype    = "{{DB_ENGINE}}";
+$CFG->dblibrary = "native";
+$CFG->dbhost    = "localhost";
 $CFG->dbname    = '{{DB_NAME}}';
 $CFG->dbuser    = '{{DB_USER}}';
 $CFG->dbpass    = '{{DB_PASS}}';
-$CFG->prefix    = 'mdl_';
+$CFG->prefix    = "mdl_";
 $CFG->dboptions = [
-    'dbpersist' => false,
-    'dbport' => '',
-    'dbsocket' => '',
-    'dbcollation' => 'utf8mb4_general_ci',
-    'logslow'     => 3,
+    "dbpersist" => false,
+    "dbport" => "",
+    "dbsocket" => "",
+    "dbcollation" => "utf8mb4_general_ci",
+    "logslow"     => 3,
 ];
 
-$CFG->wwwroot = 'https://{{DOMAIN}}';
+$CFG->wwwroot = "https://{{DOMAIN}}";
 $CFG->dataroot = '{{BASE_DIR}}/moodledata';
-$CFG->admin = 'admin';
+$CFG->admin = "admin";
 $CFG->directorypermissions = 02770;
 $CFG->sslproxy = true;
 
@@ -33,7 +33,7 @@ $CFG->site_is_public                = false;
 $CFG->routerconfigured              = true;
 
 $domainroot = dirname(__DIR__);
-if (file_exists($domainroot . "/../debug.enable")) {
+if (file_exists("{$domainroot}/../debug.enable")) {
     set_time_limit(0);
     ini_set("max_execution_time", 0);
     error_reporting(E_ALL);
@@ -79,4 +79,4 @@ if (file_exists("{$domainroot}/perf.enable")) {
     define("MDL_PERFTOLOG", true);
 }
 
-require_once(__DIR__ . '/public/lib/setup.php');
+require_once(__DIR__ . "/public/lib/setup.php");

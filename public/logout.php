@@ -2,6 +2,6 @@
 
 use app\Auth;
 
-require_once __DIR__ . '/app/bootstrap.php';
+require_once __DIR__ . "/app/bootstrap.php";
 Auth::logout();
-redirect_to('/login.php');
+redirect_to("/login.php");

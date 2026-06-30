@@ -12,22 +12,22 @@ use Mustache\Loader\FilesystemLoader;
  * @return void
  */
 function render_header(string $title): void {
-    $appname = app_config('app_name');
+    $appname = app_config("app_name");
     $user = Auth::user();
     $hasuser = (bool) $user;
     $currentlanguage = I18n::currentMeta();
 
     $mustachedata = [
-        'html_lang' => I18n::htmlLang(),
-        'page_title' =>   "{$title} - {$appname}" ,
-        'app_name' => $appname,
-        'body_class' => $hasuser ? 'has-sidebar' : 'auth-page',
-        'has_user' => $hasuser,
-        'user_name' => $user["name"] ?? $user["username"] ?? 'Administrador',
-        'navigation' => render_navigation_items(),
-        'current_language_name' => $currentlanguage["native_name"] ?? $currentlanguage["name"] ?? I18n::current(),
+        "html_lang" => I18n::htmlLang(),
+        "page_title" =>   "{$title} - {$appname}" ,
+        "app_name" => $appname,
+        "body_class" => $hasuser ? "has-sidebar" : "auth-page",
+        "has_user" => $hasuser,
+        "user_name" => $user["name"] ?? $user["username"] ?? "Administrador",
+        "navigation" => render_navigation_items(),
+        "current_language_name" => $currentlanguage["native_name"] ?? $currentlanguage["name"] ?? I18n::current(),
     ];
-    echo render_app_template('layout/header', $mustachedata);
+    echo render_app_template("layout/header", $mustachedata);
 }
 
 /**
@@ -36,54 +36,60 @@ function render_header(string $title): void {
  * @return array<int, array<string, string>>
  */
 function render_navigation_items(): array {
-    $current = basename(($_SERVER["SCRIPT_NAME"] ?? ''));
+    $current = basename(($_SERVER["SCRIPT_NAME"] ?? ""));
 
     $items = [];
 
     $items[] = [
-        'url' => '/',
-        'label' => t('index.title'),
-        'icon' => 'S',
-        'active_on' => ['index.php', 'details.php'],
+        "url" => "/",
+        "label" => t("index.title"),
+        "icon" => "S",
+        "active_on" => ["index.php", "details.php"],
     ];
     $items[] = [
-        'url' => '/app_manager.php',
-        'label' => t('app_manager.list_heading'),
-        'icon' => 'A',
-        'active_on' => ['app_manager.php'],
+        "url" => "/app_manager.php",
+        "label" => t("app_manager.list_heading"),
+        "icon" => "A",
+        "active_on" => ["app_manager.php"],
     ];
-    if ($_SERVER["REQUEST_URI"] == '/install.php') {
+    if ($_SERVER["REQUEST_URI"] == "/install.php") {
         $items[] = [
-            'url' => '/install.php',
-            'label' => t('navigation.install_moodle'),
-            'icon' => '+',
-            'active_on' => ['install.php'],
+            "url" => "/install.php",
+            "label" => t("navigation.install_moodle"),
+            "icon" => "+",
+            "active_on" => ["install.php"],
         ];
     }
     $items[] = [
-        'url' => '/jobs.php',
-        'label' => t('jobs.title'),
-        'icon' => 'F',
-        'active_on' => ['jobs.php'],
+        "url" => "/jobs.php",
+        "label" => t("jobs.title"),
+        "icon" => "F",
+        "active_on" => ["jobs.php"],
     ];
     $items[] = [
-        'url' => '/logout.php',
-        'label' => t('navigation.logout'),
-        'icon' => '×',
-        'active_on' => [],
-        'extra_class' => 'logout-link',
+        "url" => "/configuration.php",
+        "label" => t("configuration.title"),
+        "icon" => "C",
+        "active_on" => ["configuration.php"],
+    ];
+    $items[] = [
+        "url" => "/logout.php",
+        "label" => t("navigation.logout"),
+        "icon" => "×",
+        "active_on" => [],
+        "extra_class" => "logout-link",
     ];
 
     foreach ($items as $index => $item) {
-        $classes = ['side-nav-link'];
+        $classes = ["side-nav-link"];
         if (in_array($current, $item["active_on"], true)) {
-            $classes[] = 'is-active';
+            $classes[] = "is-active";
         }
         if (!empty($item["extra_class"])) {
             $classes[] = $item["extra_class"];
         }
 
-        $items[$index]["class"] = implode(' ', $classes);
+        $items[$index]["class"] = implode(" ", $classes);
         unset($items[$index]["active_on"], $items[$index]["extra_class"]);
     }
 
@@ -112,33 +118,33 @@ function render_footer(): void {
  * @return string
  */
 function status_badge(string $status, $label = null): string {
-    if ($status == 'waiting_dns') {
-        $label = t('status.waiting_dns');
-    } else if ($status == 'running') {
-        $label = t('status.running');
-    } else if ($status == 'failed') {
-        $label = t('status.failed');
-    } else if ($status == 'error') {
-        $label = t('status.error');
-    } else if ($status == 'active') {
-        $label = t('status.active');
-    } else if ($status == 'done') {
-        $label = t('status.done');
+    if ($status == "waiting_dns") {
+        $label = t("status.waiting_dns");
+    } else if ($status == "running") {
+        $label = t("status.running");
+    } else if ($status == "failed") {
+        $label = t("status.failed");
+    } else if ($status == "error") {
+        $label = t("status.error");
+    } else if ($status == "active") {
+        $label = t("status.active");
+    } else if ($status == "done") {
+        $label = t("status.done");
     } else if (!$label) {
         $label = $status;
     }
 
     $class = match ($status) {
-        'done', 'active', 'ok' => 'ok',
-        'running' => 'running',
-        'waiting_dns', 'warning' => 'warning',
-        'failed', 'error', 'danger' => 'danger',
-        default => 'muted',
+        "done", "active", "ok" => "ok",
+        "running" => "running",
+        "waiting_dns", "warning" => "warning",
+        "failed", "error", "danger" => "danger",
+        default => "muted",
     };
 
-    return render_app_template('status-badge', [
-        'class' => $class,
-        'label' => $label,
+    return render_app_template("status-badge", [
+        "class" => $class,
+        "label" => $label,
     ]);
 }
 
@@ -166,15 +172,15 @@ function flash_message(): ?string {
 function render_app_template(string $template, array $context = []): string {
     $language = I18n::currentMeta();
     $basecontext = [
-        'i18n' => I18n::strings(),
-        'language' => [
-            'label' => t('language.label'),
-            'change' => t('language.change'),
-            'current_code' => I18n::current(),
-            'current_name' => $language["name"] ?? I18n::current(),
-            'current_native_name' => $language["native_name"] ?? $language["name"] ?? I18n::current(),
-            'current_flag' => $language["flag"] ?? '',
-            'items' => I18n::languagesForSelector(),
+        "i18n" => I18n::strings(),
+        "language" => [
+            "label" => t("language.label"),
+            "change" => t("language.change"),
+            "current_code" => I18n::current(),
+            "current_name" => $language["name"] ?? I18n::current(),
+            "current_native_name" => $language["native_name"] ?? $language["name"] ?? I18n::current(),
+            "current_flag" => $language["flag"] ?? "",
+            "items" => I18n::languagesForSelector(),
         ],
     ];
 
@@ -194,9 +200,9 @@ function render_mustache_engine(): Engine {
     }
 
     $engine = new Engine([
-        'loader' => new FilesystemLoader(__DIR__ . '/templates'),
-        'escape' => static function($value): string {
-            return htmlspecialchars($value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+        "loader" => new FilesystemLoader(__DIR__ . "/templates"),
+        "escape" => static function($value): string {
+            return htmlspecialchars($value, ENT_QUOTES | ENT_SUBSTITUTE, "UTF-8");
         },
     ]);
 

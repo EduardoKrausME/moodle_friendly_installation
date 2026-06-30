@@ -26,7 +26,7 @@ class SiteManager {
         }
 
         usort($sites, static function(array $a, array $b): int {
-            return strcmp(($a["domain"] ?? ''), ($b["domain"] ?? ''));
+            return strcmp(($a["domain"] ?? ""), ($b["domain"] ?? ""));
         });
 
         return $sites;
@@ -40,7 +40,7 @@ class SiteManager {
      */
     public static function get(string $domain): ?array {
         foreach (self::all() as $site) {
-            if (($site["domain"] ?? '') == $domain) {
+            if (($site["domain"] ?? "") == $domain) {
                 return $site;
             }
         }
@@ -59,15 +59,15 @@ class SiteManager {
             return null;
         }
 
-        $config = self::readMoodleConfig(($site["config_file"] ?? ''));
+        $config = self::readMoodleConfig(($site["config_file"] ?? ""));
         $site["moodle_config"] = self::publicConfig($config);
         $site["diagnostics"] = [
-            'nginx' => self::checkWebServerConfig('nginx', $site),
-            'httpd' => self::checkWebServerConfig('httpd', $site),
-            'dns' => self::checkDns(($site["domain"] ?? '')),
-            'ssl' => self::checkSsl(($site["domain"] ?? '')),
-            'debug' => self::checkDebugMode($site),
-            'feature_flags' => self::checkFeatureFlags($site),
+            "nginx" => self::checkWebServerConfig("nginx", $site),
+            "httpd" => self::checkWebServerConfig("httpd", $site),
+            "dns" => self::checkDns(($site["domain"] ?? "")),
+            "ssl" => self::checkSsl(($site["domain"] ?? "")),
+            "debug" => self::checkDebugMode($site),
+            "feature_flags" => self::checkFeatureFlags($site),
         ];
         $site["database_stats"] = self::readDatabaseStats($config);
 
@@ -101,20 +101,20 @@ class SiteManager {
      * @return array|null
      */
     private static function buildBasicSite(string $moodledir): ?array {
-        $configfile = rtrim($moodledir, '/') . '/config.php';
+        $configfile = rtrim($moodledir, "/") . "/config.php";
         if (!is_file($configfile)) {
             return null;
         }
 
         $config = self::readMoodleConfig($configfile);
         $base = dirname($moodledir);
-        $publicroot = is_dir($moodledir . '/public') ? $moodledir . '/public' : $moodledir;
-        $wwwroot = $config["wwwroot"] ?? '';
+        $publicroot = is_dir("{$moodledir}/public") ? "{$moodledir}/public" : $moodledir;
+        $wwwroot = $config["wwwroot"] ?? "";
         $domain = basename($base);
 
-        if ($wwwroot != '') {
+        if ($wwwroot != "") {
             $host = parse_url($wwwroot, PHP_URL_HOST);
-            if (is_string($host) && $host != '') {
+            if (is_string($host) && $host != "") {
                 $domain = $host;
             }
         }
@@ -123,29 +123,29 @@ class SiteManager {
         $release = self::readMoodleRelease($moodledir, $publicroot);
 
         $return = [
-            'id' => 'site_' . substr(sha1($moodledir), 0, 16),
-            'domain' => $domain,
-            'status' => 'active',
-            'moodle_branch' => $release["release"] ?: ($release["branch"] ?: ''),
-            'moodle_release' => $release["release"],
-            'moodle_version' => $release["version"],
-            'moodle_branch_number' => $release["branch"],
-            'base_dir' => $base,
-            'moodle_dir' => $moodledir,
-            'webroot' => realpath($publicroot) ?: $publicroot,
-            'dataroot' => $config["dataroot"] ?? '',
-            'config_file' => $configfile,
-            'url' => $wwwroot != '' ? $wwwroot : 'https://' . $domain,
-            'created_at' => self::formatFileTime($configfile),
+            "id" => "site_" . substr(sha1($moodledir), 0, 16),
+            "domain" => $domain,
+            "status" => "active",
+            "moodle_branch" => $release["release"] ?: ($release["branch"] ?: ""),
+            "moodle_release" => $release["release"],
+            "moodle_version" => $release["version"],
+            "moodle_branch_number" => $release["branch"],
+            "base_dir" => $base,
+            "moodle_dir" => $moodledir,
+            "webroot" => realpath($publicroot) ?: $publicroot,
+            "dataroot" => $config["dataroot"] ?? "",
+            "config_file" => $configfile,
+            "url" => $wwwroot != "" ? $wwwroot : "https://{$domain}",
+            "created_at" => self::formatFileTime($configfile),
         ];
 
         if (isset($config["dbname"])) {
             $time = time();
-            $signature = hash_hmac('sha256', $time, $config["dbname"]);
+            $signature = hash_hmac("sha256", $time, $config["dbname"]);
             $language = I18n::moodleLanguage();
             $hash = "time={$time}&signature={$signature}&dbname={$config["dbname"]}&lang={$language}";
             $return["sso_url"] =
-                ($wwwroot != '' ? rtrim($wwwroot, '/') : 'https://' . $domain) . "/moodle-logar-admin.php?{$hash}";
+                ($wwwroot != "" ? rtrim($wwwroot, "/") : "https://{$domain}") . "/moodle-logar-admin.php?{$hash}";
         }
 
         return $return;
@@ -158,17 +158,17 @@ class SiteManager {
      * @return array
      */
     private static function readMoodleConfig(string $configfile): array {
-        if ($configfile == '' || !is_readable($configfile)) {
-            return ['_error' => I18n::get('diagnostic.config_not_found')];
+        if ($configfile == "" || !is_readable($configfile)) {
+            return ["_error" => I18n::get("diagnostic.config_not_found")];
         }
 
         $content = file_get_contents($configfile);
         if (!$content) {
-            return ['_error' => I18n::get('diagnostic.config_not_readable')];
+            return ["_error" => I18n::get("diagnostic.config_not_readable")];
         }
 
         $keys = [
-            'wwwroot', 'dataroot', 'dbtype', 'dblibrary', 'dbhost', 'dbname', 'dbuser', 'dbpass', 'prefix', 'admin', 'sslproxy',
+            "wwwroot", "dataroot", "dbtype", "dblibrary", "dbhost", "dbname", "dbuser", "dbpass", "prefix", "admin", "sslproxy",
         ];
         $config = [];
         foreach ($keys as $key) {
@@ -178,7 +178,7 @@ class SiteManager {
             }
         }
 
-        foreach (['dbport', 'dbsocket', 'dbcollation'] as $key) {
+        foreach (["dbport", "dbsocket", "dbcollation"] as $key) {
             $value = self::readArrayValue($content, $key);
             if ($value != null) {
                 $config[$key] = $value;
@@ -197,8 +197,8 @@ class SiteManager {
      */
     private static function publicConfig(array $config): array {
         $public = $config;
-        if (array_key_exists('dbpass', $public)) {
-            $public["dbpass"] = '********';
+        if (array_key_exists("dbpass", $public)) {
+            $public["dbpass"] = "********";
         }
         return $public;
     }
@@ -211,7 +211,7 @@ class SiteManager {
      * @return string|bool|null
      */
     private static function readCfgValue(string $content, string $key): string|bool|null {
-        $quoted = preg_quote($key, '/');
+        $quoted = preg_quote($key, "/");
 
         if (preg_match('/\$CFG->' . $quoted . '\s*=\s*([\'\"])((?:\\\\.|(?!\1).)*)\1\s*;/s', $content, $matches)) {
             return stripcslashes($matches[2]);
@@ -220,9 +220,9 @@ class SiteManager {
         if (preg_match('/\$CFG->' . $quoted . '\s*=\s*(true|false|null|[0-9]+)\s*;/i', $content, $matches)) {
             $raw = strtolower($matches[1]);
             return match ($raw) {
-                'true' => true,
-                'false' => false,
-                'null' => null,
+                "true" => true,
+                "false" => false,
+                "null" => null,
                 default => $raw,
             };
         }
@@ -238,7 +238,7 @@ class SiteManager {
      * @return string|null
      */
     private static function readArrayValue(string $content, string $key): ?string {
-        $quoted = preg_quote($key, '/');
+        $quoted = preg_quote($key, "/");
         if (preg_match('/[\'\"]' . $quoted . '[\'\"]\s*=>\s*([\'\"])((?:\\\\.|(?!\1).)*)\1/s', $content, $matches)) {
             return stripcslashes($matches[2]);
         }
@@ -254,14 +254,14 @@ class SiteManager {
      */
     private static function readMoodleRelease(string $moodledir, string $publicroot): array {
         $files = [
-            rtrim($publicroot, '/') . '/version.php',
-            rtrim($moodledir, '/') . '/version.php',
+            rtrim($publicroot, "/") . "/version.php",
+            rtrim($moodledir, "/") . "/version.php",
         ];
 
         $result = [
-            'release' => '',
-            'version' => '',
-            'branch' => '',
+            "release" => "",
+            "version" => "",
+            "branch" => "",
         ];
 
         foreach ($files as $versionfile) {
@@ -274,7 +274,7 @@ class SiteManager {
                 continue;
             }
 
-            foreach (['release', 'version', 'branch'] as $key) {
+            foreach (["release", "version", "branch"] as $key) {
                 if (preg_match('/\$' . $key . '\s*=\s*([\'\"])?([^\'\";]+)\1?\s*;/s', $content, $matches)) {
                     $result[$key] = trim($matches[2]);
                 }
@@ -282,8 +282,8 @@ class SiteManager {
             break;
         }
 
-        if ($result["release"] == '' && $result["branch"] == '') {
-            $result["release"] = I18n::get('diagnostic.version_not_found');
+        if ($result["release"] == "" && $result["branch"] == "") {
+            $result["release"] = I18n::get("diagnostic.version_not_found");
         }
 
         return $result;
@@ -297,35 +297,35 @@ class SiteManager {
      * @return array
      */
     private static function checkWebServerConfig(string $type, array $site): array {
-        $domain = $site["domain"] ?? '';
-        $label = $type == 'nginx' ? 'NGINX' : 'APACHE';
+        $domain = $site["domain"] ?? "";
+        $label = $type == "nginx" ? "NGINX" : "APACHE";
         $file = self::webServerConfigPath($type, $domain);
 
         if (!is_file($file)) {
             return [
-                'status' => 'danger',
-                'label' => I18n::get('status.not_found'),
-                'message' => I18n::get('diagnostic.webserver_not_found', ['label' => $label]),
-                'path' => $file,
+                "status" => "danger",
+                "label" => I18n::get("status.not_found"),
+                "message" => I18n::get("diagnostic.webserver_not_found", ["label" => $label]),
+                "path" => $file,
             ];
         }
 
         if (!is_readable($file)) {
             return [
-                'status' => 'warning',
-                'label' => I18n::get('status.not_readable'),
-                'message' => I18n::get('diagnostic.webserver_not_readable', ['label' => $label]),
-                'path' => $file,
+                "status" => "warning",
+                "label" => I18n::get("status.not_readable"),
+                "message" => I18n::get("diagnostic.webserver_not_readable", ["label" => $label]),
+                "path" => $file,
             ];
         }
 
         $content = file_get_contents($file);
         if (!$content) {
             return [
-                'status' => 'warning',
-                'label' => I18n::get('status.not_readable'),
-                'message' => I18n::get('diagnostic.webserver_read_failed', ['label' => $label]),
-                'path' => $file,
+                "status" => "warning",
+                "label" => I18n::get("status.not_readable"),
+                "message" => I18n::get("diagnostic.webserver_read_failed", ["label" => $label]),
+                "path" => $file,
             ];
         }
 
@@ -334,20 +334,20 @@ class SiteManager {
 
         if ($hasDomain) {
             return [
-                'status' => $hasRoot || $type == 'nginx' ? 'ok' : 'warning',
-                'label' => $hasRoot || $type == 'nginx' ? I18n::get('status.ok') : I18n::get('status.check_root'),
-                'message' => $hasRoot || $type == 'nginx'
-                    ? I18n::get('diagnostic.webserver_configured', ['label' => $label])
-                    : I18n::get('diagnostic.webserver_domain_no_root', ['label' => $label]),
-                'path' => $file,
+                "status" => $hasRoot || $type == "nginx" ? "ok" : "warning",
+                "label" => $hasRoot || $type == "nginx" ? I18n::get("status.ok") : I18n::get("status.check_root"),
+                "message" => $hasRoot || $type == "nginx"
+                    ? I18n::get("diagnostic.webserver_configured", ["label" => $label])
+                    : I18n::get("diagnostic.webserver_domain_no_root", ["label" => $label]),
+                "path" => $file,
             ];
         }
 
         return [
-            'status' => 'warning',
-            'label' => I18n::get('status.check'),
-            'message' => I18n::get('diagnostic.webserver_domain_missing', ['label' => $label]),
-            'path' => $file,
+            "status" => "warning",
+            "label" => I18n::get("status.check"),
+            "message" => I18n::get("diagnostic.webserver_domain_missing", ["label" => $label]),
+            "path" => $file,
         ];
     }
 
@@ -359,14 +359,14 @@ class SiteManager {
      * @return string
      */
     private static function webServerConfigPath(string $type, string $domain): string {
-        if ($type == 'nginx') {
+        if ($type == "nginx") {
             return "/etc/nginx/sites-enabled/{$domain}.conf";
         }
 
         return match (self::detectOperatingSystem()) {
-            'debian' => "/etc/apache2/sites-enabled/{$domain}.conf",
-            'redhat' => "/etc/httpd/sites-enabled/{$domain}.conf",
-            default => is_dir('/etc/apache2/sites-enabled')
+            "debian" => "/etc/apache2/sites-enabled/{$domain}.conf",
+            "redhat" => "/etc/httpd/sites-enabled/{$domain}.conf",
+            default => is_dir("/etc/apache2/sites-enabled")
                 ? "/etc/apache2/sites-enabled/{$domain}.conf"
                 : "/etc/httpd/sites-enabled/{$domain}.conf",
         };
@@ -379,19 +379,19 @@ class SiteManager {
      */
     private static function detectOperatingSystem(): string {
         $release = self::readOsRelease();
-        $id = strtolower((string) ($release["ID"] ?? ''));
-        $idlike = strtolower((string) ($release["ID_LIKE"] ?? ''));
+        $id = strtolower((string) ($release["ID"] ?? ""));
+        $idlike = strtolower((string) ($release["ID_LIKE"] ?? ""));
         $tokens = preg_split('/\s+/', trim("{$id} {$idlike}")) ?: [];
 
-        if (array_intersect($tokens, ['debian', 'ubuntu'])) {
-            return 'debian';
+        if (array_intersect($tokens, ["debian", "ubuntu"])) {
+            return "debian";
         }
 
-        if (array_intersect($tokens, ['rhel', 'fedora', 'centos', 'rocky', 'almalinux'])) {
-            return 'redhat';
+        if (array_intersect($tokens, ["rhel", "fedora", "centos", "rocky", "almalinux"])) {
+            return "redhat";
         }
 
-        return 'unknown';
+        return "unknown";
     }
 
     /**
@@ -400,7 +400,7 @@ class SiteManager {
      * @return array
      */
     private static function readOsRelease(): array {
-        foreach (['/etc/os-release', '/usr/lib/os-release'] as $file) {
+        foreach (["/etc/os-release", "/usr/lib/os-release"] as $file) {
             if (!is_readable($file)) {
                 continue;
             }
@@ -426,33 +426,33 @@ class SiteManager {
 
         if (!$resolvedIps) {
             return [
-                'status' => 'danger',
-                'label' => I18n::get('status.no_dns'),
-                'message' => I18n::get('diagnostic.dns_not_found'),
-                'resolved_ips' => [],
-                'server_ips' => $serverIps,
-                'matches' => [],
+                "status" => "danger",
+                "label" => I18n::get("status.no_dns"),
+                "message" => I18n::get("diagnostic.dns_not_found"),
+                "resolved_ips" => [],
+                "server_ips" => $serverIps,
+                "matches" => [],
             ];
         }
 
         if ($matches) {
             return [
-                'status' => 'ok',
-                'label' => I18n::get('status.ok'),
-                'message' => I18n::get('diagnostic.dns_ok'),
-                'resolved_ips' => $resolvedIps,
-                'server_ips' => $serverIps,
-                'matches' => $matches,
+                "status" => "ok",
+                "label" => I18n::get("status.ok"),
+                "message" => I18n::get("diagnostic.dns_ok"),
+                "resolved_ips" => $resolvedIps,
+                "server_ips" => $serverIps,
+                "matches" => $matches,
             ];
         }
 
         return [
-            'status' => 'warning',
-            'label' => I18n::get('status.check_ip'),
-            'message' => I18n::get('diagnostic.dns_ip_mismatch'),
-            'resolved_ips' => $resolvedIps,
-            'server_ips' => $serverIps,
-            'matches' => [],
+            "status" => "warning",
+            "label" => I18n::get("status.check_ip"),
+            "message" => I18n::get("diagnostic.dns_ip_mismatch"),
+            "resolved_ips" => $resolvedIps,
+            "server_ips" => $serverIps,
+            "matches" => [],
         ];
     }
 
@@ -463,26 +463,26 @@ class SiteManager {
      * @return array|array[]
      */
     private static function dnsRecords(string $domain): array {
-        $records = ['A' => [], 'AAAA' => []];
-        if ($domain == '') {
+        $records = ["A" => [], "AAAA" => []];
+        if ($domain == "") {
             return $records;
         }
 
-        if (function_exists('dns_get_record')) {
+        if (function_exists("dns_get_record")) {
             $dns = @dns_get_record($domain, DNS_A + DNS_AAAA);
             if (is_array($dns)) {
                 foreach ($dns as $record) {
-                    if (($record["type"] ?? '') == 'A' && !empty($record["ip"])) {
+                    if (($record["type"] ?? "") == "A" && !empty($record["ip"])) {
                         $records["A"][] = $record["ip"];
                     }
-                    if (($record["type"] ?? '') == 'AAAA' && !empty($record["ipv6"])) {
+                    if (($record["type"] ?? "") == "AAAA" && !empty($record["ipv6"])) {
                         $records["AAAA"][] = $record["ipv6"];
                     }
                 }
             }
         }
 
-        if (!$records["A"] && function_exists('gethostbynamel')) {
+        if (!$records["A"] && function_exists("gethostbynamel")) {
             $fallback = @gethostbynamel($domain);
             if (is_array($fallback)) {
                 $records["A"] = $fallback;
@@ -502,28 +502,28 @@ class SiteManager {
     private static function serverIps(): array {
         $ips = [];
 
-        foreach (['SERVER_ADDR', 'LOCAL_ADDR'] as $key) {
+        foreach (["SERVER_ADDR", "LOCAL_ADDR"] as $key) {
             if (!empty($_SERVER[$key])) {
                 $ips[] = $_SERVER[$key];
             }
         }
 
         if (!empty($_SERVER["HTTP_HOST"])) {
-            $host = preg_replace('/:\d+$/', '', $_SERVER["HTTP_HOST"]);
+            $host = preg_replace('/:\d+$/', "", $_SERVER["HTTP_HOST"]);
             $hostIps = @gethostbynamel($host);
             if (is_array($hostIps)) {
                 $ips = array_merge($ips, $hostIps);
             }
         }
 
-        if (function_exists('shell_exec')) {
-            $output = @shell_exec('hostname -I 2>/dev/null');
+        if (function_exists("shell_exec")) {
+            $output = @shell_exec("hostname -I 2>/dev/null");
             if (is_string($output)) {
                 $ips = array_merge($ips, preg_split('/\s+/', trim($output)) ?: []);
             }
         }
 
-        return array_values(array_unique(array_filter(array_map('trim', $ips), static function(string $ip): bool {
+        return array_values(array_unique(array_filter(array_map("trim", $ips), static function(string $ip): bool {
             return filter_var($ip, FILTER_VALIDATE_IP) != false;
         })));
     }
@@ -535,11 +535,11 @@ class SiteManager {
      * @return array
      */
     private static function checkSsl(string $domain): array {
-        if ($domain == '') {
+        if ($domain == "") {
             return [
-                'status' => 'danger',
-                'label' => I18n::get('status.no_domain'),
-                'message' => I18n::get('diagnostic.empty_domain'),
+                "status" => "danger",
+                "label" => I18n::get("status.no_domain"),
+                "message" => I18n::get("diagnostic.empty_domain"),
             ];
         }
 
@@ -554,9 +554,9 @@ class SiteManager {
 
         if (!$result["connected"]) {
             return [
-                'status' => 'danger',
-                'label' => I18n::get('status.ssl_error'),
-                'message' => $result["error"] ?: I18n::get('diagnostic.ssl_connect_error'),
+                "status" => "danger",
+                "label" => I18n::get("status.ssl_error"),
+                "message" => $result["error"] ?: I18n::get("diagnostic.ssl_connect_error"),
             ];
         }
 
@@ -568,40 +568,40 @@ class SiteManager {
 
         if ($verified && $validFrom <= $now && $validTo > $now) {
             return [
-                'status' => $days != null && $days < 15 ? 'warning' : 'ok',
-                'label' => $days != null && $days < 15 ? I18n::get('status.expires_soon') : I18n::get('status.ok'),
-                'message' => $days != null ? I18n::get('diagnostic.ssl_valid_days', ['days' => $days]) :
-                    I18n::get('diagnostic.ssl_valid'),
-                'issuer' => self::certName($cert["issuer"] ?? []),
-                'subject' => self::certName($cert["subject"] ?? []),
-                'valid_from' => $validFrom ? date('Y-m-d H:i:s', $validFrom) : '',
-                'valid_to' => $validTo ? date('Y-m-d H:i:s', $validTo) : '',
-                'days_left' => $days,
+                "status" => $days != null && $days < 15 ? "warning" : "ok",
+                "label" => $days != null && $days < 15 ? I18n::get("status.expires_soon") : I18n::get("status.ok"),
+                "message" => $days != null ? I18n::get("diagnostic.ssl_valid_days", ["days" => $days]) :
+                    I18n::get("diagnostic.ssl_valid"),
+                "issuer" => self::certName($cert["issuer"] ?? []),
+                "subject" => self::certName($cert["subject"] ?? []),
+                "valid_from" => $validFrom ? date("Y-m-d H:i:s", $validFrom) : "",
+                "valid_to" => $validTo ? date("Y-m-d H:i:s", $validTo) : "",
+                "days_left" => $days,
             ];
         }
 
         if ($validTo > 0 && $validTo <= $now) {
             return [
-                'status' => 'danger',
-                'label' => I18n::get('status.expired'),
-                'message' => I18n::get('diagnostic.ssl_expired'),
-                'issuer' => self::certName($cert["issuer"] ?? []),
-                'subject' => self::certName($cert["subject"] ?? []),
-                'valid_to' => date('Y-m-d H:i:s', $validTo),
-                'days_left' => $days,
+                "status" => "danger",
+                "label" => I18n::get("status.expired"),
+                "message" => I18n::get("diagnostic.ssl_expired"),
+                "issuer" => self::certName($cert["issuer"] ?? []),
+                "subject" => self::certName($cert["subject"] ?? []),
+                "valid_to" => date("Y-m-d H:i:s", $validTo),
+                "days_left" => $days,
             ];
         }
 
         return [
-            'status' => 'warning',
-            'label' => I18n::get('status.check'),
-            'message' => $verified ? I18n::get('diagnostic.ssl_not_confirmed') :
-                I18n::get('diagnostic.ssl_validation_failed'),
-            'issuer' => self::certName($cert["issuer"] ?? []),
-            'subject' => self::certName($cert["subject"] ?? []),
-            'valid_from' => $validFrom ? date('Y-m-d H:i:s', $validFrom) : '',
-            'valid_to' => $validTo ? date('Y-m-d H:i:s', $validTo) : '',
-            'days_left' => $days,
+            "status" => "warning",
+            "label" => I18n::get("status.check"),
+            "message" => $verified ? I18n::get("diagnostic.ssl_not_confirmed") :
+                I18n::get("diagnostic.ssl_validation_failed"),
+            "issuer" => self::certName($cert["issuer"] ?? []),
+            "subject" => self::certName($cert["subject"] ?? []),
+            "valid_from" => $validFrom ? date("Y-m-d H:i:s", $validFrom) : "",
+            "valid_to" => $validTo ? date("Y-m-d H:i:s", $validTo) : "",
+            "days_left" => $days,
         ];
     }
 
@@ -614,20 +614,20 @@ class SiteManager {
      */
     private static function readSslCertificate(string $domain, bool $verify): array {
         $context = stream_context_create([
-            'ssl' => [
-                'capture_peer_cert' => true,
-                'verify_peer' => $verify,
-                'verify_peer_name' => $verify,
-                'allow_self_signed' => false,
-                'peer_name' => $domain,
-                'SNI_enabled' => true,
+            "ssl" => [
+                "capture_peer_cert" => true,
+                "verify_peer" => $verify,
+                "verify_peer_name" => $verify,
+                "allow_self_signed" => false,
+                "peer_name" => $domain,
+                "SNI_enabled" => true,
             ],
         ]);
 
         $errno = 0;
-        $errstr = '';
+        $errstr = "";
         $client = @stream_socket_client(
-            'ssl://' . $domain . ':443',
+            "ssl://{$domain}" . ":443",
             $errno,
             $errstr,
             5,
@@ -637,9 +637,9 @@ class SiteManager {
 
         if (!$client) {
             return [
-                'connected' => false,
-                'error' => $errstr ?: ($errno ? I18n::get('status.error') . ' ' . $errno : ''),
-                'certificate' => [],
+                "connected" => false,
+                "error" => $errstr ?: ($errno ? I18n::get("status.error") . " {$errno}" : ""),
+                "certificate" => [],
             ];
         }
 
@@ -648,17 +648,17 @@ class SiteManager {
         $cert = $params["options"]["ssl"]["peer_certificate"] ?? null;
         if (!$cert) {
             return [
-                'connected' => true,
-                'error' => I18n::get('diagnostic.ssl_read_error'),
-                'certificate' => [],
+                "connected" => true,
+                "error" => I18n::get("diagnostic.ssl_read_error"),
+                "certificate" => [],
             ];
         }
 
         $parsed = openssl_x509_parse($cert);
         return [
-            'connected' => true,
-            'error' => '',
-            'certificate' => is_array($parsed) ? $parsed : [],
+            "connected" => true,
+            "error" => "",
+            "certificate" => is_array($parsed) ? $parsed : [],
         ];
     }
 
@@ -675,7 +675,7 @@ class SiteManager {
         if (!empty($data["O"])) {
             return $data["O"];
         }
-        return '';
+        return "";
     }
 
     /**
@@ -700,16 +700,16 @@ class SiteManager {
                 ]);
 
                 $items = [
-                    'users' => self::countQuery($pdo, "SELECT COUNT(*) FROM mdl_user WHERE deleted = 0 AND id > 1"),
-                    'courses' => self::countQuery($pdo, "SELECT COUNT(*) FROM mdl_course WHERE id > 1"),
-                    'enrolments' => self::countQuery(
+                    "users" => self::countQuery($pdo, "SELECT COUNT(*) FROM mdl_user WHERE deleted = 0 AND id > 1"),
+                    "courses" => self::countQuery($pdo, "SELECT COUNT(*) FROM mdl_course WHERE id > 1"),
+                    "enrolments" => self::countQuery(
                         $pdo,
                         "SELECT COUNT(*)
                        FROM mdl_user_enrolments ue
                        JOIN mdl_enrol e ON e.id = ue.enrolid
                       WHERE e.courseid > 1"
                     ),
-                    'active_enrolments' => self::countQuery(
+                    "active_enrolments" => self::countQuery(
                         $pdo,
                         "SELECT COUNT(*)
                        FROM mdl_user_enrolments ue
@@ -719,22 +719,22 @@ class SiteManager {
                 ];
 
                 return [
-                    'connected' => true,
-                    'error' => '',
-                    'items' => $items,
+                    "connected" => true,
+                    "error" => "",
+                    "items" => $items,
                 ];
             } catch (Throwable $e) {
                 return [
-                    'connected' => false,
-                    'error' => $e->getMessage(),
-                    'items' => [],
+                    "connected" => false,
+                    "error" => $e->getMessage(),
+                    "items" => [],
                 ];
             }
         }
         return [
-            'connected' => false,
-            'error' => I18n::get('diagnostic.config_not_readable'),
-            'items' => [],
+            "connected" => false,
+            "error" => I18n::get("diagnostic.config_not_readable"),
+            "items" => [],
         ];
     }
 
@@ -757,7 +757,7 @@ class SiteManager {
      */
     private static function formatFileTime(string $file): string {
         $time = @filemtime($file);
-        return $time ? date('Y-m-d H:i:s', $time) : '';
+        return $time ? date("Y-m-d H:i:s", $time) : "";
     }
 
     /**
@@ -768,7 +768,7 @@ class SiteManager {
      * @return array
      */
     public static function setDebugMode(array $site, bool $enabled): array {
-        return self::setFeatureFlag($site, 'debug', $enabled);
+        return self::setFeatureFlag($site, "debug", $enabled);
     }
 
     /**
@@ -784,24 +784,24 @@ class SiteManager {
         $definitions = self::featureFlagDefinitions();
         if (!isset($definitions[$flag])) {
             return [
-                'ok' => false,
-                'message' => I18n::get('diagnostic.flag_invalid'),
+                "ok" => false,
+                "message" => I18n::get("diagnostic.flag_invalid"),
             ];
         }
 
         $definition = $definitions[$flag];
-        if (($definition["handler"] ?? '') == 'maintenance') {
+        if (($definition["handler"] ?? "") == "maintenance") {
             return self::setMaintenanceMode($site, $enabled);
         }
 
         $fileenabled = !empty($definition["inverted"]) ? !$enabled : $enabled;
 
-        if (!empty($definition["value_type"]) && $definition["value_type"] == 'email' && $fileenabled) {
+        if (!empty($definition["value_type"]) && $definition["value_type"] == "email" && $fileenabled) {
             $email = trim($value);
             if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
                 return [
-                    'ok' => false,
-                    'message' => I18n::get('diagnostic.email_redirect_invalid'),
+                    "ok" => false,
+                    "message" => I18n::get("diagnostic.email_redirect_invalid"),
                 ];
             }
             return self::writeFeatureFlagFile($site, $definition, true, $email . PHP_EOL);
@@ -810,8 +810,8 @@ class SiteManager {
         $result = self::writeFeatureFlagFile($site, $definition, $fileenabled);
         if (!empty($definition["inverted"]) && !empty($result["ok"])) {
             $result["message"] = I18n::get(
-                $enabled ? 'diagnostic.flag_enabled' : 'diagnostic.flag_disabled',
-                ['label' => ($definition["label"] ?? 'Flag'), 'domain' => ($site["domain"] ?? 'este Moodle')]
+                $enabled ? "diagnostic.flag_enabled" : "diagnostic.flag_disabled",
+                ["label" => ($definition["label"] ?? "Flag"), "domain" => ($site["domain"] ?? "este Moodle")]
             );
         }
         return $result;
@@ -824,96 +824,96 @@ class SiteManager {
      */
     private static function featureFlagDefinitions(): array {
         return [
-            'debug' => [
-                'label' => I18n::get('feature_flags.debug_label'),
-                'file' => 'debug.enable',
-                'description' => I18n::get('feature_flags.debug_description'),
-                'enabled_label' => I18n::get('status.enabled'),
-                'disabled_label' => I18n::get('status.disabled'),
-                'enabled_status' => 'warning',
-                'dangerous' => true,
+            "debug" => [
+                "label" => I18n::get("feature_flags.debug_label"),
+                "file" => "debug.enable",
+                "description" => I18n::get("feature_flags.debug_description"),
+                "enabled_label" => I18n::get("status.enabled"),
+                "disabled_label" => I18n::get("status.disabled"),
+                "enabled_status" => "warning",
+                "dangerous" => true,
             ],
-            'maintenance' => [
-                'label' => I18n::get('feature_flags.maintenance_label'),
-                'file' => 'maintenance.enable',
-                'description' => I18n::get('feature_flags.maintenance_description'),
-                'enabled_label' => I18n::get('status.maintenance'),
-                'disabled_label' => I18n::get('status.disabled'),
-                'enabled_status' => 'danger',
-                'handler' => 'maintenance',
-                'dangerous' => true,
+            "maintenance" => [
+                "label" => I18n::get("feature_flags.maintenance_label"),
+                "file" => "maintenance.enable",
+                "description" => I18n::get("feature_flags.maintenance_description"),
+                "enabled_label" => I18n::get("status.maintenance"),
+                "disabled_label" => I18n::get("status.disabled"),
+                "enabled_status" => "danger",
+                "handler" => "maintenance",
+                "dangerous" => true,
             ],
-            'cron_disable' => [
-                'label' => I18n::get('feature_flags.cron_disable_label'),
-                'file' => 'cron.disable',
-                'description' => I18n::get('feature_flags.cron_disable_description'),
-                'enabled_label' => I18n::get('status.paused'),
-                'disabled_label' => I18n::get('status.active'),
-                'enabled_status' => 'warning',
-                'dangerous' => true,
+            "cron_disable" => [
+                "label" => I18n::get("feature_flags.cron_disable_label"),
+                "file" => "cron.disable",
+                "description" => I18n::get("feature_flags.cron_disable_description"),
+                "enabled_label" => I18n::get("status.paused"),
+                "disabled_label" => I18n::get("status.active"),
+                "enabled_status" => "warning",
+                "dangerous" => true,
             ],
-            'email_disable' => [
-                'label' => I18n::get('feature_flags.email_disable_label'),
-                'file' => 'email.disable',
-                'description' => I18n::get('feature_flags.email_disable_description'),
-                'enabled_label' => I18n::get('status.blocked'),
-                'disabled_label' => I18n::get('status.released'),
-                'enabled_status' => 'warning',
-                'dangerous' => true,
+            "email_disable" => [
+                "label" => I18n::get("feature_flags.email_disable_label"),
+                "file" => "email.disable",
+                "description" => I18n::get("feature_flags.email_disable_description"),
+                "enabled_label" => I18n::get("status.blocked"),
+                "disabled_label" => I18n::get("status.released"),
+                "enabled_status" => "warning",
+                "dangerous" => true,
             ],
-            'email_redirect' => [
-                'label' => I18n::get('feature_flags.email_redirect_label'),
-                'file' => 'email.redirect',
-                'description' => I18n::get('feature_flags.email_redirect_description'),
-                'enabled_label' => I18n::get('status.redirecting'),
-                'disabled_label' => I18n::get('status.disabled'),
-                'enabled_status' => 'warning',
-                'value_type' => 'email',
+            "email_redirect" => [
+                "label" => I18n::get("feature_flags.email_redirect_label"),
+                "file" => "email.redirect",
+                "description" => I18n::get("feature_flags.email_redirect_description"),
+                "enabled_label" => I18n::get("status.redirecting"),
+                "disabled_label" => I18n::get("status.disabled"),
+                "enabled_status" => "warning",
+                "value_type" => "email",
             ],
-            'theme_designer' => [
-                'label' => I18n::get('feature_flags.theme_designer_label'),
-                'file' => 'theme-designer.enable',
-                'description' => I18n::get('feature_flags.theme_designer_description'),
-                'enabled_label' => I18n::get('status.enabled'),
-                'disabled_label' => I18n::get('status.disabled'),
-                'enabled_status' => 'warning',
-                'dangerous' => true,
+            "theme_designer" => [
+                "label" => I18n::get("feature_flags.theme_designer_label"),
+                "file" => "theme-designer.enable",
+                "description" => I18n::get("feature_flags.theme_designer_description"),
+                "enabled_label" => I18n::get("status.enabled"),
+                "disabled_label" => I18n::get("status.disabled"),
+                "enabled_status" => "warning",
+                "dangerous" => true,
             ],
-            'cache_dev' => [
-                'label' => I18n::get('feature_flags.cache_dev_label'),
-                'file' => 'cache-dev.enable',
-                'description' => I18n::get('feature_flags.cache_dev_description'),
-                'enabled_label' => I18n::get('status.no_cache_dev'),
-                'disabled_label' => I18n::get('status.normal_cache'),
-                'enabled_status' => 'warning',
-                'dangerous' => true,
+            "cache_dev" => [
+                "label" => I18n::get("feature_flags.cache_dev_label"),
+                "file" => "cache-dev.enable",
+                "description" => I18n::get("feature_flags.cache_dev_description"),
+                "enabled_label" => I18n::get("status.no_cache_dev"),
+                "disabled_label" => I18n::get("status.normal_cache"),
+                "enabled_status" => "warning",
+                "dangerous" => true,
             ],
-            'cron_debug' => [
-                'label' => I18n::get('feature_flags.cron_debug_label'),
-                'file' => 'cron-debug.enable',
-                'description' => I18n::get('feature_flags.cron_debug_description'),
-                'enabled_label' => I18n::get('status.enabled'),
-                'disabled_label' => I18n::get('status.disabled'),
-                'enabled_status' => 'warning',
+            "cron_debug" => [
+                "label" => I18n::get("feature_flags.cron_debug_label"),
+                "file" => "cron-debug.enable",
+                "description" => I18n::get("feature_flags.cron_debug_description"),
+                "enabled_label" => I18n::get("status.enabled"),
+                "disabled_label" => I18n::get("status.disabled"),
+                "enabled_status" => "warning",
             ],
-            'slow_sql' => [
-                'label' => I18n::get('feature_flags.slow_sql_label'),
-                'file' => 'slow-sql.disable',
-                'description' => I18n::get('feature_flags.slow_sql_description'),
-                'enabled_label' => I18n::get('status.enabled'),
-                'disabled_label' => I18n::get('status.disabled'),
-                'enabled_status' => 'warning',
-                'inverted' => true,
-                'dangerous' => true,
+            "slow_sql" => [
+                "label" => I18n::get("feature_flags.slow_sql_label"),
+                "file" => "slow-sql.disable",
+                "description" => I18n::get("feature_flags.slow_sql_description"),
+                "enabled_label" => I18n::get("status.enabled"),
+                "disabled_label" => I18n::get("status.disabled"),
+                "enabled_status" => "warning",
+                "inverted" => true,
+                "dangerous" => true,
             ],
-            'perf' => [
-                'label' => I18n::get('feature_flags.perf_label'),
-                'file' => 'perf.enable',
-                'description' => I18n::get('feature_flags.perf_description'),
-                'enabled_label' => I18n::get('status.enabled'),
-                'disabled_label' => I18n::get('status.disabled'),
-                'enabled_status' => 'warning',
-                'dangerous' => true,
+            "perf" => [
+                "label" => I18n::get("feature_flags.perf_label"),
+                "file" => "perf.enable",
+                "description" => I18n::get("feature_flags.perf_description"),
+                "enabled_label" => I18n::get("status.enabled"),
+                "disabled_label" => I18n::get("status.disabled"),
+                "enabled_status" => "warning",
+                "dangerous" => true,
             ],
         ];
     }
@@ -928,30 +928,30 @@ class SiteManager {
         $items = [];
         foreach (self::featureFlagDefinitions() as $key => $definition) {
             $file = self::featureFlagFile($site, $definition["file"]);
-            $fileexists = $file != '' && is_file($file);
+            $fileexists = $file != "" && is_file($file);
             $enabled = !empty($definition["inverted"]) ? !$fileexists : $fileexists;
-            $value = '';
+            $value = "";
 
             if ($fileexists && !empty($definition["value_type"]) && is_readable($file)) {
                 $value = trim(file_get_contents($file));
             }
 
-            $description = $definition["description"] ?? '';
-            if ($key == 'email_redirect' && $enabled && $value != '') {
-                $description .= ' ' . I18n::get('diagnostic.email_current', ['email' => $value]);
+            $description = $definition["description"] ?? "";
+            if ($key == "email_redirect" && $enabled && $value != "") {
+                $description .= " " . I18n::get("diagnostic.email_current", ["email" => $value]);
             }
 
             $items[$key] = [
-                'label' => $definition["label"] ?? $key,
-                'description' => $description,
-                'path' => $file,
-                'enabled' => $enabled,
-                'value' => $value,
-                'value_type' => $definition["value_type"] ?? '',
-                'dangerous' => !empty($definition["dangerous"]),
-                'status' => $enabled ? ($definition["enabled_status"] ?? 'warning') : 'ok',
-                'status_label' => $enabled ? ($definition["enabled_label"] ?? I18n::get('status.enabled')) :
-                    ($definition["disabled_label"] ?? I18n::get('status.disabled')),
+                "label" => $definition["label"] ?? $key,
+                "description" => $description,
+                "path" => $file,
+                "enabled" => $enabled,
+                "value" => $value,
+                "value_type" => $definition["value_type"] ?? "",
+                "dangerous" => !empty($definition["dangerous"]),
+                "status" => $enabled ? ($definition["enabled_status"] ?? "warning") : "ok",
+                "status_label" => $enabled ? ($definition["enabled_label"] ?? I18n::get("status.enabled")) :
+                    ($definition["disabled_label"] ?? I18n::get("status.disabled")),
             ];
         }
 
@@ -968,42 +968,42 @@ class SiteManager {
      * @return array
      */
     private static function writeFeatureFlagFile(array $site, array $definition, bool $enabled, ?string $content = null): array {
-        $file = self::featureFlagFile($site, ($definition["file"] ?? ''));
-        $label = $definition["label"] ?? 'Flag';
-        if ($file == '') {
+        $file = self::featureFlagFile($site, ($definition["file"] ?? ""));
+        $label = $definition["label"] ?? "Flag";
+        if ($file == "") {
             return [
-                'ok' => false,
-                'message' => I18n::get('diagnostic.flag_path_missing'),
+                "ok" => false,
+                "message" => I18n::get("diagnostic.flag_path_missing"),
             ];
         }
 
         if ($enabled) {
-            $content = $content ?? ('enabled_at=' . date('c') . PHP_EOL);
+            $content = $content ?? ("enabled_at=" . date("c") . PHP_EOL);
             if (!@file_put_contents($file, $content, LOCK_EX)) {
                 return [
-                    'ok' => false,
-                    'message' => I18n::get('diagnostic.flag_create_failed', ['file' => $file]),
+                    "ok" => false,
+                    "message" => I18n::get("diagnostic.flag_create_failed", ["file" => $file]),
                 ];
             }
             @chmod($file, 0640);
             return [
-                'ok' => true,
-                'message' => I18n::get(
-                    'diagnostic.flag_enabled', ['label' => $label, 'domain' => ($site["domain"] ?? 'este Moodle')]
+                "ok" => true,
+                "message" => I18n::get(
+                    "diagnostic.flag_enabled", ["label" => $label, "domain" => ($site["domain"] ?? "este Moodle")]
                 ),
             ];
         }
 
         if (is_file($file) && !@unlink($file)) {
             return [
-                'ok' => false,
-                'message' => I18n::get('diagnostic.flag_delete_failed', ['file' => $file]),
+                "ok" => false,
+                "message" => I18n::get("diagnostic.flag_delete_failed", ["file" => $file]),
             ];
         }
 
         return [
-            'ok' => true,
-            'message' => I18n::get('diagnostic.flag_disabled', ['label' => $label, 'domain' => ($site["domain"] ?? 'este Moodle')]),
+            "ok" => true,
+            "message" => I18n::get("diagnostic.flag_disabled", ["label" => $label, "domain" => ($site["domain"] ?? "este Moodle")]),
         ];
     }
 
@@ -1016,15 +1016,15 @@ class SiteManager {
      */
     private static function setMaintenanceMode(array $site, bool $enabled): array {
         $cli = self::moodleCliFile($site);
-        if ($cli == '') {
+        if ($cli == "") {
             return [
-                'ok' => false,
-                'message' => I18n::get('diagnostic.maintenance_cli_missing'),
+                "ok" => false,
+                "message" => I18n::get("diagnostic.maintenance_cli_missing"),
             ];
         }
 
-        $phpbin = app_config('php_bin') ?: PHP_BINARY ?: '/usr/bin/php';
-        $command = escapeshellarg($phpbin) . ' ' . escapeshellarg($cli) . ' ' . ($enabled ? '--enable' : '--disable') . ' 2>&1';
+        $phpbin = app_config("php_bin") ?: PHP_BINARY ?: "/usr/bin/php";
+        $command = escapeshellarg($phpbin) . " " . escapeshellarg($cli) . " " . ($enabled ? "--enable" : "--disable") . " 2>&1";
         $output = [];
         $exitcode = 0;
         exec($command, $output, $exitcode);
@@ -1032,9 +1032,9 @@ class SiteManager {
         if ($exitcode != 0) {
             $message = trim(implode("\n", $output));
             return [
-                'ok' => false,
-                'message' => I18n::get(
-                    'diagnostic.maintenance_failed', ['message' => ($message != '' ? $message : 'exit code ' . $exitcode)]
+                "ok" => false,
+                "message" => I18n::get(
+                    "diagnostic.maintenance_failed", ["message" => ($message != "" ? $message : "exit code {$exitcode}")]
                 ),
             ];
         }
@@ -1046,9 +1046,9 @@ class SiteManager {
         }
 
         $result["message"] = I18n::get(
-            'diagnostic.maintenance_done', [
-                'state' => ($enabled ? I18n::get('diagnostic.maintenance_enabled') :
-                    I18n::get('diagnostic.maintenance_disabled')), 'domain' => ($site["domain"] ?? 'este Moodle'),
+            "diagnostic.maintenance_done", [
+                "state" => ($enabled ? I18n::get("diagnostic.maintenance_enabled") :
+                    I18n::get("diagnostic.maintenance_disabled")), "domain" => ($site["domain"] ?? "este Moodle"),
             ]
         );
         return $result;
@@ -1061,14 +1061,14 @@ class SiteManager {
      * @return string
      */
     private static function moodleCliFile(array $site): string {
-        $moodledir = rtrim($site["moodle_dir"] ?? '', '/');
-        if ($moodledir == '') {
-            return '';
+        $moodledir = rtrim($site["moodle_dir"] ?? "", "/");
+        if ($moodledir == "") {
+            return "";
         }
 
         $candidates = [
-            $moodledir . '/admin/cli/' . 'maintenance.php',
-            $moodledir . '/public/admin/cli/' . 'maintenance.php',
+            "{$moodledir}/admin/cli/maintenance.php",
+            "{$moodledir}/public/admin/cli/maintenance.php",
         ];
 
         foreach ($candidates as $candidate) {
@@ -1077,7 +1077,7 @@ class SiteManager {
             }
         }
 
-        return '';
+        return "";
     }
 
     /**
@@ -1088,12 +1088,12 @@ class SiteManager {
      * @return string
      */
     private static function featureFlagFile(array $site, string $filename): string {
-        $base = rtrim($site["base_dir"] ?? '', '/');
-        $filename = ltrim($filename, '/');
-        if ($base == '' || $filename == '') {
-            return '';
+        $base = rtrim($site["base_dir"] ?? "", "/");
+        $filename = ltrim($filename, "/");
+        if ($base == "" || $filename == "") {
+            return "";
         }
-        return $base . '/' . $filename;
+        return "{$base}/{$filename}";
     }
 
     /**
@@ -1107,18 +1107,18 @@ class SiteManager {
         $debug = $flags["debug"] ?? null;
         if ($debug == null) {
             return [
-                'status' => 'muted',
-                'label' => '-',
-                'path' => '',
-                'enabled' => false,
+                "status" => "muted",
+                "label" => "-",
+                "path" => "",
+                "enabled" => false,
             ];
         }
 
         return [
-            'status' => $debug["status"] ?? 'muted',
-            'label' => $debug["status_label"] ?? '-',
-            'path' => $debug["path"] ?? '',
-            'enabled' => !empty($debug["enabled"]),
+            "status" => $debug["status"] ?? "muted",
+            "label" => $debug["status_label"] ?? "-",
+            "path" => $debug["path"] ?? "",
+            "enabled" => !empty($debug["enabled"]),
         ];
     }
 }

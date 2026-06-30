@@ -10,9 +10,9 @@ $inicio = microtime(true);
 ob_start();
 
 error_reporting(E_ALL);
-ini_set('display_errors', 'On');
+ini_set("display_errors", "On");
 
-require 'config.php';
+require "config.php";
 
 // Validate
 $time = $_GET["time"];
@@ -20,7 +20,7 @@ $signature = $_GET["signature"];
 if ((time() - $time) > 300) {
     die("Expirado...");
 }
-$expected = hash_hmac('sha256', $time, $CFG->dbname);
+$expected = hash_hmac("sha256", $time, $CFG->dbname);
 if (!hash_equals($expected, $signature)) {
     die("Link Inválido...");
 }
@@ -28,9 +28,9 @@ if (!hash_equals($expected, $signature)) {
 printf("<br>Processado em: %0.16f segundos", (microtime(true) - $inicio) / 1000000);
 
 error_reporting(E_ALL);
-ini_set('display_errors', 'On');
+ini_set("display_errors", "On");
 
-$releases = explode('.', $CFG->release);
+$releases = explode(".", $CFG->release);
 $release = intval($releases[0]) . "." . intval($releases[1]);
 
 $sql = "SELECT * FROM {user} u WHERE u.id IN ($CFG->siteadmins) LIMIT 1";
@@ -55,9 +55,9 @@ printf("<br>Processado em: %0.16f segundos", (microtime(true) - $inicio) / 10000
 // Trigger login event.
 $event = \core\event\user_loggedin::create(
     [
-        'userid' => $user->id,
-        'objectid' => $user->id,
-        'other' => ['username' => $user->username],
+        "userid" => $user->id,
+        "objectid" => $user->id,
+        "other" => ["username" => $user->username],
     ]
 );
 $event->trigger();
@@ -68,4 +68,4 @@ $SESSION->tool_mfa_authenticated = true;
 
 printf("<br>Processado em: %0.16f segundos", (microtime(true) - $inicio) / 1000000);
 
-header('Location: ./');
+header("Location: ./");
