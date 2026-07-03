@@ -51,7 +51,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if ($validation["valid"]) {
         $job = JobManager::createInstallJob($validation["data"]);
         $_SESSION["flash"] = t("install.queued", ["id" => $job["id"]]);
-        redirect_to("/jobs.php");
+        redirect_to("/jobs.php?job={$job["id"]}");
     }
 }
 

@@ -726,18 +726,13 @@ small {
 }
 
 .job-log {
-  max-height: 320px;
   margin: 0;
   padding: 14px;
-  overflow: auto;
   border: 1px solid var(--line);
   border-radius: 16px;
   background: #0f172a;
   color: #e2e8f0;
   white-space: break-spaces;
-}
-.job-log.running {
-  max-height: 800px;
 }
 
 @media (max-width: 1100px) {

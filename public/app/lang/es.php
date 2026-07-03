@@ -166,6 +166,10 @@ return [
         "domain" => "Dominio",
         "status" => "Estado",
         "created" => "Creado",
+        "open_job" => "Abrir job",
+        "back_to_queue" => "Volver a la cola",
+        "not_found" => "Job no encontrado.",
+        "no_log" => "Log aún no disponible.",
     ],
     "configuration" => [
         "title" => "Configuración",

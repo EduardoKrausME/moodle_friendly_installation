@@ -167,6 +167,10 @@ return [
         "domain" => "Domain",
         "status" => "Status",
         "created" => "Created",
+        "open_job" => "Open job",
+        "back_to_queue" => "Back to queue",
+        "not_found" => "Job not found.",
+        "no_log" => "Log not available yet.",
     ],
     "configuration" => [
         "title" => "Configuration",
