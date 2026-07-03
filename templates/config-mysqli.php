@@ -32,7 +32,11 @@ $CFG->site_is_public                = false;
 //$CFG->disableupdatenotifications    = true;
 $CFG->routerconfigured              = true;
 
-$CFG->alternative_file_system_class = '\local_alternative_file_system\external_file_system';
+if (file_exists(__DIR__ . "/public/local/alternative_file_system/classes/external_file_system.php")) {
+    $CFG->alternative_file_system_class = '\local_alternative_file_system\external_file_system';
+}
+
+// {{EXTRA_CONFIG}}
 
 $domainroot = dirname(__DIR__);
 if (file_exists("{$domainroot}/../debug.enable")) {
