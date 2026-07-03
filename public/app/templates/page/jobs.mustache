@@ -9,12 +9,14 @@
     <div class="alert ok">{{flash}}</div>
 {{/has_flash}}
 
-{{^has_jobs}}
-    <p>{{i18n.jobs.empty}}</p>
-{{/has_jobs}}
+{{#selected_job_not_found}}
+    <div class="alert error">{{i18n.jobs.not_found}}</div>
+{{/selected_job_not_found}}
 
-{{#has_jobs}}
-    {{#jobs}}
+{{#has_selected_job}}
+    {{#selected_job}}
+        <p><a href="/jobs.php">&larr; {{i18n.jobs.back_to_queue}}</a></p>
+
         <div class="card" style="margin-bottom: 10px">
             <h2><strong>{{i18n.jobs.job}}</strong>: <code>{{id}}</code></h2>
             <div><strong>{{i18n.jobs.domain}}</strong>: {{domain}}</div>
@@ -26,12 +28,40 @@
                 {{/has_error}}
 
                 {{#has_log}}
-                    <pre class="job-log {{{status}}}">{{{log}}}</pre>
+                    <pre class="job-log {{status_class}}">{{log}}</pre>
+                {{/has_log}}
+
+                {{^has_log}}
+                    <p class="muted">{{i18n.jobs.no_log}}</p>
                 {{/has_log}}
             </div>
         </div>
-    {{/jobs}}
-{{/has_jobs}}
+    {{/selected_job}}
+{{/has_selected_job}}
+
+{{^has_selected_job}}
+    {{^has_jobs}}
+        <p>{{i18n.jobs.empty}}</p>
+    {{/has_jobs}}
+
+    {{#has_jobs}}
+        {{#jobs}}
+            <div class="card" style="margin-bottom: 10px">
+                <h2><strong>{{i18n.jobs.job}}</strong>: <code>{{id}}</code></h2>
+                <div><strong>{{i18n.jobs.domain}}</strong>: {{domain}}</div>
+                <div class="status-{{status_class}}"><strong>{{i18n.jobs.status}}</strong>: {{{status_badge}}}</div>
+                <div class="nowrap"><strong>{{i18n.jobs.created}}</strong>: {{created_at}}</div>
+                <div>
+                    {{#has_error}}
+                        <span class="error">{{error}}</span><br>
+                    {{/has_error}}
+
+                    <a href="{{url}}">{{i18n.jobs.open_job}}</a>
+                </div>
+            </div>
+        {{/jobs}}
+    {{/has_jobs}}
+{{/has_selected_job}}
 
 {{#should_refresh}}
     <script>
