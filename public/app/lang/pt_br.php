@@ -176,12 +176,14 @@ return [
         "config_file" => "Arquivo base",
         "json_file" => "Arquivo JSON salvo",
         "reserved_domains_help" => "Informe um domínio por linha, sem <code>http://</code> ou <code>https://</code>.<br>Exemplo: <code>eadsuaempresa.com.br</code>.<br>Cada domínio cadastrado será considerado individualmente pelo sistema.",
+        "extra_moodle_config_help" => "Informe linhas PHP que serão adicionadas ao config.php gerado do Moodle.<br>Exemplo: <code>\$CFG-&gt;disableupdatenotifications = true;</code>",
         "fields" => [
             "app_name" => "Nome do painel",
             "base_url" => "URL do painel",
             "reserved_domains" => "Domínios reservados",
             "base_dir" => "Diretório base",
             "default_moodle_branch" => "Branch padrão do Moodle",
+            "extra_moodle_config" => "Variáveis extras no config.php do Moodle",
         ],
     ],
     "app_manager" => [

@@ -204,15 +204,18 @@ function executeInstallJob(array $job, string $mode = "install"): array {
         "BASE_DIR" => $base,
     ]);
 
-    $dbengine = strtolower(app_config("db_engine") ?: "mysql");
+    $dbengine = strtolower(app_config("db_engine") ?: "mysqli");
+    $extraConfig = trim(app_config("extra_moodle_config") ?? "");
+
     $configTemplate = renderTemplateFile(app_config_path("/templates/config-mysqli.php"), [
-        "DB_ENGINE"=>$dbengine,
+        "DB_ENGINE" => $dbengine,
         "DB_NAME" => $dbname,
         "DB_USER" => $dbuser,
         "DB_PASS" => $dbpass,
         "DOMAIN" => $domain,
         "BASE_DIR" => $base,
         "MOODLE_SETUP_PATH" => $moodlesetuppath,
+        "EXTRA_CONFIG" => "\n{$extraConfig}",
     ]);
 
     $script = renderTemplateFile(app_config_path("/templates/install-moodle.sh"), [

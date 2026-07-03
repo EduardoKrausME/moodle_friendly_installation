@@ -16,6 +16,7 @@ class PanelConfigManager {
         "base_url",
         "reserved_domains",
         "default_moodle_branch",
+        "extra_moodle_config",
     ];
 
     /**
@@ -107,13 +108,18 @@ class PanelConfigManager {
         foreach (self::EDITABLE_KEYS as $key) {
             $type = "text";
             $value = self::stringValue($config[$key] ?? "");
-            $istextarea = $key === "reserved_domains";
+            $istextarea = in_array($key, ["reserved_domains", "extra_moodle_config"], true);
+            $help = match ($key) {
+                "reserved_domains" => t("configuration.reserved_domains_help"),
+                "extra_moodle_config" => t("configuration.extra_moodle_config_help"),
+                default => "",
+            };
 
             $field = [
                 "key" => $key,
                 "label" => self::label($key),
                 "name" => "config[{$key}]",
-                "help" => t("configuration.reserved_domains_help"),
+                "help" => $help,
                 "type" => $type,
                 "value" => $value,
                 "is_textarea" => $istextarea,
@@ -151,6 +157,11 @@ class PanelConfigManager {
 
             if ($key === "reserved_domains") {
                 $newconfig[$key] = self::normalizeReservedDomains($value);
+                continue;
+            }
+
+            if ($key === "extra_moodle_config") {
+                $newconfig[$key] = self::normalizeExtraMoodleConfig($value);
                 continue;
             }
 
@@ -230,5 +241,15 @@ class PanelConfigManager {
         }
 
         return array_values($items);
+    }
+
+    /**
+     * Function normalizeExtraMoodleConfig
+     *
+     * @param mixed $value
+     * @return string
+     */
+    private static function normalizeExtraMoodleConfig(mixed $value): string {
+        return trim(str_replace(["\r\n", "\r"], "\n", (string) $value));
     }
 }

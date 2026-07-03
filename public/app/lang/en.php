@@ -177,12 +177,14 @@ return [
         "config_file" => "Base file",
         "json_file" => "Saved JSON file",
         "reserved_domains_help" => "Enter one domain per line, without <code>http://</code> or <code>https://</code>.<br>Example: <code>yourcompanylms.com</code>.<br>Each registered domain will be handled individually by the system.",
+        "extra_moodle_config_help" => "Enter PHP lines that will be appended to the generated Moodle config.php.<br>Example: <code>\$CFG-&gt;disableupdatenotifications = true;</code>",
         "fields" => [
             "app_name" => "Panel name",
             "base_url" => "Panel URL",
             "reserved_domains" => "Reserved domains",
             "base_dir" => "Base directory",
             "default_moodle_branch" => "Default Moodle branch",
+            "extra_moodle_config" => "Extra variables in Moodle config.php",
         ],
     ],
     "app_manager" => [
