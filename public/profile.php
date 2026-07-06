@@ -14,15 +14,15 @@ if (!$currentuser) {
 $errors = [];
 $flash = flash_message();
 $forcechange = Auth::requiresPasswordChange();
-$username = (string) ($currentuser["username"] ?? "");
-$name = (string) ($currentuser["name"] ?? $username);
+$username = $currentuser["username"] ?? "";
+$name = $currentuser["name"] ?? $username;
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     validate_csrf();
 
-    $username = strtolower(trim((string) ($_POST["username"] ?? "")));
-    $name = trim((string) ($_POST["name"] ?? ""));
-    $password = (string) ($_POST["password"] ?? "");
+    $username = strtolower(trim($_POST["username"] ?? ""));
+    $name = trim($_POST["name"] ?? "");
+    $password = $_POST["password"] ?? "";
 
     if (!preg_match('/^[a-z][a-z0-9._-]{2,31}$/', $username)) {
         $errors[] = t("profile.username_invalid");
@@ -41,6 +41,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 
     if ($password != "" && hash_equals($password, "123456")) {
+        $errors[] = t("profile.password_cannot_be_default");
+    } else if ($password != "" && hash_equals($password, "admin")) {
         $errors[] = t("profile.password_cannot_be_default");
     }
 

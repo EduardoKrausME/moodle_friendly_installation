@@ -5,10 +5,6 @@
     </div>
 </section>
 
-{{#force_password_change}}
-    <div class="alert warning">{{i18n.profile.force_change_warning}}</div>
-{{/force_password_change}}
-
 {{#has_flash}}
     <div class="alert ok">{{flash}}</div>
 {{/has_flash}}
@@ -18,7 +14,7 @@
         <strong>{{i18n.profile.check_fields}}</strong>
         <ul>
             {{#errors}}
-                <li>{{message}}</li>
+                <li>{{{message}}}</li>
             {{/errors}}
         </ul>
     </div>
@@ -37,10 +33,16 @@
         <input type="text" name="name" value="{{name}}" autocomplete="name" required>
     </label>
 
-    <label>
-        {{#force_password_change}}{{i18n.profile.new_password_required}}{{/force_password_change}}{{^force_password_change}}{{i18n.profile.new_password_optional}}{{/force_password_change}}
-        <input type="password" name="password" autocomplete="new-password" {{#force_password_change}}required{{/force_password_change}}>
-        <small>{{i18n.profile.password_help}}</small>
+    <label {{#force_password_change}} class="alert danger compact-alert" {{/force_password_change}}>
+        {{i18n.profile.new_password}}
+        <input type="password" name="password" autocomplete="new-password"
+               {{#force_password_change}}required{{/force_password_change}}>
+        {{#force_password_change}}
+            <div>{{{i18n.profile.password_help_required}}}</div>
+        {{/force_password_change}}
+        {{^force_password_change}}
+            <small>{{{i18n.profile.password_help_optional}}}</small>
+        {{/force_password_change}}
     </label>
 
     <button type="submit">{{i18n.actions.save}}</button>
