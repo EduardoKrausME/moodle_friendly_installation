@@ -67,6 +67,12 @@ function render_navigation_items(): array {
         "active_on" => ["jobs.php"],
     ];
     $items[] = [
+        "url" => "/users.php",
+        "label" => t("users.title"),
+        "icon" => "U",
+        "active_on" => ["users.php"],
+    ];
+    $items[] = [
         "url" => "/configuration.php",
         "label" => t("configuration.title"),
         "icon" => "C",

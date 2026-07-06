@@ -8,6 +8,18 @@ use RuntimeException;
  * Class Auth
  */
 class Auth {
+    /** @var string|null */
+    private static ?string $lastLoginError = null;
+
+    /**
+     * Function loginError
+     *
+     * @return string|null
+     */
+    public static function loginError(): ?string {
+        return self::$lastLoginError;
+    }
+
     /**
      * Function user
      *
@@ -64,14 +76,7 @@ class Auth {
             return null;
         }
 
-        $users = JsonStorage::read(app_config_path("/data/users.json"));
-        foreach ($users as $user) {
-            if (($user["username"] ?? "") == $username) {
-                return is_array($user) ? $user : null;
-            }
-        }
-
-        return null;
+        return UserManager::get($username);
     }
 
     /**
@@ -152,6 +157,12 @@ class Auth {
         if (!self::check()) {
             redirect_to("/login.php");
         }
+
+        $user = self::currentUserRecord();
+        if (!$user || !UserManager::isActive($user)) {
+            self::logout();
+            redirect_to("/login.php");
+        }
     }
 
     /**
@@ -164,6 +175,8 @@ class Auth {
      * @throws \Random\RandomException
      */
     public static function attempt(string $username, string $password): bool {
+        self::$lastLoginError = null;
+        $username = UserManager::normalizeUsername($username);
         $usersfile = app_config_path("/data/users.json");
         $users = JsonStorage::read($usersfile);
         $changed = false;
@@ -189,6 +202,11 @@ class Auth {
             }
 
             if ($valid) {
+                if (!UserManager::isActive(is_array($user) ? $user : [])) {
+                    self::$lastLoginError = t("login.user_disabled");
+                    break;
+                }
+
                 $loggeduser = [
                     "username" => $user["username"],
                     "name" => $user["name"] ?? $user["username"],

@@ -16,6 +16,7 @@ require_once __DIR__ . "/PanelConfigManager.php";
 $config = PanelConfigManager::effectiveConfig();
 
 require_once __DIR__ . "/I18n.php";
+require_once __DIR__ . "/UserManager.php";
 require_once __DIR__ . "/Auth.php";
 require_once __DIR__ . "/Validator.php";
 require_once __DIR__ . "/JobManager.php";
