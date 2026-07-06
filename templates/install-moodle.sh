@@ -111,7 +111,8 @@ if [ "{{INSTALL_MODE}}" = "install" ]; then
     sudo -u "{{APACHE_USER}}" "{{PHP_BIN}}" {{BASE_DIR}}/moodle/admin/cli/cfg.php --name=autologinguests    --set=0
     sudo -u "{{APACHE_USER}}" "{{PHP_BIN}}" {{BASE_DIR}}/moodle/admin/cli/cfg.php --name=guestloginbutton   --set=0
     sudo -u "{{APACHE_USER}}" "{{PHP_BIN}}" {{BASE_DIR}}/moodle/admin/cli/cfg.php --name=passwordpolicy     --set=0
-    sudo -u "{{APACHE_USER}}" "{{PHP_BIN}}" {{BASE_DIR}}/moodle/admin/cli/cfg.php --name=cronremotepassword --set=123456
+    CRON_REMOTE_PASSWORD=$(tr -dc 'A-Za-z0-9' < /dev/urandom | head -c 32)
+    sudo -u "{{APACHE_USER}}" "{{PHP_BIN}}" {{BASE_DIR}}/moodle/admin/cli/cfg.php --name=cronremotepassword --set="$CRON_REMOTE_PASSWORD"
     sudo -u "{{APACHE_USER}}" "{{PHP_BIN}}" {{BASE_DIR}}/moodle/admin/cli/cfg.php --name=cronclionly        --set=0
     sudo -u "{{APACHE_USER}}" "{{PHP_BIN}}" {{BASE_DIR}}/moodle/admin/cli/cfg.php --name=siteadmins         --set=3,2
 
