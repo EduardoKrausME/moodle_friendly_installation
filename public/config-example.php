@@ -2,23 +2,7 @@
 
 // Configuration for the MyMoodle Moodle Admin dashboard.
 return [
-    "app_name" => "Moodle Admin",
-    "base_url" => "https://admin.moodle",
-
-    // Domain restrictions.
-    "reserved_domains" => [
-        "admin.moodle",
-    ],
-
-    // Keep this directory outside the public webroot.
-    "base_dir" => realpath(__DIR__ . "/.."),
-
-    // Target server layout.
-    "default_moodle_branch" => "MOODLE_502_STABLE",
-
-    // Extra PHP lines appended to the generated Moodle config.php.
-    // Example: '$CFG->disableupdatenotifications = true;'
-    "extra_moodle_config" => "",
+    "base_url" => "",
 
     "db_engine" => "mysqli",
     "apache_user" => "apache",
