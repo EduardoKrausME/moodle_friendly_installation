@@ -20,11 +20,6 @@
     </div>
 {{/has_errors}}
 
-<div class="card">
-    <p><strong>{{i18n.configuration.config_file}}</strong>: <code>{{config_file}}</code></p>
-    <p><strong>{{i18n.configuration.json_file}}</strong>: <code>{{json_file}}</code></p>
-</div>
-
 <form method="post" class="card form">
     <input type="hidden" name="csrf_token" value="{{csrf_token}}">
 
@@ -41,7 +36,7 @@
             {{/is_select}}
             {{^is_select}}
                 {{#is_textarea}}
-                    <textarea name="{{name}}" rows="4" autocomplete="off">{{value}}</textarea>
+                    <textarea name="{{name}}" rows="4" autocomplete="off" style="white-space:nowrap;">{{value}}</textarea>
                     {{#help}}
                         <small>{{{help}}}</small>
                     {{/help}}

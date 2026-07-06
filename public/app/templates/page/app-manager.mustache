@@ -41,25 +41,6 @@
             </ul>
         </div>
     {{/has_moodle_config_test_warnings}}
-
-    {{#moodle_config_test.has_oks}}
-        <div class="alert ok compact-alert">
-            <strong>{{i18n.app_manager.moodle_config_ok_heading}}</strong>
-            <ul>
-                {{#moodle_config_test.oks}}
-                    <li><code>{{key}}</code>: <strong>{{message}}</strong><br> {{description}} </li>
-                {{/moodle_config_test.oks}}
-                {{#moodle_config_test.has_versions}}
-                    <li class="details-table">
-                        {{#moodle_config_test.versions}}
-                            <small><code>{{key}}</code>: <strong>{{value}}</strong></small><br>
-                        {{/moodle_config_test.versions}}
-                    </li>
-                {{/moodle_config_test.has_versions}}
-            </ul>
-        </div>
-    {{/moodle_config_test.has_oks}}
-
 </div>
 
 <div class="details-grid">
@@ -110,9 +91,6 @@
                 {{#errors.keystore_password}}
                     <small class="alert alert-danger">{{.}}</small>{{/errors.keystore_password}}
             </label>
-        {{/show_keystore_password}}
-        {{^show_keystore_password}}
-            <div class="alert ok compact-alert">{{i18n.app_manager.android_ready}}</div>
         {{/show_keystore_password}}
 
         <label>

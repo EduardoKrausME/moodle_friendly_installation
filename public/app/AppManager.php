@@ -380,7 +380,6 @@ class AppManager {
             "warnings" => [],
             "has_warnings" => false,
             "oks" => [],
-            "has_oks" => false,
             "versions" => [],
             "has_versions" => false,
         ];
@@ -445,7 +444,6 @@ class AppManager {
         }
 
         $result["has_warnings"] = !empty($result["warnings"]);
-        $result["has_oks"] = !empty($result["oks"]);
         $result["has_versions"] = !empty($result["versions"]);
         $result["valid"] = !$result["has_warnings"];
         return $result;
@@ -955,7 +953,9 @@ class AppManager {
      * @return string
      */
     private static function defaultPackageName(array $site): string {
-        $config = $site["moodle_config"] ?? [];
+        global $config;
+
+        $config += $site["moodle_config"] ?? [];
         $domain = self::siteDomain($site);
         return ($config["fullname"] ?? $domain);
     }
