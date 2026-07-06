@@ -81,7 +81,7 @@ function appendJobLog(array $job, string $message, string $level = "info"): void
     $domain = $job["domain"] ?? "domain";
     $logfile = $job["log_file"] ?? (app_config_path("/logs/install-{$domain}.log"));
     if (!is_dir(dirname($logfile))) {
-        mkdir(dirname($logfile), 0750, true);
+        mkdir(dirname($logfile), 0777, true);
     }
 
     $line = "[" . date("Y-m-d H:i:s") . "] {$message}";
@@ -262,7 +262,7 @@ function executeInstallJob(array $job, string $mode = "install"): array {
 
     $logfile = $job["log_file"] ?? (app_config_path("/logs/install-{$domain}.log"));
     if (!is_dir(dirname($logfile))) {
-        mkdir(dirname($logfile), 0750, true);
+        mkdir(dirname($logfile), 0777, true);
     }
 
     $cmd = "/usr/bin/env bash " . escapeshellarg($scriptfile) . " >> " . escapeshellarg($logfile) . " 2>&1";

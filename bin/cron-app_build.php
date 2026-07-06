@@ -37,7 +37,7 @@ function executeAppBuildJob(array $job): array {
     $iconpath = $job["icon_path"] ?? "";
     $logfile = $job["log_file"] ?? app_config_path("/logs/app-build-{$domain}.log");
 
-    ensureDir(dirname($logfile), 0750);
+    ensureDir(dirname($logfile), 0777);
     appendAppBuildLog($logfile, "Starting APP build for {$domain}.");
 
     $source = app_config_path("/app-MoodleMobile-V2");
@@ -56,7 +56,7 @@ function executeAppBuildJob(array $job): array {
 
     $resfolder = sanitizePackageUid($job["package_uid"]);
     $resdir = "{$workdir}/res/{$resfolder}";
-    ensureDir($resdir, 0750);
+    ensureDir($resdir, 0777);
     copy($iconpath, "{$resdir}/logo.png");
     chmod("{$resdir}/logo.png", 0777);
 
@@ -98,9 +98,9 @@ function executeAppBuildJob(array $job): array {
  * @return void
  */
 function generateAppImages(string $resdir, string $color, string $logfile): void {
-    ensureDir("{$resdir}/android", 0750);
-    ensureDir("{$resdir}/android-notification", 0750);
-    ensureDir("{$resdir}/android-screen", 0750);
+    ensureDir("{$resdir}/android", 0777);
+    ensureDir("{$resdir}/android-notification", 0777);
+    ensureDir("{$resdir}/android-screen", 0777);
 
     $sizes = [512, 192, 144, 96, 72, 48, 36];
     foreach ($sizes as $size) {
@@ -417,7 +417,7 @@ function moveBuildArtifacts(string $workdir, string $domain, string $packageuid,
     }
 
     $destdir = AppManager::storageDir($domain);
-    ensureDir($destdir, 0750);
+    ensureDir($destdir, 0777);
     $basename = preg_replace('/[^a-z0-9_.-]+/i', "_", "{$packageuid}.{$version}");
     $apkdest = "{$destdir}/{$basename}.apk";
     $aabdest = "{$destdir}/{$basename}.aab";
@@ -631,7 +631,7 @@ function runCommand(string $command, string $cwd, string $logfile, bool $withjav
  * @return void
  */
 function appendAppBuildLog(string $logfile, string $message): void {
-    ensureDir(dirname($logfile), 0750);
+    ensureDir(dirname($logfile), 0777);
     file_put_contents($logfile, "[" . date("Y-m-d H:i:s") . "] {$message}" . PHP_EOL, FILE_APPEND | LOCK_EX);
 }
 
@@ -661,7 +661,7 @@ function failAppBuild(string $logfile, string $message): array {
  * @return void
  */
 function copyRecursive(string $source, string $dest, array $skipnames = []): void {
-    ensureDir($dest, 0750);
+    ensureDir($dest, 0777);
     $source = rtrim($source, "/");
     $iterator = new RecursiveIteratorIterator(
         new RecursiveDirectoryIterator($source, FilesystemIterator::SKIP_DOTS),
@@ -678,11 +678,11 @@ function copyRecursive(string $source, string $dest, array $skipnames = []): voi
         $target = "{$dest}/{$relative}";
 
         if ($item->isDir()) {
-            ensureDir($target, 0750);
+            ensureDir($target, 0777);
             continue;
         }
 
-        ensureDir(dirname($target), 0750);
+        ensureDir(dirname($target), 0777);
         copy($path, $target);
         chmod($target, fileperms($path) & 0777);
     }
