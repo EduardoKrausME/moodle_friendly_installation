@@ -72,16 +72,16 @@ function runRequestedSelfUpdate(): void {
 
     $state["last_started_at"] = now_iso();
     $state["last_status"] = "installing_requested_update";
-    $state["last_message"] = t("updater.update_installing");
+    $state["last_message"] = "Update running through the root CRON.";
     JsonStorage::write($statefile, $state);
 
     try {
         $result = AppUpdater::installRequested();
         $state["last_finished_at"] = now_iso();
         $state["last_status"] = empty($result["updated"]) ? "checked" : "updated";
-        $state["last_message"] = (string) ($result["message"] ?? "OK");
-        $state["latest_tag"] = (string) ($result["state"]["latest_tag"] ?? "");
-        $state["installed_tag"] = (string) ($result["state"]["installed_tag"] ?? "");
+        $state["last_message"] = $result["message"] ?? "OK";
+        $state["latest_tag"] = $result["state"]["latest_tag"] ?? "";
+        $state["installed_tag"] = $result["state"]["installed_tag"] ?? "";
         JsonStorage::write($statefile, $state);
         echo "Self-update: {$state["last_message"]}\n";
     } catch (Throwable $e) {
@@ -130,9 +130,9 @@ function runDailySelfUpdateCheck(): void {
         $result = AppUpdater::check();
         $state["last_finished_at"] = now_iso();
         $state["last_status"] = empty($result["update_available"]) ? "checked" : "update_available";
-        $state["last_message"] = empty($result["update_available"]) ? t("updater.no_update_available") : t("updater.update_available");
-        $state["latest_tag"] = (string) ($result["state"]["latest_tag"] ?? "");
-        $state["installed_tag"] = (string) ($result["state"]["installed_tag"] ?? "");
+        $state["last_message"] = empty($result["update_available"]) ? "No update available." : "An update is available.";
+        $state["latest_tag"] = $result["state"]["latest_tag"] ?? "";
+        $state["installed_tag"] = $result["state"]["installed_tag"] ?? "";
         JsonStorage::write($statefile, $state);
         echo "Self-update check: {$state["last_message"]}\n";
     } catch (Throwable $e) {

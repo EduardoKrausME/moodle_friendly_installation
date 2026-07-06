@@ -23,17 +23,13 @@ class AppUpdater {
             $state = [];
         }
 
-        $localversion = self::localCodeVersion();
         $defaults = [
-            "installed_tag" => $localversion["version"],
-            "installed_name" => $localversion["version"],
             "installed_at" => "",
             "updated_at" => "",
             "updated_by" => "",
             "previous_tag" => "",
             "latest_checked_at" => "",
             "latest_tag" => "",
-            "latest_name" => "",
             "latest_published_at" => "",
             "latest_html_url" => "",
             "backup_dir" => "",
@@ -46,7 +42,12 @@ class AppUpdater {
             "update_message" => "",
         ];
 
-        return array_replace($defaults, $state);
+        $state = array_replace($defaults, $state);
+
+        $localversion = require __DIR__ . "/version.php";
+        $state["installed_tag"] = $localversion["version"];
+
+        return $state;
     }
 
     /**
@@ -66,7 +67,6 @@ class AppUpdater {
 
         $state["latest_checked_at"] = now_iso();
         $state["latest_tag"] = $latesttag;
-        $state["latest_name"] = $latest["name"] ?: $latesttag;
         $state["latest_published_at"] = $latest["published_at"];
         $state["latest_html_url"] = $latest["html_url"];
         $state["latest_zipball_url"] = $latest["zipball_url"];
@@ -86,7 +86,7 @@ class AppUpdater {
             $state["update_requested_at"] = "";
             $state["update_requested_by"] = "";
             $state["update_status"] = "current";
-            $state["update_message"] = t("updater.no_update_available");
+            $state["update_message"] = "No updates available.";
         }
 
         JsonStorage::write(self::stateFile(), $state);
@@ -116,10 +116,9 @@ class AppUpdater {
      */
     public static function hasCachedUpdate(?array $state = null): bool {
         $state = $state ?? self::state();
-        $installedtag = trim($state["installed_tag"]);
-        $latesttag = trim($state["latest_tag"]);
+        $localversion = require __DIR__ . "/version.php";
 
-        return !empty($state["update_available"]) && $latesttag != "" && $latesttag != $installedtag;
+        return $state["latest_tag"] != $localversion["version"];
     }
 
     /**
@@ -144,7 +143,7 @@ class AppUpdater {
         if (!self::hasCachedUpdate($state)) {
             return [
                 "requested" => false,
-                "message" => t("updater.no_update_available"),
+                "message" => "No updates available.",
                 "state" => $state,
             ];
         }
@@ -177,13 +176,13 @@ class AppUpdater {
         if (empty($state["update_requested"])) {
             return [
                 "updated" => false,
-                "message" => t("updater.no_requested_update"),
+                "message" => "No update was requested from the panel.",
                 "state" => $state,
             ];
         }
 
         $state["update_status"] = "installing";
-        $state["update_message"] = t("updater.update_installing");
+        $state["update_message"] = "Update running through the root CRON.";
         JsonStorage::write(self::stateFile(), $state);
 
         try {
@@ -210,19 +209,19 @@ class AppUpdater {
         $lockfile = self::workDir() . "/update.lock";
         $lock = fopen($lockfile, "c");
         if (!$lock) {
-            throw new RuntimeException(t("updater.errors.lock_open_failed"));
+            throw new RuntimeException("Could not open the update lock.");
         }
 
         try {
             if (!flock($lock, LOCK_EX | LOCK_NB)) {
-                throw new RuntimeException(t("updater.errors.already_running"));
+                throw new RuntimeException("Another update is already running.");
             }
 
             $check = self::check();
             if (empty($check["update_available"])) {
                 return [
                     "updated" => false,
-                    "message" => t("updater.no_update_available"),
+                    "message" => "No update available.",
                     "state" => $check["state"],
                 ];
             }
@@ -237,14 +236,12 @@ class AppUpdater {
 
             $newstate = [
                 "installed_tag" => $state["latest_tag"],
-                "installed_name" => $state["installed_name"],
                 "installed_at" => now_iso(),
                 "updated_at" => now_iso(),
                 "updated_by" => Auth::user()["username"] ?? "system",
                 "previous_tag" => $state["installed_tag"],
                 "latest_checked_at" => now_iso(),
                 "latest_tag" => $state["latest_tag"],
-                "latest_name" => $state["latest_name"] ,
                 "latest_published_at" => $state["latest_published_at"],
                 "latest_html_url" => $state["latest_html_url"],
                 "backup_dir" => $backupdir,
@@ -254,7 +251,7 @@ class AppUpdater {
                 "update_requested_at" => "",
                 "update_requested_by" => "",
                 "update_status" => "installed",
-                "update_message" => t("updater.updated_success", ["version" => $state["latest_tag"]]),
+                "update_message" => "Panel updated to version {$state["latest_tag"]}.",
             ];
             JsonStorage::write(self::stateFile(), $newstate);
 
@@ -262,7 +259,7 @@ class AppUpdater {
 
             return [
                 "updated" => true,
-                "message" => t("updater.updated_success", ["version" => $state["latest_tag"]]),
+                "message" => "Panel updated to version {$state["latest_tag"]}.",
                 "state" => $newstate,
                 "backup_dir" => $backupdir,
             ];
@@ -273,41 +270,19 @@ class AppUpdater {
     }
 
     /**
-     * Function localCodeVersion
-     *
-     * @return array<string, string>
-     */
-    public static function localCodeVersion(): array {
-        $file = __DIR__ . "/version.php";
-        $data = is_file($file) ? require $file : [];
-        if (!is_array($data)) {
-            $data = [];
-        }
-
-        return [
-            "version" => trim($data["version"] ?? "2.0.0"),
-            "github_owner" => trim($data["github_owner"]),
-            "github_repo" => trim($data["github_repo"]),
-        ];
-    }
-
-    /**
      * Function latestRelease
      *
      * @return array<string, mixed>
      */
     public static function latestRelease(): array {
-        $local = self::localCodeVersion();
-        $owner = $local["github_owner"];
-        $repo = $local["github_repo"];
-        $url = "https://api.github.com/repos/" . rawurlencode($owner) . "/" . rawurlencode($repo) . "/releases/latest";
+        $url = "https://api.github.com/repos/EduardoKrausME/moodle_friendly_installation/releases/latest";
         $json = self::httpGet($url, ["Accept: application/vnd.github+json"]);
         $data = json_decode($json, true);
         if (!is_array($data)) {
-            throw new RuntimeException(t("updater.errors.invalid_github_json"));
+            throw new RuntimeException("GitHub returned invalid JSON.");
         }
         if (empty($data["tag_name"])) {
-            $message = $data["message"] ?? t("updater.errors.release_not_found");
+            $message = $data["message"] ?? "No published release was found on GitHub.";
             throw new RuntimeException($message);
         }
 
@@ -360,12 +335,12 @@ class AppUpdater {
         foreach ([$workDir, "{$workDir}/downloads", "{$workDir}/extract", "{$workDir}/backups"] as $dir) {
             if (!is_dir($dir)) {
                 if (!mkdir($dir, 0777, true)) {
-                    throw new RuntimeException(t("updater.errors.dir_create_failed", ["dir" => $dir]));
+                    throw new RuntimeException("Unable to create directory: {$dir}");
                 }
                 chmod($dir, 0777);
             }
             if (!is_writable($dir)) {
-                throw new RuntimeException(t("updater.errors.dir_not_writable", ["dir" => $dir]));
+                throw new RuntimeException("The directory does not have write permission: {$dir}");
             }
 
         }
@@ -378,7 +353,7 @@ class AppUpdater {
      */
     private static function ensureZipAvailable(): void {
         if (!class_exists(ZipArchive::class)) {
-            throw new RuntimeException(t("updater.errors.zip_extension_missing"));
+            throw new RuntimeException("The PHP ZipArchive/php-zip extension needs to be installed to extract the update.");
         }
     }
 
@@ -391,13 +366,13 @@ class AppUpdater {
      */
     private static function downloadReleaseZip(array $latest, string $stamp): string {
         if (!isset($latest["latest_zipball_url"][15])) {
-            throw new RuntimeException(t("updater.errors.zipball_missing"));
+            throw new RuntimeException("The GitHub release did not return a zipball_url.");
         }
 
         $dest = self::workDir() . "/downloads/{$stamp}.zip";
         self::httpDownload($latest["latest_zipball_url"], $dest);
         if (!is_file($dest) || filesize($dest) < 100) {
-            throw new RuntimeException(t("updater.errors.download_empty"));
+            throw new RuntimeException("The downloaded file is empty or invalid.");
         }
         chmod($dest, 0640);
         return $dest;
@@ -416,16 +391,16 @@ class AppUpdater {
             self::deletePath($extractdir);
         }
         if (!mkdir($extractdir, 0750, true)) {
-            throw new RuntimeException(t("updater.errors.dir_create_failed", ["dir" => $extractdir]));
+            throw new RuntimeException("Unable to create directory: {$extractdir}");
         }
 
         $zip = new ZipArchive();
         if ($zip->open($zipfile) !== true) {
-            throw new RuntimeException(t("updater.errors.zip_open_failed"));
+            throw new RuntimeException("Unable to open the update ZIP file.");
         }
         if (!$zip->extractTo($extractdir)) {
             $zip->close();
-            throw new RuntimeException(t("updater.errors.zip_extract_failed"));
+            throw new RuntimeException("It was not possible to extract the update ZIP.");
         }
         $zip->close();
         return $extractdir;
@@ -449,7 +424,7 @@ class AppUpdater {
             }
         }
 
-        throw new RuntimeException(t("updater.errors.source_root_not_found"));
+        throw new RuntimeException("The release ZIP does not contain public/app/bootstrap.php.");
     }
 
     /**
@@ -464,7 +439,7 @@ class AppUpdater {
             self::deletePath($backupdir);
         }
         if (!mkdir($backupdir, 0750, true)) {
-            throw new RuntimeException(t("updater.errors.dir_create_failed", ["dir" => $backupdir]));
+            throw new RuntimeException("Unable to create directory: {$backupdir}");
         }
 
         self::copyDirectory(self::projectRoot(), $backupdir, "", true);
@@ -481,7 +456,7 @@ class AppUpdater {
      */
     private static function syncDirectory(string $src, string $dst, string $relative): void {
         if (!is_dir($dst) && !mkdir($dst, 0750, true)) {
-            throw new RuntimeException(t("updater.errors.dir_create_failed", ["dir" => $dst]));
+            throw new RuntimeException("Unable to create directory: {$dst}");
         }
 
         $sourceitems = [];
@@ -530,7 +505,7 @@ class AppUpdater {
                 self::deletePath($targetpath);
             }
             if (!copy($sourcepath, $targetpath)) {
-                throw new RuntimeException(t("updater.errors.copy_failed", ["file" => $rel]));
+                throw new RuntimeException("Could not copy the file: {$rel}");
             }
             @chmod($targetpath, fileperms($sourcepath) & 0777);
         }
@@ -564,7 +539,7 @@ class AppUpdater {
             }
             if (is_dir($sourcepath)) {
                 if (!is_dir($targetpath) && !mkdir($targetpath, 0750, true)) {
-                    throw new RuntimeException(t("updater.errors.dir_create_failed", ["dir" => $targetpath]));
+                    throw new RuntimeException("Unable to create directory: {$targetpath}");
                 }
                 self::copyDirectory($sourcepath, $targetpath, $rel, $backupmode);
                 continue;
@@ -572,10 +547,10 @@ class AppUpdater {
 
             $parent = dirname($targetpath);
             if (!is_dir($parent) && !mkdir($parent, 0750, true)) {
-                throw new RuntimeException(t("updater.errors.dir_create_failed", ["dir" => $parent]));
+                throw new RuntimeException("Unable to create directory: {$parent}");
             }
             if (!copy($sourcepath, $targetpath)) {
-                throw new RuntimeException(t("updater.errors.copy_failed", ["file" => $rel]));
+                throw new RuntimeException("Could not copy the file: {$rel}");
             }
             @chmod($targetpath, fileperms($sourcepath) & 0777);
         }
@@ -708,7 +683,7 @@ class AppUpdater {
     private static function httpDownload(string $url, string $dest): void {
         $body = self::httpRequest($url, null, ["Accept: application/vnd.github+json"]);
         if (file_put_contents($dest, $body, LOCK_EX) === false) {
-            throw new RuntimeException(t("updater.errors.download_save_failed"));
+            throw new RuntimeException("It was not possible to save the update ZIP.");
         }
     }
 
@@ -725,9 +700,6 @@ class AppUpdater {
         $headers[] = "X-GitHub-Api-Version: " . self::GITHUB_API_VERSION;
 
         if (function_exists("curl_init")) {
-            echo "url => {$url}\n";
-            print_r($headers);
-            echo (new \Exception())->getTraceAsString() . "\n\n\n";
             $curl = curl_init($url);
             curl_setopt_array($curl, [
                 CURLOPT_RETURNTRANSFER => true,
@@ -749,10 +721,10 @@ class AppUpdater {
             curl_close($curl);
 
             if ($result === false) {
-                throw new RuntimeException(t("updater.errors.github_fetch_failed", ["message" => $error]));
+                throw new RuntimeException("Unable to query GitHub: {$error}");
             }
             if ($status < 200 || $status >= 300) {
-                throw new RuntimeException(t("updater.errors.github_http_status", ["status" => $status]));
+                throw new RuntimeException("GitHub returned HTTP {$status}");
             }
             return $result;
         }
@@ -780,10 +752,10 @@ class AppUpdater {
         }
 
         if ($result === false) {
-            throw new RuntimeException(t("updater.errors.github_fetch_failed", ["message" => "file_get_contents"]));
+            throw new RuntimeException("Unable to query GitHub: file_get_contents");
         }
         if ($status != 0 && ($status < 200 || $status >= 300)) {
-            throw new RuntimeException(t("updater.errors.github_http_status", ["status" => $status]));
+            throw new RuntimeException("GitHub returned HTTP {$status}");
         }
 
         return $result;

@@ -90,7 +90,7 @@ function render_navigation_items(): array {
             "label" => t("updater.title"),
             "icon" => "↑",
             "active_on" => ["update.php"],
-            "extra_class" => "has-update",
+            "extra_class" => "update-link",
         ];
     }
     $items[] = [

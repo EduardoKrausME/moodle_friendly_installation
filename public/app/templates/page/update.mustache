@@ -24,15 +24,27 @@
     <div class="alert warning has-update">
         <strong>{{i18n.updater.update_available}}</strong><br>
         {{{i18n.updater.preserve_warning}}}
-    </div>
 
-    <form method="post" class="card form update-request-form">
-        <input type="hidden" name="csrf_token" value="{{csrf_token}}">
-        <div class="form-actions">
-            <button type="submit">{{i18n.updater.request_update}}</button>
-        </div>
-    </form>
+        <form method="post" class=" form">
+            <input type="hidden" name="csrf_token" value="{{csrf_token}}">
+            <div class="form-actions">
+                <button type="submit" style="color: #fff">{{i18n.updater.request_update}}</button>
+            </div>
+        </form>
+    </div>
 {{/has_update_button}}
+
+{{#update_requested}}
+    <div class="alert warning has-update update-waiting">
+        <strong>{{i18n.updater.wait_update_title}}</strong><br>
+        {{i18n.updater.wait_update_message}}
+        {{#status.requested_at}}
+            <div class="update-waiting-meta">
+                {{i18n.updater.requested_at}}: {{status.requested_at}}
+            </div>
+        {{/status.requested_at}}
+    </div>
+{{/update_requested}}
 
 <div class="site-grid">
     <article class="card">
@@ -88,17 +100,3 @@
         {{/latest.has_html_url}}
     </article>
 </div>
-
-{{#update_requested}}
-    <div class="alert warning has-update update-waiting">
-        <strong>{{i18n.updater.wait_update_title}}</strong><br>
-        {{i18n.updater.wait_update_message}}
-        {{#status.requested_at}}
-            <div class="update-waiting-meta">
-                {{i18n.updater.requested_at}}: {{status.requested_at}}
-            </div>
-        {{/status.requested_at}}
-    </div>
-{{/update_requested}}
-
-
