@@ -17,7 +17,7 @@ function render_header(string $title): void {
     $user = Auth::user();
     $hasuser = (bool) $user;
     $currentlanguage = I18n::currentMeta();
-    $hasupdate = $hasuser && AppUpdater::hasUpdateForMenu();
+    $hasupdate = $hasuser && AppUpdater::hasCachedUpdate();
     $bodyclasses = [$hasuser ? "has-sidebar" : "auth-page"];
     if ($hasupdate) {
         $bodyclasses[] = "has-update";
@@ -84,13 +84,13 @@ function render_navigation_items(): array {
         "icon" => "C",
         "active_on" => ["configuration.php"],
     ];
-    if (AppUpdater::hasUpdateForMenu() || $current == "update.php") {
+    if (AppUpdater::hasCachedUpdate() || $current == "update.php") {
         $items[] = [
             "url" => "/update.php",
             "label" => t("updater.title"),
             "icon" => "↑",
             "active_on" => ["update.php"],
-            "extra_class" => "update-link",
+            "extra_class" => AppUpdater::hasCachedUpdate() ? "update-link" : "",
         ];
     }
     $items[] = [

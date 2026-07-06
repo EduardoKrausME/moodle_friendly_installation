@@ -99,16 +99,6 @@ class AppUpdater {
     }
 
     /**
-     * Function hasUpdateForMenu
-     *
-     * @return bool
-     */
-    public static function hasUpdateForMenu(): bool {
-        $state = self::state();
-        return self::hasCachedUpdate($state) || !empty($state["update_requested"]);
-    }
-
-    /**
      * Function hasCachedUpdate
      *
      * @param array<string, mixed>|null $state
