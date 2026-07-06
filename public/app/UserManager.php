@@ -8,9 +8,6 @@ use RuntimeException;
  * Class UserManager
  */
 class UserManager {
-    public const string STATUS_ACTIVE = "active";
-    public const string STATUS_DISABLED = "disabled";
-
     /**
      * Function usersFile
      *
@@ -86,10 +83,10 @@ class UserManager {
     public static function normalizeStatus(?string $status): string {
         $status = strtolower(trim((string) $status));
         if (in_array($status, ["disabled", "inactive", "blocked", "suspended"], true)) {
-            return self::STATUS_DISABLED;
+            return "disabled";
         }
 
-        return self::STATUS_ACTIVE;
+        return "active";
     }
 
     /**
@@ -99,7 +96,7 @@ class UserManager {
      * @return bool
      */
     public static function isActive(array $user): bool {
-        return self::normalizeStatus($user["status"] ?? self::STATUS_ACTIVE) == self::STATUS_ACTIVE;
+        return self::normalizeStatus($user["status"] ?? "active") == "active";
     }
 
     /**
@@ -111,7 +108,7 @@ class UserManager {
     public static function statusOptions(string $selected): array {
         $selected = self::normalizeStatus($selected);
         $options = [];
-        foreach ([self::STATUS_ACTIVE, self::STATUS_DISABLED] as $status) {
+        foreach (["active", "disabled"] as $status) {
             $options[] = [
                 "value" => $status,
                 "label" => self::statusLabel($status),
@@ -130,7 +127,7 @@ class UserManager {
      */
     public static function statusLabel(string $status): string {
         $status = self::normalizeStatus($status);
-        return $status == self::STATUS_ACTIVE ? t("users.status_active") : t("users.status_disabled");
+        return $status == "active" ? t("users.status_active") : t("users.status_disabled");
     }
 
     /**
@@ -299,14 +296,14 @@ class UserManager {
     private static function normalizeUser(array $user): array {
         $username = self::normalizeUsername((string) ($user["username"] ?? ""));
         $name = trim((string) ($user["name"] ?? ""));
-        $status = self::normalizeStatus($user["status"] ?? self::STATUS_ACTIVE);
+        $status = self::normalizeStatus($user["status"] ?? "active");
 
         $user["username"] = $username;
         $user["name"] = $name != "" ? $name : $username;
         $user["status"] = $status;
         $user["status_label"] = self::statusLabel($status);
-        $user["is_active"] = $status == self::STATUS_ACTIVE;
-        $user["is_disabled"] = $status == self::STATUS_DISABLED;
+        $user["is_active"] = $status == "active";
+        $user["is_disabled"] = $status == "disabled";
 
         return $user;
     }
@@ -350,7 +347,7 @@ class UserManager {
      * @return void
      */
     private static function assertCurrentUserCanReceiveStatus(string $username, string $status): void {
-        if ($status != self::STATUS_DISABLED) {
+        if ($status != "disabled") {
             return;
         }
 
