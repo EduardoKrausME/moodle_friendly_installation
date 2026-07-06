@@ -42,10 +42,10 @@ class Auth {
 
         $info = password_get_info($stored);
         if (!empty($info["algo"])) {
-            return password_verify("123456", $stored);
+            return password_verify("123456", $stored) || password_verify("admin", $stored);
         }
 
-        return hash_equals($stored, "123456");
+        return hash_equals($stored, "123456") || hash_equals($stored, "admin");
     }
 
     /**

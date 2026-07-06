@@ -1,4 +1,5 @@
 <?php
+
 // Portuguese (Brazil) strings. Each language file stores a flag SVG/PNG link.
 return [
     "meta" => [
@@ -78,19 +79,18 @@ return [
         "heading" => "Editar administrador",
         "intro" => "Atualize o usuário, nome e senha usados para acessar este painel.",
         "edit_title" => "Editar usuário conectado",
-        "force_change_warning" => "A senha padrão 123456 ainda está ativa. Altere a senha para liberar o acesso ao restante do painel.",
         "check_fields" => "Confira os campos abaixo.",
         "username" => "Usuário",
         "name" => "Nome",
-        "new_password_required" => "Nova senha",
-        "new_password_optional" => "Nova senha",
-        "password_help" => "Deixe em branco para manter a senha atual. A senha 123456 não é permitida.",
+        "new_password" => "Nova senha",
+        "password_help_optional" => "Deixe em branco para manter a senha atual e as senhas <code>123456</code> ou <code>admin</code> não são permitidas.",
+        "password_help_required" => "Informe uma senha. As senhas <code>123456</code> ou <code>admin</code> não são permitidas.",
         "saved" => "Administrador atualizado com sucesso.",
         "username_invalid" => "Usuário inválido. Use 3 a 32 caracteres, começando por letra, com letras minúsculas, números, ponto, hífen ou underline.",
         "name_required" => "Informe o nome do administrador.",
         "password_required_force" => "Informe uma nova senha para substituir a senha padrão.",
         "password_short" => "A senha precisa ter pelo menos 6 caracteres.",
-        "password_cannot_be_default" => "A nova senha não pode ser 123456.",
+        "password_cannot_be_default" => "A nova senha não pode ser <code>123456</code> ou <code>admin</code>.",
         "username_already_exists" => "Já existe outro administrador com este usuário.",
         "current_user_not_found" => "Usuário conectado não encontrado em data/users.json.",
     ],
@@ -177,8 +177,6 @@ return [
         "intro" => "Edite os valores principais do config.php. Ao salvar, os novos dados ficam em data/config.json e passam a sobrescrever o config.php.",
         "check_fields" => "Confira os campos abaixo.",
         "saved" => "Configuração salva em data/config.json.",
-        "config_file" => "Arquivo base",
-        "json_file" => "Arquivo JSON salvo",
         "reserved_domains_help" => "Informe um domínio por linha, sem <code>http://</code> ou <code>https://</code>.<br>Exemplo: <code>eadsuaempresa.com.br</code>.<br>Cada domínio cadastrado será considerado individualmente pelo sistema.",
         "extra_moodle_config_help" => "Informe linhas PHP que serão adicionadas ao config.php gerado do Moodle.<br>Exemplo: <code>\$CFG-&gt;disableupdatenotifications = true;</code>",
         "fields" => [
@@ -186,7 +184,6 @@ return [
             "base_url" => "URL do painel",
             "reserved_domains" => "Domínios reservados",
             "base_dir" => "Diretório base",
-            "default_moodle_branch" => "Branch padrão do Moodle",
             "extra_moodle_config" => "Variáveis extras no config.php do Moodle",
         ],
     ],
@@ -206,7 +203,6 @@ return [
         "config_heading" => "Configuração do APP",
         "keystore_password" => "Senha da chave Android",
         "keystore_help" => "Será usada para a chave de deploy do Android e, depois de enviada a primeira vez, o formulário não pedirá novamente.",
-        "android_ready" => "Android já configurado para este Package UID.",
         "package_uid_locked" => "Após salvar a primeira vez, o Package UID não pode mais ser alterado.",
         "package_name" => "Package name",
         "color" => "Cor",
@@ -229,7 +225,6 @@ return [
         "moodle_config_warning" => "Corrija os itens abaixo no Moodle antes de gerar o APP:",
         "moodle_config_edit_link" => "Editar no Moodle",
         "moodle_config_install_plugin" => "Instalar plugin local_kopere_mobile",
-        "moodle_config_ok_heading" => "Configurações OK:",
         "moodle_config_descriptions" => [
             "is_moodle_cookie_secure" => "Confirma que os cookies do Moodle estão marcados como seguros para uso correto em HTTPS.",
             "allowframembedding" => "Permite que o Moodle seja aberto dentro do WebView/iframe usado pelo APP.",
