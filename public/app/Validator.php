@@ -72,7 +72,7 @@ class Validator {
             $errors["admin_email"] = I18n::get("validation.admin_email_invalid");
         }
 
-        $branch = $input["moodle_branch"] ?? app_config("default_moodle_branch");
+        $branch = $input["moodle_branch"];
         if (!preg_match('/^MOODLE_(\d+)_STABLE$/', $branch, $branchmatches)) {
             $errors["moodle_branch"] = I18n::get("validation.branch_invalid");
         } else if ($branchmatches[1] < 502) {

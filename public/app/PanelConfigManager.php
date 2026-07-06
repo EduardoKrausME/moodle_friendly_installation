@@ -15,7 +15,6 @@ class PanelConfigManager {
         "app_name",
         "base_url",
         "reserved_domains",
-        "default_moodle_branch",
         "extra_moodle_config",
     ];
 
@@ -62,8 +61,8 @@ class PanelConfigManager {
             return [];
         }
 
-        $config = require $configpath;
-        return is_array($config) ? $config : [];
+        $configbase = require $configpath;
+        return is_array($configbase) ? $configbase : [];
     }
 
     /**
@@ -79,10 +78,10 @@ class PanelConfigManager {
     /**
      * Function effectiveConfig
      *
-     * @param array<string, mixed> $baseconfig
      * @return array<string, mixed>
      */
-    public static function effectiveConfig(array $baseconfig): array {
+    public static function effectiveConfig(): array {
+        $baseconfig = PanelConfigManager::baseConfig();
         return array_replace($baseconfig, self::savedConfig());
     }
 
@@ -126,11 +125,6 @@ class PanelConfigManager {
                 "is_input" => !$istextarea,
                 "is_select" => false,
             ];
-
-            if ($key == "default_moodle_branch") {
-                $field["values"] = MoodleBranchProvider::getInstallBranches();
-                $field["is_select"] = true;
-            }
 
             $fields[] = $field;
         }

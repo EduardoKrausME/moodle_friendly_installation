@@ -12,24 +12,19 @@ $errors = [];
 $warnings = [];
 $moodlebranches = MoodleBranchProvider::getInstallBranches();
 $allowedbranches = array_column($moodlebranches, "name");
-$defaultbranch = app_config("default_moodle_branch");
 
-if (!empty($allowedbranches) && !in_array($defaultbranch, $allowedbranches, true)) {
-    $defaultbranch = $allowedbranches[0];
-}
-
-$values = [
+$defaultvalues = [
     "domain" => "",
     "site_fullname" => "",
     "admin_user" => "admin",
     "admin_email" => "admin@moodle.com",
-    "moodle_branch" => $defaultbranch,
+    "moodle_branch" => "",
     "issue_cert" => "1",
 ];
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     validate_csrf();
-    $values = array_merge($values, $_POST);
+    $defaultvalues = array_merge($defaultvalues, );
     $validation = Validator::validateInstallRequest($_POST, $allowedbranches);
     $errors = $validation["errors"];
     $warnings = $validation["warnings"];
@@ -55,7 +50,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 }
 
-$selectedbranch = $values["moodle_branch"] ?? $defaultbranch;
+$selectedbranch = $defaultvalues["moodle_branch"] ?? $defaultbranch;
 foreach ($moodlebranches as $index => $branch) {
     $moodlebranches[$index]["selected"] = $branch["name"] == $selectedbranch;
 }
@@ -69,11 +64,11 @@ echo render_app_template("page/install", [
     "moodle_branch_load_failed" => empty($moodlebranches),
     "moodle_branches" => $moodlebranches,
     "values" => [
-        "domain" => $values["domain"] ?? "",
-        "site_fullname" => $values["site_fullname"] ?? "",
-        "admin_user" => $values["admin_user"],
-        "admin_email" => $values["admin_email"],
-        "issue_cert" => !empty($values["issue_cert"]),
+        "domain" => $defaultvalues["domain"] ?? "",
+        "site_fullname" => $defaultvalues["site_fullname"] ?? "",
+        "admin_user" => $defaultvalues["admin_user"],
+        "admin_email" => $defaultvalues["admin_email"],
+        "issue_cert" => !empty($defaultvalues["issue_cert"]),
     ],
     "errors" => [
         "domain" => $errors["domain"] ?? "",
