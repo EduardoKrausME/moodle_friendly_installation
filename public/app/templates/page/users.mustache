@@ -1,0 +1,114 @@
+<section class="page-title">
+    <div>
+        <h1>{{i18n.users.heading}}</h1>
+        <p>{{i18n.users.intro}}</p>
+    </div>
+    <a class="button secondary" href="/users.php">{{i18n.users.new_user}}</a>
+</section>
+
+{{#has_flash}}
+    <div class="alert ok">{{flash}}</div>
+{{/has_flash}}
+
+{{#has_errors}}
+    <div class="alert danger">
+        <strong>{{i18n.users.check_fields}}</strong>
+        <ul>
+            {{#errors}}
+                <li>{{{message}}}</li>
+            {{/errors}}
+        </ul>
+    </div>
+{{/has_errors}}
+
+<div class="details-grid">
+    <section class="card full-card">
+        <h2>{{i18n.users.list_heading}}</h2>
+
+        {{^has_users}}
+            <p class="muted">{{i18n.users.empty}}</p>
+        {{/has_users}}
+
+        {{#has_users}}
+            <table class="data-table users-table" style="width:100%; border-collapse:collapse;">
+                <thead>
+                    <tr>
+                        <th style="text-align:left; padding:8px;">{{i18n.users.username}}</th>
+                        <th style="text-align:left; padding:8px;">{{i18n.users.name}}</th>
+                        <th style="text-align:left; padding:8px;">{{i18n.users.status}}</th>
+                        <th style="text-align:left; padding:8px;">{{i18n.users.actions}}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{#users}}
+                        <tr>
+                            <td style="padding:8px; border-top:1px solid #e5e7eb;"><code>{{username}}</code></td>
+                            <td style="padding:8px; border-top:1px solid #e5e7eb;">
+                                {{name}}
+                                {{#show_current_badge}}
+                                    <small class="badge ok">{{i18n.users.current_user}}</small>
+                                {{/show_current_badge}}
+                            </td>
+                            <td style="padding:8px; border-top:1px solid #e5e7eb;">{{{status_badge}}}</td>
+                            <td style="padding:8px; border-top:1px solid #e5e7eb;">
+                                <a class="button secondary" href="{{edit_url}}">{{i18n.users.edit_user}}</a>
+                                {{#can_change_status}}
+                                    <form method="post" style="display:inline-block; margin:0 0 0 6px;">
+                                        <input type="hidden" name="csrf_token" value="{{csrf_token}}">
+                                        <input type="hidden" name="action" value="change_status">
+                                        <input type="hidden" name="username" value="{{username}}">
+                                        <input type="hidden" name="status" value="{{next_status}}">
+                                        <button type="submit" class="secondary">{{status_action_label}}</button>
+                                    </form>
+                                {{/can_change_status}}
+                                {{#cannot_change_status}}
+                                    <small class="muted">{{i18n.users.status_locked}}</small>
+                                {{/cannot_change_status}}
+                            </td>
+                        </tr>
+                    {{/users}}
+                </tbody>
+            </table>
+        {{/has_users}}
+    </section>
+
+    <form method="post" class="card form">
+        <input type="hidden" name="csrf_token" value="{{csrf_token}}">
+        <input type="hidden" name="action" value="save">
+        <input type="hidden" name="original_username" value="{{form.original_username}}">
+
+        <h2>{{form.form_title}}</h2>
+
+        <label>
+            {{i18n.users.username}}
+            <input type="text" name="username" value="{{form.username}}" autocomplete="username" required>
+        </label>
+
+        <label>
+            {{i18n.users.name}}
+            <input type="text" name="name" value="{{form.name}}" autocomplete="name" required>
+        </label>
+
+        <label>
+            {{i18n.users.password}}
+            <input type="password" name="password" autocomplete="new-password" {{#form.password_required}}required{{/form.password_required}}>
+            <small>{{{form.password_help}}}</small>
+        </label>
+
+        <label>
+            {{i18n.users.status}}
+            <select name="status" required>
+                {{#form.status_options}}
+                    <option value="{{value}}" {{#selected}}selected{{/selected}}>{{label}}</option>
+                {{/form.status_options}}
+            </select>
+        </label>
+
+        <div class="form-actions">
+            <button type="submit">{{form.submit_label}}</button>
+            {{#form.editing}}
+                <a class="button secondary" href="/users.php">{{i18n.users.cancel_edit}}</a>
+            {{/form.editing}}
+        </div>
+    </form>
+</div>
