@@ -242,7 +242,7 @@ return [
         "wait_update_title" => "Espere la actualización",
         "wait_update_message" => "La actualización fue solicitada. En la próxima ejecución del CRON root, la aplicación se descargará y actualizará automáticamente.",
         "requested_at" => "Solicitado el",
-        "already_current" => "El panel ya está en la versión más reciente publicada en GitHub.",
+        "already_current" => "El panel está en la versión más reciente publicada en GitHub.",
         "error_heading" => "No se pudo comprobar o instalar la actualización.",
     ],
     "app_manager" => [

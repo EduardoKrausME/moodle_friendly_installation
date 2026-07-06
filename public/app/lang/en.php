@@ -244,7 +244,7 @@ return [
         "wait_update_title" => "Wait for update",
         "wait_update_message" => "The update has been requested. On the next root CRON run, the application will be downloaded and updated automatically.",
         "requested_at" => "Requested at",
-        "already_current" => "The panel is already on the latest version published on GitHub.",
+        "already_current" => "The dashboard is on the latest version published on GitHub.",
         "error_heading" => "Unable to check for or install the update.",
     ],
     "app_manager" => [

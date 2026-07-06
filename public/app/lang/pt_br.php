@@ -244,7 +244,7 @@ return [
         "wait_update_title" => "Aguarde atualização",
         "wait_update_message" => "A atualização foi solicitada. Na próxima execução da CRON root, a aplicação será baixada e atualizada automaticamente.",
         "requested_at" => "Solicitado em",
-        "already_current" => "O painel já está na versão mais recente publicada no GitHub.",
+        "already_current" => "O painel está na versão mais recente publicada no GitHub.",
         "error_heading" => "Não foi possível verificar ou instalar a atualização.",
     ],
     "app_manager" => [
