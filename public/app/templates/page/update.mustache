@@ -1,0 +1,104 @@
+<section class="page-title">
+    <div>
+        <h1>{{i18n.updater.heading}}</h1>
+        <p>{{i18n.updater.intro}}</p>
+    </div>
+</section>
+
+{{#has_flash}}
+    <div class="alert ok">{{flash}}</div>
+{{/has_flash}}
+
+{{#has_error}}
+    <div class="alert danger">
+        <strong>{{i18n.updater.error_heading}}</strong><br>
+        {{error}}
+    </div>
+{{/has_error}}
+
+{{#is_current}}
+    <div class="alert ok">{{i18n.updater.already_current}}</div>
+{{/is_current}}
+
+{{#has_update_button}}
+    <div class="alert warning has-update">
+        <strong>{{i18n.updater.update_available}}</strong><br>
+        {{{i18n.updater.preserve_warning}}}
+    </div>
+
+    <form method="post" class="card form update-request-form">
+        <input type="hidden" name="csrf_token" value="{{csrf_token}}">
+        <div class="form-actions">
+            <button type="submit">{{i18n.updater.request_update}}</button>
+        </div>
+    </form>
+{{/has_update_button}}
+
+<div class="site-grid">
+    <article class="card">
+        <h2>{{i18n.updater.current_version}}</h2>
+        <dl class="site-meta">
+            <div>
+                <dt>{{i18n.updater.version}}</dt>
+                <dd>{{current.tag}}</dd>
+            </div>
+            {{#current.installed_at}}
+                <div>
+                    <dt>{{i18n.updater.installed_at}}</dt>
+                    <dd>{{current.installed_at}}</dd>
+                </div>
+            {{/current.installed_at}}
+            {{#current.previous_tag}}
+                <div>
+                    <dt>{{i18n.updater.previous_version}}</dt>
+                    <dd>{{current.previous_tag}}</dd>
+                </div>
+            {{/current.previous_tag}}
+            {{#current.backup_dir}}
+                <div>
+                    <dt>{{i18n.updater.last_backup}}</dt>
+                    <dd><code>{{current.backup_dir}}</code></dd>
+                </div>
+            {{/current.backup_dir}}
+        </dl>
+    </article>
+
+    <article class="card">
+        <h2>{{i18n.updater.latest_release}}</h2>
+        <dl class="site-meta">
+            <div>
+                <dt>{{i18n.updater.version}}</dt>
+                <dd>{{latest.tag}}</dd>
+            </div>
+            {{#latest.published_at}}
+                <div>
+                    <dt>{{i18n.updater.published_at}}</dt>
+                    <dd>{{latest.published_at}}</dd>
+                </div>
+            {{/latest.published_at}}
+            {{#status.checked_at}}
+                <div>
+                    <dt>{{i18n.updater.last_check}}</dt>
+                    <dd>{{status.checked_at}}</dd>
+                </div>
+            {{/status.checked_at}}
+        </dl>
+        {{#latest.has_html_url}}
+            <a href="{{latest.html_url}}" target="_blank" rel="noopener">{{i18n.updater.open_release}}</a>
+        {{/latest.has_html_url}}
+    </article>
+</div>
+
+{{#update_requested}}
+    <div class="alert warning has-update update-waiting">
+        <strong>{{i18n.updater.wait_update_title}}</strong><br>
+        {{i18n.updater.wait_update_message}}
+        {{#status.requested_at}}
+            <div class="update-waiting-meta">
+                {{i18n.updater.requested_at}}: {{status.requested_at}}
+            </div>
+        {{/status.requested_at}}
+    </div>
+{{/update_requested}}
+
+

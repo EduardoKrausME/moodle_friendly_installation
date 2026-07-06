@@ -22,6 +22,7 @@ require_once __DIR__ . "/Validator.php";
 require_once __DIR__ . "/JobManager.php";
 require_once __DIR__ . "/SiteManager.php";
 require_once __DIR__ . "/AppManager.php";
+require_once __DIR__ . "/AppUpdater.php";
 require_once __DIR__ . "/render.php";
 require_once __DIR__ . "/MoodleBranchProvider.php";
 

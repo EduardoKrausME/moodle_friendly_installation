@@ -24,7 +24,7 @@ $defaultvalues = [
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     validate_csrf();
-    $defaultvalues = array_merge($defaultvalues, );
+    $defaultvalues = array_merge($defaultvalues, $_POST);
     $validation = Validator::validateInstallRequest($_POST, $allowedbranches);
     $errors = $validation["errors"];
     $warnings = $validation["warnings"];

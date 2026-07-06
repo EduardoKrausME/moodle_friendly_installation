@@ -1,5 +1,6 @@
 <?php
 // Small HTML rendering helpers rendered with php-mustache.
+use app\AppUpdater;
 use app\Auth;
 use app\I18n;
 use Mustache\Engine;
@@ -16,12 +17,17 @@ function render_header(string $title): void {
     $user = Auth::user();
     $hasuser = (bool) $user;
     $currentlanguage = I18n::currentMeta();
+    $hasupdate = $hasuser && AppUpdater::hasUpdateForMenu();
+    $bodyclasses = [$hasuser ? "has-sidebar" : "auth-page"];
+    if ($hasupdate) {
+        $bodyclasses[] = "has-update";
+    }
 
     $mustachedata = [
         "html_lang" => I18n::htmlLang(),
-        "page_title" =>   "{$title} - {$appname}" ,
+        "page_title" => "{$title} - {$appname}",
         "app_name" => $appname,
-        "body_class" => $hasuser ? "has-sidebar" : "auth-page",
+        "body_class" => implode(" ", $bodyclasses),
         "has_user" => $hasuser,
         "user_name" => $user["name"] ?? $user["username"] ?? "Administrador",
         "navigation" => render_navigation_items(),
@@ -52,7 +58,7 @@ function render_navigation_items(): array {
         "icon" => "A",
         "active_on" => ["app_manager.php"],
     ];
-    if ($_SERVER["REQUEST_URI"] == "/install.php") {
+    if ($current == "install.php") {
         $items[] = [
             "url" => "/install.php",
             "label" => t("navigation.install_moodle"),
@@ -78,6 +84,15 @@ function render_navigation_items(): array {
         "icon" => "C",
         "active_on" => ["configuration.php"],
     ];
+    if (AppUpdater::hasUpdateForMenu() || $current == "update.php") {
+        $items[] = [
+            "url" => "/update.php",
+            "label" => t("updater.title"),
+            "icon" => "↑",
+            "active_on" => ["update.php"],
+            "extra_class" => "has-update",
+        ];
+    }
     $items[] = [
         "url" => "/logout.php",
         "label" => t("navigation.logout"),

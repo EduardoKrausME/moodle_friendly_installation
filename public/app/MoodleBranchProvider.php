@@ -88,7 +88,6 @@ class MoodleBranchProvider {
                 CURLOPT_CONNECTTIMEOUT => 5,
                 CURLOPT_TIMEOUT => 10,
                 CURLOPT_HTTPHEADER => [
-                    "Accept: application/vnd.github+json",
                     "User-Agent: Moodle-Admin",
                 ],
             ]);
@@ -109,7 +108,6 @@ class MoodleBranchProvider {
                 "method" => "GET",
                 "timeout" => 10,
                 "header" => implode("\r\n", [
-                    "Accept: application/vnd.github+json",
                     "User-Agent: Moodle-Admin",
                 ]),
             ],

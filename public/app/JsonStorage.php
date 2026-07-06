@@ -12,21 +12,20 @@ class JsonStorage {
      * Function read
      *
      * @param string $file
-     * @param mixed $default
      * @return mixed
      */
-    public static function read(string $file, mixed $default = []): mixed {
+    public static function read(string $file): mixed {
         if (!file_exists($file)) {
-            return $default;
+            return [];
         }
 
         $raw = file_get_contents($file);
         if (!$raw || trim($raw) == "") {
-            return $default;
+            return [];
         }
 
         $data = json_decode($raw, true);
-        return json_last_error() == JSON_ERROR_NONE ? $data : $default;
+        return json_last_error() == JSON_ERROR_NONE ? $data : [];
     }
 
     /**
