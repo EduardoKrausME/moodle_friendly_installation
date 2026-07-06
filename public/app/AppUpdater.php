@@ -501,7 +501,7 @@ class AppUpdater {
                 continue;
             }
             if (!isset($sourceitems[$item])) {
-                self::deletePath($dst . "/" . $item);
+                self::deletePath($dst . "/{$item}");
             }
         }
 
@@ -511,8 +511,8 @@ class AppUpdater {
                 continue;
             }
 
-            $sourcepath = $src . "/" . $item;
-            $targetpath = $dst . "/" . $item;
+            $sourcepath = $src . "/{$item}";
+            $targetpath = $dst . "/{$item}";
 
             if (is_dir($sourcepath)) {
                 if (is_file($targetpath) || is_link($targetpath)) {
@@ -556,8 +556,8 @@ class AppUpdater {
                 continue;
             }
 
-            $sourcepath = $src . "/" . $item;
-            $targetpath = $dst . "/" . $item;
+            $sourcepath = $src . "/{$item}";
+            $targetpath = $dst . "/{$item}";
 
             if (is_link($sourcepath)) {
                 continue;
@@ -602,7 +602,7 @@ class AppUpdater {
         ];
 
         foreach ($preserve as $path) {
-            if ($relative === $path || str_starts_with($relative, $path . "/")) {
+            if ($relative === $path || str_starts_with($relative, "{$path}/")) {
                 return true;
             }
         }
@@ -629,7 +629,7 @@ class AppUpdater {
         ];
 
         foreach ($skip as $path) {
-            if ($relative === $path || str_starts_with($relative, $path . "/")) {
+            if ($relative === $path || str_starts_with($relative, "{$path}/")) {
                 return true;
             }
         }
@@ -667,7 +667,7 @@ class AppUpdater {
             if ($item === "." || $item === "..") {
                 continue;
             }
-            self::deletePath($path . "/" . $item);
+            self::deletePath("{$path}/{$item}");
         }
         @rmdir($path);
     }

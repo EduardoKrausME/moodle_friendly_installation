@@ -901,7 +901,7 @@ function restoreSchemaFieldDefaultSql(array $field, string $sqltype, bool $nulla
     $default = (string) $default;
     $upper = strtoupper(trim($default));
     if (in_array($upper, ["CURRENT_TIMESTAMP", "CURRENT_TIMESTAMP()"], true)) {
-        return " DEFAULT " . $upper;
+        return " DEFAULT {$upper}";
     }
 
     return " DEFAULT " . restorePdoLiteral($default);

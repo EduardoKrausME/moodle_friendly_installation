@@ -89,7 +89,7 @@ function runRequestedSelfUpdate(): void {
         $state["last_status"] = "failed";
         $state["last_message"] = $e->getMessage();
         JsonStorage::write($statefile, $state);
-        fwrite(STDERR, "Self-update failed: " . $e->getMessage() . "\n");
+        fwrite(STDERR, "Self-update failed: {$e->getMessage()}\n");
     }
 
     runSelfUpdatepermissons($statefile);
@@ -140,7 +140,7 @@ function runDailySelfUpdateCheck(): void {
         $state["last_status"] = "failed";
         $state["last_message"] = $e->getMessage();
         JsonStorage::write($statefile, $state);
-        fwrite(STDERR, "Self-update check failed: " . $e->getMessage() . "\n");
+        fwrite(STDERR, "Self-update check failed: {$e->getMessage()}\n");
     }
 
     runSelfUpdatepermissons($statefile);
