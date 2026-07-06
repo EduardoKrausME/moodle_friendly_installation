@@ -153,19 +153,19 @@ function restoreTargetFromDomain(string $domain): array {
     $base = "/home/{$domain}";
     $moodledir = "{$base}/moodle";
     $webroot = is_dir("{$moodledir}/public") ? "{$moodledir}/public" : $moodledir;
-    $config = restoreReadMoodleConfig("{$moodledir}/config.php");
+    $moodleconfig = restoreReadMoodleConfig("{$moodledir}/config.php");
 
     return [
         "domain" => $domain,
         "base_dir" => $base,
         "moodle_dir" => $moodledir,
         "webroot" => $webroot,
-        "dataroot" => $config["dataroot"] ?? ("{$base}/moodledata"),
-        "dbname" => $config["dbname"] ?? "",
-        "dbuser" => $config["dbuser"] ?? "",
-        "dbpass" => $config["dbpass"] ?? "",
-        "dbhost" => $config["dbhost"] ?? "localhost",
-        "dbprefix" => $config["prefix"] ?? "mdl_",
+        "dataroot" => $moodleconfig["dataroot"] ?? ("{$base}/moodledata"),
+        "dbname" => $moodleconfig["dbname"] ?? "",
+        "dbuser" => $moodleconfig["dbuser"] ?? "",
+        "dbpass" => $moodleconfig["dbpass"] ?? "",
+        "dbhost" => $moodleconfig["dbhost"] ?? "localhost",
+        "dbprefix" => $moodleconfig["prefix"] ?? "mdl_",
         "php_bin" => app_config("php_bin"),
         "apache_user" => app_config("apache_user"),
         "apache_group" => app_config("apache_group"),
@@ -1635,13 +1635,13 @@ function restoreReadMoodleConfig(string $configfile): array {
     }
     $content = (string) file_get_contents($configfile);
     $keys = ["dbname", "dbuser", "dbpass", "dbhost", "prefix", "dataroot"];
-    $config = [];
+    $moodleconfig = [];
     foreach ($keys as $key) {
         if (preg_match('/\$CFG->' . preg_quote($key, "/") . '\s*=\s*([\'\"])((?:\\\\.|(?!\1).)*)\1\s*;/s', $content, $matches)) {
-            $config[$key] = stripcslashes($matches[2]);
+            $moodleconfig[$key] = stripcslashes($matches[2]);
         }
     }
-    return $config;
+    return $moodleconfig;
 }
 
 /**

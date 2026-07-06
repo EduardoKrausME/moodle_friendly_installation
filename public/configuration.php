@@ -23,15 +23,13 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     }
 }
 
-$currentconfig = PanelConfigManager::effectiveConfig(PanelConfigManager::baseConfig());
-
 render_header(t("configuration.title"));
 echo render_app_template("page/configuration", [
     "flash" => $flash,
     "has_flash" => $flash != null && $flash != "",
     "has_errors" => !empty($errors),
     "errors" => $errors,
-    "fields" => PanelConfigManager::fieldsForForm($currentconfig),
+    "fields" => PanelConfigManager::fieldsForForm($config),
     "csrf_token" => csrf_token(),
     "config_file" => PanelConfigManager::baseConfigPath(),
     "json_file" => PanelConfigManager::jsonPath(),

@@ -59,8 +59,8 @@ class SiteManager {
             return null;
         }
 
-        $config = self::readMoodleConfig(($site["config_file"] ?? ""));
-        $site["moodle_config"] = self::publicConfig($config);
+        $configsite = self::readMoodleConfig(($site["config_file"] ?? ""));
+        $site["moodle_config"] = self::publicConfig($configsite);
         $site["diagnostics"] = [
             "nginx" => self::checkWebServerConfig("nginx", $site),
             "httpd" => self::checkWebServerConfig("httpd", $site),
@@ -69,7 +69,7 @@ class SiteManager {
             "debug" => self::checkDebugMode($site),
             "feature_flags" => self::checkFeatureFlags($site),
         ];
-        $site["database_stats"] = self::readDatabaseStats($config);
+        $site["database_stats"] = self::readDatabaseStats($configsite);
 
         return $site;
     }
@@ -106,10 +106,10 @@ class SiteManager {
             return null;
         }
 
-        $config = self::readMoodleConfig($configfile);
+        $moodleconfig = self::readMoodleConfig($configfile);
         $base = dirname($moodledir);
         $publicroot = is_dir("{$moodledir}/public") ? "{$moodledir}/public" : $moodledir;
-        $wwwroot = $config["wwwroot"] ?? "";
+        $wwwroot = $moodleconfig["wwwroot"] ?? "";
         $domain = basename($base);
 
         if ($wwwroot != "") {
@@ -133,17 +133,17 @@ class SiteManager {
             "base_dir" => $base,
             "moodle_dir" => $moodledir,
             "webroot" => realpath($publicroot) ?: $publicroot,
-            "dataroot" => $config["dataroot"] ?? "",
+            "dataroot" => $moodleconfig["dataroot"] ?? "",
             "config_file" => $configfile,
             "url" => $wwwroot != "" ? $wwwroot : "https://{$domain}",
             "created_at" => self::formatFileTime($configfile),
         ];
 
-        if (isset($config["dbname"])) {
+        if (isset($moodleconfig["dbname"])) {
             $time = time();
-            $signature = hash_hmac("sha256", $time, $config["dbname"]);
+            $signature = hash_hmac("sha256", $time, $moodleconfig["dbname"]);
             $language = I18n::moodleLanguage();
-            $hash = "time={$time}&signature={$signature}&dbname={$config["dbname"]}&lang={$language}";
+            $hash = "time={$time}&signature={$signature}&dbname={$moodleconfig["dbname"]}&lang={$language}";
             $return["sso_url"] =
                 ($wwwroot != "" ? rtrim($wwwroot, "/") : "https://{$domain}") . "/moodle-logar-admin.php?{$hash}";
         }
@@ -170,33 +170,33 @@ class SiteManager {
         $keys = [
             "wwwroot", "dataroot", "dbtype", "dblibrary", "dbhost", "dbname", "dbuser", "dbpass", "prefix", "admin", "sslproxy",
         ];
-        $config = [];
+        $moodleconfig = [];
         foreach ($keys as $key) {
             $value = self::readCfgValue($content, $key);
             if ($value != null) {
-                $config[$key] = $value;
+                $moodleconfig[$key] = $value;
             }
         }
 
         foreach (["dbport", "dbsocket", "dbcollation"] as $key) {
             $value = self::readArrayValue($content, $key);
             if ($value != null) {
-                $config[$key] = $value;
+                $moodleconfig[$key] = $value;
             }
         }
 
-        $config["_file"] = $configfile;
-        return $config;
+        $moodleconfig["_file"] = $configfile;
+        return $moodleconfig;
     }
 
     /**
      * Function publicConfig
      *
-     * @param array $config
+     * @param array $configsite
      * @return array
      */
-    private static function publicConfig(array $config): array {
-        $public = $config;
+    private static function publicConfig(array $configsite): array {
+        $public = $configsite;
         if (array_key_exists("dbpass", $public)) {
             $public["dbpass"] = "********";
         }
@@ -681,17 +681,17 @@ class SiteManager {
     /**
      * Function readDatabaseStats
      *
-     * @param array $config
+     * @param array $configsite
      * @return array
      */
-    private static function readDatabaseStats(array $config): array {
+    private static function readDatabaseStats(array $configsite): array {
         $host = app_config("mysql_admin_host");
         $port = app_config("mysql_admin_port");
         $user = app_config("mysql_admin_user");
         $pass = app_config("mysql_admin_pass");
 
-        if (isset($config["dbname"])) {
-            $dsn = "mysql:host={$host};port={$port};dbname={$config["dbname"]};charset=utf8mb4";
+        if (isset($configsite["dbname"])) {
+            $dsn = "mysql:host={$host};port={$port};dbname={$configsite["dbname"]};charset=utf8mb4";
             try {
                 $pdo = new PDO($dsn, $user, $pass, [
                     PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,

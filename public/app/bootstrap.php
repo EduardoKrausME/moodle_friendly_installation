@@ -2,6 +2,7 @@
 
 use app\Auth;
 use app\I18n;
+use app\PanelConfigManager;
 
 error_reporting(E_ALL);
 ini_set("display_errors", "1");
@@ -12,7 +13,7 @@ require_once "vendor/autoload.php";
 require_once __DIR__ . "/JsonStorage.php";
 require_once __DIR__ . "/PanelConfigManager.php";
 
-$config = app\PanelConfigManager::effectiveConfig(app\PanelConfigManager::baseConfig());
+$config = PanelConfigManager::effectiveConfig();
 
 require_once __DIR__ . "/I18n.php";
 require_once __DIR__ . "/Auth.php";
