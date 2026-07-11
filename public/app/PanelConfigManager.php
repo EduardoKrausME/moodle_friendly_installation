@@ -246,4 +246,97 @@ class PanelConfigManager {
     private static function normalizeExtraMoodleConfig(mixed $value): string {
         return trim(str_replace(["\r\n", "\r"], "\n", (string) $value));
     }
+
+    /**
+     * Detect the public IPv4 address used by this server.
+     *
+     * @return string
+     */
+    public static function detect_public_ipv4(): string {
+        $cached = $_SESSION["install_public_ipv4"] ?? null;
+        if (is_array($cached)
+            && array_key_exists("ip", $cached)
+            && !empty($cached["checked_at"])
+            && ((int) $cached["checked_at"] + 900) > time()
+        ) {
+            return is_string($cached["ip"]) ? $cached["ip"] : "";
+        }
+
+        $candidates = [];
+        $baseurl = (string) app_config("base_url");
+        if ($baseurl != "") {
+            $basehost = parse_url($baseurl, PHP_URL_HOST);
+            if (is_string($basehost)) {
+                $candidates[] = $basehost;
+            }
+        }
+
+        foreach (["SERVER_ADDR", "LOCAL_ADDR"] as $serverkey) {
+            if (!empty($_SERVER[$serverkey]) && is_string($_SERVER[$serverkey])) {
+                $candidates[] = $_SERVER[$serverkey];
+            }
+        }
+
+        foreach ($candidates as $candidate) {
+            $candidate = trim($candidate);
+            if (filter_var(
+                $candidate,
+                FILTER_VALIDATE_IP,
+                FILTER_FLAG_IPV4 | FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE
+            )) {
+                $_SESSION["install_public_ipv4"] = ["ip" => $candidate, "checked_at" => time()];
+                return $candidate;
+            }
+        }
+
+        $endpoints = [
+            "https://api.ipify.org",
+            "https://ifconfig.me/ip",
+        ];
+
+        foreach ($endpoints as $endpoint) {
+            $response = "";
+            if (function_exists("curl_init")) {
+                $curl = curl_init($endpoint);
+                if ($curl !== false) {
+                    curl_setopt_array($curl, [
+                        CURLOPT_RETURNTRANSFER => true,
+                        CURLOPT_CONNECTTIMEOUT => 2,
+                        CURLOPT_TIMEOUT => 4,
+                        CURLOPT_FOLLOWLOCATION => false,
+                        CURLOPT_USERAGENT => "Moodle-Friendly-Installation",
+                    ]);
+                    $result = curl_exec($curl);
+                    if (is_string($result)) {
+                        $response = $result;
+                    }
+                    curl_close($curl);
+                }
+            } else if (filter_var(ini_get("allow_url_fopen"), FILTER_VALIDATE_BOOLEAN)) {
+                $context = stream_context_create([
+                    "http" => [
+                        "timeout" => 4,
+                        "user_agent" => "Moodle-Friendly-Installation",
+                    ],
+                ]);
+                $result = @file_get_contents($endpoint, false, $context);
+                if (is_string($result)) {
+                    $response = $result;
+                }
+            }
+
+            $candidate = trim($response);
+            if (filter_var(
+                $candidate,
+                FILTER_VALIDATE_IP,
+                FILTER_FLAG_IPV4 | FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE
+            )) {
+                $_SESSION["install_public_ipv4"] = ["ip" => $candidate, "checked_at" => time()];
+                return $candidate;
+            }
+        }
+
+        $_SESSION["install_public_ipv4"] = ["ip" => "", "checked_at" => time()];
+        return "";
+    }
 }

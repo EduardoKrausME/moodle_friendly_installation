@@ -178,6 +178,26 @@ return [
         "title" => "Install Moodle",
         "heading" => "Install new Moodle",
         "intro" => "The panel creates the job and the root CRON runs the installation safely.",
+        "dns_intro" => '
+            <h3>Configure the DNS before starting the installation</h3>
+            <p>The domain or subdomain that will be used for Moodle must point to this server\'s IP address.</p>
+            <p><strong>Configure the DNS record using the following information:</strong></p>
+            <ul>
+                <li><strong>Record type:</strong> A</li>
+                <li><strong>Name:</strong> enter the domain or subdomain that will be used for Moodle</li>
+                <li><strong>Destination IP address:</strong> <code>{server_public_ip}</code></li>
+            </ul>
+            <p>After saving the changes, wait for DNS propagation. This process may take a few minutes or, depending on the provider, several hours.</p>
+            <p>Continue with the installation only when the domain is correctly pointing to <code>{server_public_ip}</code>. An incorrect DNS configuration may prevent access to Moodle and the issuance of the SSL certificate.</p>
+            <p><strong>See your DNS provider\'s instructions:</strong></p>
+            <ul>
+                <li><a href="https://docs.digitalocean.com/products/networking/dns/how-to/manage-records/" target="_blank">How to configure DNS records on DigitalOcean</a></li>
+                <li><a href="https://developers.cloudflare.com/dns/manage-dns-records/how-to/create-dns-records/" target="_blank">How to configure DNS records on Cloudflare</a>
+                    <ul>
+                        <li><strong>Important for Cloudflare users:</strong> during the installation, keep the record set to <strong>DNS only</strong>, represented by the gray cloud. The proxy can be enabled again after Moodle has been installed and the SSL certificate is working.</li>
+                    </ul>
+                </li>
+            </ul>',
         "branch_load_failed" => "Could not load Moodle branches from GitHub right now. Check the server connection to GitHub.",
         "domain" => "Moodle domain",
         "site_fullname" => "Full site name",

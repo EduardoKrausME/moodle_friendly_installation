@@ -178,6 +178,29 @@ return [
         "title" => "Instalar Moodle",
         "heading" => "Instalar novo Moodle",
         "intro" => "O painel cria o job e o CRON root executa a instalação com segurança.",
+        "dns_intro" => '
+            <h3>Antes de iniciar a instalação, configure o DNS</h3>
+            <p>O domínio ou subdomínio que será utilizado no Moodle precisa estar apontando para o endereço IP deste servidor.</p>
+            <p><strong>Configure o registro DNS com os seguintes dados:</strong></p>
+            <ul>
+                <li><strong>Tipo de registro:</strong> A</li>
+                <li><strong>Nome:</strong> informe o domínio ou subdomínio que será usado no Moodle</li>
+                <li><strong>Endereço IP de destino:</strong> <code>{server_public_ip}</code></li>
+            </ul>
+            <p>Após salvar a alteração, aguarde a propagação do DNS. Esse processo pode levar alguns minutos ou, dependendo do provedor, algumas horas.</p>
+            <p>Somente continue a instalação quando o domínio estiver apontando corretamente para <code>{server_public_ip}</code>. Um apontamento incorreto poderá impedir o acesso ao Moodle e a emissão do certificado SSL.</p>
+            <p><strong>Consulte as instruções do seu provedor de DNS:</strong></p>
+            <ul>
+                <li><a href="https://docs.digitalocean.com/products/networking/dns/how-to/manage-records/" target="_blank">Como configurar registros DNS na DigitalOcean</a></li>
+                <li><a href="https://developers.cloudflare.com/dns/manage-dns-records/how-to/create-dns-records/" target="_blank">Como configurar registros DNS na Cloudflare</a>
+                    <ul>
+                        <li><strong>Atenção para usuários da Cloudflare:</strong> durante a instalação, mantenha o registro como <strong>Somente DNS</strong>, representado pela nuvem cinza. O proxy poderá ser ativado novamente depois que o Moodle estiver instalado e o certificado SSL estiver funcionando.</li>
+                    </ul>
+                </li>
+                <li><a href="https://registro.br/ajuda/tutoriais-administrativos/" target="_blank">Como configurar o DNS no Registro.br</a></li>
+            </ul>',
+        "dns_guide_digitalocean" => "Configurar registros DNS na DigitalOcean",
+        "dns_guide_cloudflare" => "Configurar registros DNS na Cloudflare",
         "branch_load_failed" => "Não foi possível carregar os branches do Moodle no GitHub agora. Verifique a conexão do servidor com o GitHub.",
         "domain" => "Domínio do Moodle",
         "site_fullname" => "Nome completo do site",

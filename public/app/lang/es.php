@@ -177,6 +177,26 @@ return [
         "title" => "Instalar Moodle",
         "heading" => "Instalar nuevo Moodle",
         "intro" => "El panel crea el job y el CRON root ejecuta la instalación de forma segura.",
+        "dns_intro" => '
+            <h3>Configure el DNS antes de iniciar la instalación</h3>
+            <p>El dominio o subdominio que se utilizará en Moodle debe apuntar a la dirección IP de este servidor.</p>
+            <p><strong>Configure el registro DNS con los siguientes datos:</strong></p>
+            <ul>
+                <li><strong>Tipo de registro:</strong> A</li>
+                <li><strong>Nombre:</strong> introduzca el dominio o subdominio que se utilizará en Moodle</li>
+                <li><strong>Dirección IP de destino:</strong> <code>{server_public_ip}</code></li>
+            </ul>
+            <p>Después de guardar los cambios, espere a que se complete la propagación del DNS. Este proceso puede tardar algunos minutos o, dependiendo del proveedor, varias horas.</p>
+            <p>Continúe con la instalación únicamente cuando el dominio esté apuntando correctamente a <code>{server_public_ip}</code>. Una configuración incorrecta del DNS puede impedir el acceso a Moodle y la emisión del certificado SSL.</p>
+            <p><strong>Consulte las instrucciones de su proveedor de DNS:</strong></p>
+            <ul>
+                <li><a href="https://docs.digitalocean.com/products/networking/dns/how-to/manage-records/" target="_blank">Cómo configurar registros DNS en DigitalOcean</a></li>
+                <li><a href="https://developers.cloudflare.com/dns/manage-dns-records/how-to/create-dns-records/" target="_blank">Cómo configurar registros DNS en Cloudflare</a>
+                    <ul>
+                        <li><strong>Atención para los usuarios de Cloudflare:</strong> durante la instalación, mantenga el registro configurado como <strong>Solo DNS</strong>, representado por la nube gris. El proxy podrá activarse nuevamente después de que Moodle esté instalado y el certificado SSL esté funcionando.</li>
+                    </ul>
+                </li>
+            </ul>',
         "branch_load_failed" => "No se pudieron cargar los branches de Moodle desde GitHub ahora. Verifica la conexión del servidor con GitHub.",
         "domain" => "Dominio de Moodle",
         "site_fullname" => "Nombre completo del sitio",

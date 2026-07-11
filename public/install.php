@@ -1,8 +1,10 @@
 <?php
 
 use app\Auth;
+use app\I18n;
 use app\JobManager;
 use app\MoodleBranchProvider;
+use app\PanelConfigManager;
 use app\Validator;
 
 require_once __DIR__ . "/app/bootstrap.php";
@@ -59,6 +61,7 @@ render_header(t("install.title"));
 
 echo render_app_template("page/install", [
     "csrf_token" => csrf_token(),
+    "dns_intro" => I18n::get("install.dns_intro", ["server_public_ip" => PanelConfigManager::detect_public_ipv4()]),
     "warnings" => array_values($warnings),
     "has_moodle_branches" => !empty($moodlebranches),
     "moodle_branch_load_failed" => empty($moodlebranches),
