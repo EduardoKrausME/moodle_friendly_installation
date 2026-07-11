@@ -49,12 +49,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if (empty($errors)) {
         try {
             Auth::updateCurrentUser($username, $name, $password != "" ? $password : null);
-            if ($forcechange) {
-                $_SESSION["flash"] = t("profile.saved");
-                redirect_to("/");
-            }
             $_SESSION["flash"] = t("profile.saved");
-            redirect_to("/profile.php");
+            redirect_to("/");
         } catch (Throwable $exception) {
             $errors[] = $exception->getMessage();
         }
