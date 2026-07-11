@@ -219,7 +219,6 @@ return [
             "app_name" => "Nombre del panel",
             "base_url" => "URL del panel",
             "reserved_domains" => "Dominios reservados",
-            "base_dir" => "Directorio base",
             "extra_moodle_config" => "Variables extra en config.php de Moodle",
         ],
     ],

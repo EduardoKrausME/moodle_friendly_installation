@@ -56,7 +56,6 @@ Rename the file `config-example.php` to `config.php` and edit the file. The most
 
 ```php
 "base_url" => "https://admin.moodle",
-"base_dir" => realpath(__DIR__ . "/.."),
 "apache_user" => "apache",
 "apache_group" => "apache",
 "php_bin" => "/usr/bin/php",

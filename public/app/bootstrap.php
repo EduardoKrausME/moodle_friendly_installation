@@ -55,6 +55,10 @@ function t(string $key, array $params = []): string {
  */
 function app_config(?string $key = null): mixed {
     global $config;
+
+    if($key == "base_dir" && !isset($config[$key])){
+        $config[$key] = dirname(dirname(__DIR__));
+    }
     return $key == null ? $config : ($config[$key] ?? null);
 }
 

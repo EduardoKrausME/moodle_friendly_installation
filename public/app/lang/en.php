@@ -220,7 +220,6 @@ return [
             "app_name" => "Panel name",
             "base_url" => "Panel URL",
             "reserved_domains" => "Reserved domains",
-            "base_dir" => "Base directory",
             "extra_moodle_config" => "Extra variables in Moodle config.php",
         ],
     ],
