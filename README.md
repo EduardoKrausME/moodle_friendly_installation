@@ -10,7 +10,7 @@ curl -fsSL https://raw.githubusercontent.com/EduardoKrausME/moodle_friendly_inst
 
 ## The panel
 
-Panel for managing Moodle™ installations on a private server. The idea is to have a central screen to create new Moodle™ instances, monitor the installation queue, open already installed environments, run a quick diagnosis, and generate the Android APP for each domain once everything is configured.
+Panel for managing Moodle™ installations on a private server. The idea is to have a central screen to create new Moodle™ instances, monitor the installation , open already installed environments, run a quick diagnosis, and generate the Android APP for each domain once everything is configured.
 
 The project was designed for a server where each Moodle™ is located inside `/home/[domain]`, and the panel does not install anything directly through the web interface. It only creates jobs, while the heavy actions are executed by CRON running as `root`, which avoids leaving dangerous permissions assigned to the Apache/PHP-FPM user.
 
@@ -176,10 +176,9 @@ During use, the project creates files in folders such as:
 
 ```
 data/
-logs/
-queue/
-runtime/
-artifacts/
+data/logs/
+data/queue/
+data/runtime/
 ```
 
 These folders do not need to be inside `public/`. The panel creates whatever is necessary, as long as the PHP user has write permission where it needs to write, and the root CRON has access to execute the jobs.
@@ -188,4 +187,4 @@ These folders do not need to be inside `public/`. The panel creates whatever is 
 
 After configuring the server, the expected usage is simple: access the panel, create a Moodle™ installation, monitor the job in the queue, open the domain details, and check DNS/SSL/configuration. Once Moodle™ is ready, the APP screen allows you to configure the package, name, color, icon, and generate APK/AAB.
 
-If something fails, first check the queue screen and then the files in `logs/`. Almost always, the real error appears there: DNS not yet pointed, folder permission issue, missing package on the server, Certbot failure, or incomplete Android environment.
+If something fails, first check the queue screen and then the files in `data/logs/`. Almost always, the real error appears there: DNS not yet pointed, folder permission issue, missing package on the server, Certbot failure, or incomplete Android environment.

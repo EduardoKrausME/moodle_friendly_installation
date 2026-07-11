@@ -49,7 +49,7 @@ class JobManager {
             "created_at" => now_iso(),
             "updated_at" => now_iso(),
             "created_by" => Auth::user()["username"] ?? "system",
-            "log_file" => app_config_path("/logs") . "/{$logprefix}-{$data["domain"]}-" . date("Ymd-His") . ".log",
+            "log_file" => app_config_path("/data/logs") . "/{$logprefix}-{$data["domain"]}-" . date("Ymd-His") . ".log",
         ];
 
         if ($hasbackup) {
@@ -88,7 +88,7 @@ class JobManager {
             "created_at" => now_iso(),
             "updated_at" => now_iso(),
             "created_by" => Auth::user()["username"] ?? "system",
-            "log_file" => app_config_path("/logs") . "/app-build-{$data["domain"]}-" . date("Ymd-His") . ".log",
+            "log_file" => app_config_path("/data/logs") . "/app-build-{$data["domain"]}-" . date("Ymd-His") . ".log",
         ];
 
         JsonStorage::update(app_config_path("/data/jobs.json"), static function(array $jobs) use ($job): array {
@@ -242,7 +242,7 @@ class JobManager {
      * @throws \Random\RandomException
      */
     private static function writeQueueFile(array $job): void {
-        $queuefile = rtrim(app_config_path("/queue"), "/") . "/{$job["id"]}.json";
+        $queuefile = rtrim(app_config_path("/data/queue"), "/") . "/{$job["id"]}.json";
         JsonStorage::write($queuefile, $job);
     }
 

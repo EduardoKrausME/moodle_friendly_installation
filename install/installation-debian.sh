@@ -1434,7 +1434,7 @@ set_permissions() {
     log "Adjusting permissions"
     chown -R root:www-data "${INSTALL_DIR}"
     chmod +x      "${INSTALL_DIR}/bin/*.php" 2>/dev/null || true
-    chmod -R 0770 "${INSTALL_DIR}/data" "${INSTALL_DIR}/runtime" "${INSTALL_DIR}/logs" "${INSTALL_DIR}/queue"
+    chmod -R 0770 "${INSTALL_DIR}/data"
     chmod -R 0770 "${INSTALL_DIR}/app-MoodleMobile-V2/res"
     chmod    0640 "${INSTALL_DIR}/public/config.php"
 }

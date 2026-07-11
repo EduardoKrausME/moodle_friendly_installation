@@ -79,7 +79,7 @@ function domainHasDnsRecord(string $domain): bool {
  */
 function appendJobLog(array $job, string $message, string $level = "info"): void {
     $domain = $job["domain"] ?? "domain";
-    $logfile = $job["log_file"] ?? (app_config_path("/logs/install-{$domain}.log"));
+    $logfile = $job["log_file"] ?? (app_config_path("/data/logs/install-{$domain}.log"));
     if (!is_dir(dirname($logfile))) {
         mkdir(dirname($logfile), 0777, true);
     }
@@ -191,7 +191,7 @@ function executeInstallJob(array $job, string $mode = "install"): array {
     $cronfile = "/etc/cron.d/moodle-{$domain}";
     $configfile = "{$moodledir}/config.php";
 
-    $apacheTemplate = renderTemplateFile(app_config_path("/templates/httpd-site.conf"), [
+    $apacheTemplate = renderTemplateFile(app_config_path("/install/templates/httpd-site.conf"), [
         "DOMAIN" => $domain,
         "MOODLE_DIR" => $moodledir,
         "WEBROOT" => $webroot,
@@ -199,7 +199,7 @@ function executeInstallJob(array $job, string $mode = "install"): array {
         "WEBROOT_MODE" => $usespublicdir ? "public" : "legacy",
     ]);
 
-    $nginxTemplate = renderTemplateFile(app_config_path("/templates/nginx-site.conf"), [
+    $nginxTemplate = renderTemplateFile(app_config_path("/install/templates/nginx-site.conf"), [
         "DOMAIN" => $domain,
         "BASE_DIR" => $base,
     ]);
@@ -207,7 +207,7 @@ function executeInstallJob(array $job, string $mode = "install"): array {
     $dbengine = strtolower(app_config("db_engine") ?: "mysqli");
     $extraConfig = trim(app_config("extra_moodle_config") ?? "");
 
-    $configTemplate = renderTemplateFile(app_config_path("/templates/config-mysqli.php"), [
+    $configTemplate = renderTemplateFile(app_config_path("/install/templates/config-mysqli.php"), [
         "DB_ENGINE" => $dbengine,
         "DB_NAME" => $dbname,
         "DB_USER" => $dbuser,
@@ -218,7 +218,7 @@ function executeInstallJob(array $job, string $mode = "install"): array {
         "EXTRA_CONFIG" => "\n{$extraConfig}",
     ]);
 
-    $script = renderTemplateFile(app_config_path("/templates/install-moodle.sh"), [
+    $script = renderTemplateFile(app_config_path("/install/templates/install-moodle.sh"), [
         "BASE_DIR" => $base,
         "DOMAIN" => $domain,
         "SITE_FULLNAME" => $job["site_fullname"],
@@ -230,7 +230,7 @@ function executeInstallJob(array $job, string $mode = "install"): array {
         "MOODLE_HUB_LANG" => I18n::moodleHubLanguage(
             isset($job["language"]) && is_string($job["language"]) ? $job["language"] : null
         ),
-        "TEMPLATES_DIR" => app_config_path("/templates"),
+        "TEMPLATES_DIR" => app_config_path("/install/templates"),
         "MOODLE_DIR" => $moodledir,
         "MOODLE_WEB_DIR" => $moodlewebdir,
         "MOODLE_USES_PUBLIC_DIR" => $usespublicdir ? "1" : "0",
@@ -253,14 +253,14 @@ function executeInstallJob(array $job, string $mode = "install"): array {
     appendJobLog($job, "Created MySQL database and user");
     createMysqlDatabaseAndUser($dbname, $dbuser, $dbpass, $isrestore);
 
-    $scriptfile = app_config_path("/runtime/scripts/install-{$domain}-{$job["id"]}.sh");
+    $scriptfile = app_config_path("/data/runtime/scripts/install-{$domain}-{$job["id"]}.sh");
     if (!is_dir(dirname($scriptfile))) {
         mkdir(dirname($scriptfile), 0700, true);
     }
     file_put_contents($scriptfile, $script);
     chmod($scriptfile, 0700);
 
-    $logfile = $job["log_file"] ?? (app_config_path("/logs/install-{$domain}.log"));
+    $logfile = $job["log_file"] ?? (app_config_path("/data/logs/install-{$domain}.log"));
     if (!is_dir(dirname($logfile))) {
         mkdir(dirname($logfile), 0777, true);
     }

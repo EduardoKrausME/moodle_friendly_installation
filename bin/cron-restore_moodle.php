@@ -93,7 +93,7 @@ function restoreMoodleFromKopereZip(array $job, ?array $target = null): array {
 
     $target = $target ?? restoreTargetFromDomain($domain);
     $extractdir = app_config_path(
-        "/runtime/restore-" . preg_replace('/[^a-z0-9.-]+/', "-", strtolower($domain)) . "-" . date("Ymd-His") . "-" .
+        "/data/runtime/restore-" . preg_replace('/[^a-z0-9.-]+/', "-", strtolower($domain)) . "-" . date("Ymd-His") . "-" .
         bin2hex(random_bytes(3))
     );
     if (!is_dir($extractdir)) {

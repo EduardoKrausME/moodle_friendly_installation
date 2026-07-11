@@ -1353,14 +1353,14 @@ set_permissions() {
     log "Adjusting permissions"
     chown -R root:apache "${INSTALL_DIR}"
     chmod +x      "${INSTALL_DIR}/bin/*.php" 2>/dev/null || true
-    chmod -R 0770 "${INSTALL_DIR}/data" "${INSTALL_DIR}/runtime" "${INSTALL_DIR}/logs" "${INSTALL_DIR}/queue"
+    chmod -R 0770 "${INSTALL_DIR}/data"
     chmod -R 0770 "${INSTALL_DIR}/app-MoodleMobile-V2/res"
     chmod    0640 "${INSTALL_DIR}/public/config.php"
 
     if command_exists restorecon; then
         if command_exists semanage; then
             semanage fcontext -a -t httpd_sys_content_t "${INSTALL_DIR}/public(/.*)?" >/dev/null 2>&1 || true
-            semanage fcontext -a -t httpd_sys_rw_content_t "${INSTALL_DIR}/(data|runtime|logs|queue)(/.*)?" >/dev/null 2>&1 || true
+            semanage fcontext -a -t httpd_sys_rw_content_t "${INSTALL_DIR}/(data)(/.*)?" >/dev/null 2>&1 || true
         fi
         restorecon -R "${INSTALL_DIR}" >/dev/null 2>&1 || true
     fi

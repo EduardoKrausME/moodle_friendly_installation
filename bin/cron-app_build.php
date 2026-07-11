@@ -35,7 +35,7 @@ function executeAppBuildJob(array $job): array {
     $color = $job["statusbarbackgroundcolor"] ?? "#08422A";
     $version = $job["app_version"] ?? AppManager::appVersion();
     $iconpath = $job["icon_path"] ?? "";
-    $logfile = $job["log_file"] ?? app_config_path("/logs/app-build-{$domain}.log");
+    $logfile = $job["log_file"] ?? app_config_path("/data/logs/app-build-{$domain}.log");
 
     ensureDir(dirname($logfile), 0777);
     appendAppBuildLog($logfile, "Starting APP build for {$domain}.");
@@ -48,7 +48,7 @@ function executeAppBuildJob(array $job): array {
         return failAppBuild($logfile, "APP icon not found or not readable.");
     }
 
-    $workroot = app_config_path("/runtime/app-builds/{$job["id"]}");
+    $workroot = app_config_path("/data/runtime/app-builds/{$job["id"]}");
     $workdir = "{$workroot}/app";
     removeDir($workroot);
     ensureDir($workroot, 0700);

@@ -18,7 +18,7 @@ if (function_exists("posix_geteuid") && posix_geteuid() !== 0) {
     exit(1);
 }
 
-$lockpath = app_config_path("/runtime/runner.lock");
+$lockpath = app_config_path("/data/runtime/runner.lock");
 $lock = fopen($lockpath, "c");
 if (!$lock) {
     fwrite(STDERR, "Cannot open runner lock.\n");
