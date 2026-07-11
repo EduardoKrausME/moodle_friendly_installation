@@ -183,17 +183,17 @@ class Auth {
         $loggeduser = null;
 
         foreach ($users as &$user) {
-            if (($user["username"] ?? "") != $username) {
+            if ($user["username"] != $username) {
+                echo "{$user["username"]} != {$username} continue <br>";
                 continue;
             }
 
-            $stored = $user["password"] ?? "";
-            $info = password_get_info($stored);
+            $info = password_get_info($user["password"]);
 
             if (!empty($info["algo"])) {
-                $valid = password_verify($password, $stored);
+                $valid = password_verify($password, $user["password"]);
             } else {
-                $valid = hash_equals($stored, $password);
+                $valid = hash_equals($user["password"], $password);
                 if ($valid) {
                     $user["password"] = password_hash($password, PASSWORD_DEFAULT);
                     $user["password_upgraded_at"] = now_iso();
