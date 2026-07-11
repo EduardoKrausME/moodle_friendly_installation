@@ -42,41 +42,13 @@ class JsonStorage {
             mkdir($dir, 0750, true);
         }
 
-        $owner = file_exists($file) ? @fileowner($file) : false;
-        $group = file_exists($file) ? @filegroup($file) : false;
-
-        $lockfile = "{$file}.lock";
-        $lock = fopen($lockfile, "c");
-        if (!$lock) {
-            throw new RuntimeException("Cannot open lock file: {$lockfile}");
+        $json = json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+        if (!$json) {
+            throw new RuntimeException("Cannot encode JSON for: {$file}");
         }
 
-        try {
-            if (!flock($lock, LOCK_EX)) {
-                throw new RuntimeException("Cannot lock file: {$lockfile}");
-            }
-
-            $json = json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
-            if (!$json) {
-                throw new RuntimeException("Cannot encode JSON for: {$file}");
-            }
-
-            $tmp = "{$file}.tmp." . bin2hex(random_bytes(6));
-            if (!file_put_contents($tmp, $json . PHP_EOL, LOCK_EX)) {
-                throw new RuntimeException("Cannot write temporary file: {$tmp}");
-            }
-
-            chmod($tmp, 0640);
-            if ($owner) {
-                @chown($tmp, $owner);
-            }
-            if ($group) {
-                @chgrp($tmp, $group);
-            }
-            rename($tmp, $file);
-            flock($lock, LOCK_UN);
-        } finally {
-            fclose($lock);
+        if (!file_put_contents($file, $json . PHP_EOL, LOCK_EX)) {
+            throw new RuntimeException("Cannot write temporary file: {$file}");
         }
     }
 
