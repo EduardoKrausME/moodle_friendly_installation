@@ -119,9 +119,16 @@ function now_iso(): string {
     return (new DateTimeImmutable("now", new DateTimeZone("America/Sao_Paulo")))->format(DateTimeInterface::ATOM);
 }
 
-if (PHP_SAPI != "cli" && Auth::check()) {
+if (PHP_SAPI != "cli") {
     $scriptname = basename((string) ($_SERVER["SCRIPT_NAME"] ?? ""));
-    if (Auth::requiresPasswordChange() && $scriptname != "profile.php") {
+    $requiresinitialsetup = PanelConfigManager::requiresInitialSetup()
+        && Auth::hasInitialAdminCredentials();
+
+    if ($requiresinitialsetup && $scriptname != "onboarding.php") {
+        redirect_to("/onboarding.php");
+    }
+
+    if (Auth::check() && Auth::requiresPasswordChange() && $scriptname != "profile.php") {
         redirect_to("/profile.php?force=1");
     }
 }

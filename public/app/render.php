@@ -19,6 +19,9 @@ function render_header(string $title): void {
     $currentlanguage = I18n::currentMeta();
     $hasupdate = $hasuser && AppUpdater::hasCachedUpdate();
     $bodyclasses = [$hasuser ? "has-sidebar" : "auth-page"];
+    if (basename((string) ($_SERVER["SCRIPT_NAME"] ?? "")) === "onboarding.php") {
+        $bodyclasses[] = "onboarding-page";
+    }
     if ($hasupdate) {
         $bodyclasses[] = "has-update";
     }

@@ -52,12 +52,79 @@ class Auth {
             return false;
         }
 
-        $info = password_get_info($stored);
-        if (!empty($info["algo"])) {
-            return password_verify("123456", $stored) || password_verify("admin", $stored);
+        return self::passwordMatches($stored, "123456") || self::passwordMatches($stored, "admin");
+    }
+
+    /**
+     * Function hasInitialAdminCredentials
+     *
+     * @return bool
+     */
+    public static function hasInitialAdminCredentials(): bool {
+        $user = UserManager::get("admin");
+        if (!$user || ($user["username"] ?? "") !== "admin") {
+            return false;
         }
 
-        return hash_equals($stored, "123456") || hash_equals($stored, "admin");
+        return self::passwordMatches((string) ($user["password"] ?? ""), "admin");
+    }
+
+    /**
+     * Function completeInitialAdminSetup
+     *
+     * Changes the initial admin password without creating an authenticated
+     * session. The user must sign in normally after the welcome screen.
+     *
+     * @param string $password
+     * @return array<string, string>
+     * @throws \DateMalformedStringException
+     * @throws \Random\RandomException
+     */
+    public static function completeInitialAdminSetup(string $password): array {
+        if (!self::hasInitialAdminCredentials()) {
+            throw new RuntimeException(t("onboarding.initial_state_changed"));
+        }
+
+        if (strlen($password) < 8) {
+            throw new RuntimeException(t("onboarding.password_short"));
+        }
+
+        if (hash_equals($password, "123456") || hash_equals($password, "admin")) {
+            throw new RuntimeException(t("onboarding.password_cannot_be_default"));
+        }
+
+        $usersfile = app_config_path("/data/users.json");
+        $users = JsonStorage::read($usersfile);
+        $found = false;
+        $name = "Administrador";
+
+        foreach ($users as &$user) {
+            if (!is_array($user)
+                || UserManager::normalizeUsername((string) ($user["username"] ?? "")) !== "admin"
+                || !self::passwordMatches((string) ($user["password"] ?? ""), "admin")
+            ) {
+                continue;
+            }
+
+            $name = trim((string) ($user["name"] ?? "")) ?: "Administrador";
+            $user["password"] = password_hash($password, PASSWORD_DEFAULT);
+            $user["updated_at"] = now_iso();
+            $user["password_changed_at"] = now_iso();
+            $found = true;
+            break;
+        }
+        unset($user);
+
+        if (!$found) {
+            throw new RuntimeException(t("onboarding.initial_state_changed"));
+        }
+
+        JsonStorage::write($usersfile, $users);
+
+        return [
+            "username" => "admin",
+            "name" => $name,
+        ];
     }
 
     /**
@@ -184,7 +251,6 @@ class Auth {
 
         foreach ($users as &$user) {
             if ($user["username"] != $username) {
-                echo "{$user["username"]} != {$username} continue <br>";
                 continue;
             }
 
@@ -244,5 +310,25 @@ class Auth {
             );
         }
         session_destroy();
+    }
+
+    /**
+     * Function passwordMatches
+     *
+     * @param string $stored
+     * @param string $plain
+     * @return bool
+     */
+    private static function passwordMatches(string $stored, string $plain): bool {
+        if ($stored === "") {
+            return false;
+        }
+
+        $info = password_get_info($stored);
+        if (!empty($info["algo"])) {
+            return password_verify($plain, $stored);
+        }
+
+        return hash_equals($stored, $plain);
     }
 }

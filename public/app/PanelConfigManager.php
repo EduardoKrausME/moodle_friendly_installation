@@ -177,6 +177,161 @@ class PanelConfigManager {
     }
 
     /**
+     * Function requiresInitialSetup
+     *
+     * A blank base URL identifies an installation that still needs the
+     * DigitalOcean One-Click first-access setup.
+     *
+     * @return bool
+     */
+    public static function requiresInitialSetup(): bool {
+        $config = self::effectiveConfig();
+        return trim((string) ($config["base_url"] ?? "")) === "";
+    }
+
+    /**
+     * Function saveBaseUrl
+     *
+     * @param string $baseurl
+     * @return string
+     * @throws \Random\RandomException
+     */
+    public static function saveBaseUrl(string $baseurl): string {
+        $baseurl = self::normalizeBaseUrl($baseurl);
+        $savedconfig = self::savedConfig();
+        $savedconfig["base_url"] = $baseurl;
+        self::save($savedconfig);
+        return $baseurl;
+    }
+
+    /**
+     * Function detectRequestBaseUrl
+     *
+     * @return string
+     */
+    public static function detectRequestBaseUrl(): string {
+        $host = trim((string) ($_SERVER["HTTP_HOST"] ?? $_SERVER["SERVER_NAME"] ?? ""));
+        if ($host === "" || preg_match("/[\x00-\x20\/\\\\?#@,]/", $host)) {
+            return "";
+        }
+
+        $scheme = "http";
+        $forwardedproto = strtolower(trim(explode(",", (string) ($_SERVER["HTTP_X_FORWARDED_PROTO"] ?? ""))[0]));
+        $https = strtolower((string) ($_SERVER["HTTPS"] ?? ""));
+        if ($forwardedproto === "https"
+            || ($https !== "" && $https !== "off" && $https !== "0")
+            || (int) ($_SERVER["SERVER_PORT"] ?? 0) === 443
+        ) {
+            $scheme = "https";
+        }
+
+        try {
+            return self::normalizeBaseUrl("{$scheme}://{$host}");
+        } catch (\Throwable) {
+            return "";
+        }
+    }
+
+    /**
+     * Function normalizeBaseUrl
+     *
+     * @param string $baseurl
+     * @return string
+     */
+    public static function normalizeBaseUrl(string $baseurl): string {
+        $baseurl = trim($baseurl);
+        if ($baseurl === "") {
+            throw new RuntimeException(t("onboarding.base_url_required"));
+        }
+
+        if (!preg_match("#^[a-z][a-z0-9+.-]*://#i", $baseurl)) {
+            $candidatehost = preg_replace("#[/:].*$#", "", $baseurl);
+            $scheme = filter_var($candidatehost, FILTER_VALIDATE_IP) ? "http" : "https";
+            $baseurl = "{$scheme}://{$baseurl}";
+        }
+
+        $parts = parse_url($baseurl);
+        if (!is_array($parts)) {
+            throw new RuntimeException(t("onboarding.base_url_invalid"));
+        }
+
+        $scheme = strtolower((string) ($parts["scheme"] ?? ""));
+        $host = strtolower(rtrim((string) ($parts["host"] ?? ""), "."));
+        $path = (string) ($parts["path"] ?? "");
+        $port = isset($parts["port"]) ? (int) $parts["port"] : null;
+
+        if (!in_array($scheme, ["http", "https"], true)
+            || $host === ""
+            || isset($parts["user"])
+            || isset($parts["pass"])
+            || isset($parts["query"])
+            || isset($parts["fragment"])
+            || ($path !== "" && $path !== "/")
+            || ($port !== null && ($port < 1 || $port > 65535))
+            || (!filter_var($host, FILTER_VALIDATE_IP) && !self::isValidHostname($host))
+        ) {
+            throw new RuntimeException(t("onboarding.base_url_invalid"));
+        }
+
+        $authority = str_contains($host, ":") ? "[{$host}]" : $host;
+        $isdefaultport = ($scheme === "http" && $port === 80) || ($scheme === "https" && $port === 443);
+        if ($port !== null && !$isdefaultport) {
+            $authority .= ":{$port}";
+        }
+
+        return "{$scheme}://{$authority}";
+    }
+
+    /**
+     * Function baseUrlHost
+     *
+     * @param string $baseurl
+     * @return string
+     */
+    public static function baseUrlHost(string $baseurl): string {
+        $host = parse_url($baseurl, PHP_URL_HOST);
+        return is_string($host) ? strtolower($host) : "";
+    }
+
+    /**
+     * Function isIpBaseUrl
+     *
+     * @param string $baseurl
+     * @return bool
+     */
+    public static function isIpBaseUrl(string $baseurl): bool {
+        $host = self::baseUrlHost($baseurl);
+        return $host !== "" && filter_var($host, FILTER_VALIDATE_IP) !== false;
+    }
+
+    /**
+     * Function isHttpsBaseUrl
+     *
+     * @param string $baseurl
+     * @return bool
+     */
+    public static function isHttpsBaseUrl(string $baseurl): bool {
+        return strtolower((string) parse_url($baseurl, PHP_URL_SCHEME)) === "https";
+    }
+
+    /**
+     * Function isValidHostname
+     *
+     * @param string $host
+     * @return bool
+     */
+    private static function isValidHostname(string $host): bool {
+        if (strlen($host) > 253 || !str_contains($host, ".")) {
+            return false;
+        }
+
+        return (bool) preg_match(
+            "/^(?=.{1,253}$)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z](?:[a-z0-9-]{0,61}[a-z0-9])?$/i",
+            $host
+        );
+    }
+
+    /**
      * Function label
      *
      * @param string $key

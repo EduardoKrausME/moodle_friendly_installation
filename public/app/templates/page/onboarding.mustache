@@ -1,0 +1,195 @@
+{{#setup_completed}}
+    <section class="card setup-complete">
+        <span class="setup-complete-icon" aria-hidden="true">✓</span>
+        <span class="setup-badge">{{i18n.onboarding.completed_badge}}</span>
+        <h1>{{i18n.onboarding.completed_heading}}</h1>
+        <p>{{i18n.onboarding.completed_intro}}</p>
+
+        <dl class="setup-credentials">
+            <div>
+                <dt>{{i18n.onboarding.next_login_username}}</dt>
+                <dd><code>{{next_login_username}}</code></dd>
+            </div>
+            <div>
+                <dt>{{i18n.onboarding.next_login_password}}</dt>
+                <dd><code>{{next_login_password}}</code></dd>
+            </div>
+        </dl>
+
+        <div class="alert warning setup-alert">
+            <strong>{{i18n.onboarding.password_once_heading}}</strong>
+            <p>{{i18n.onboarding.password_once_intro}}</p>
+        </div>
+
+        <a class="button" href="/login.php">{{i18n.onboarding.go_to_login}}</a>
+    </section>
+{{/setup_completed}}
+
+{{#show_wizard}}
+    <section class="page-title onboarding-hero">
+        <div>
+            <span class="setup-badge">{{i18n.onboarding.one_click_badge}}</span>
+            <h1>{{i18n.onboarding.heading}}</h1>
+            <p>{{i18n.onboarding.intro}}</p>
+        </div>
+
+        <ol class="setup-progress" aria-label="{{i18n.onboarding.progress_label}}">
+            <li class="setup-progress-step{{#step_one_active}} is-active{{/step_one_active}}{{#step_one_complete}} is-complete{{/step_one_complete}}">
+                <span>1</span>
+                <strong>{{i18n.onboarding.address_step}}</strong>
+            </li>
+            <li class="setup-progress-step{{#step_two_active}} is-active{{/step_two_active}}">
+                <span>2</span>
+                <strong>{{i18n.onboarding.security_step}}</strong>
+            </li>
+        </ol>
+    </section>
+
+    {{#has_errors}}
+        <div class="alert danger">
+            <strong>{{i18n.onboarding.check_fields}}</strong>
+            <ul>
+                {{#errors}}
+                    <li>{{message}}</li>
+                {{/errors}}
+            </ul>
+        </div>
+    {{/has_errors}}
+
+    {{#show_step_one}}
+        <form method="post" class="form">
+            <input type="hidden" name="csrf_token" value="{{csrf_token}}">
+            <input type="hidden" name="action" value="save_url">
+
+            <div class="card onboarding-step">
+                <div class="setup-section-heading">
+                    <span>1</span>
+                    <div>
+                        <h2>{{i18n.onboarding.address_heading}}</h2>
+                        <p>{{i18n.onboarding.address_intro}}</p>
+                    </div>
+                </div>
+
+                <label>
+                    {{i18n.onboarding.base_url}}
+                    <input type="url" name="base_url" value="{{base_url}}"
+                           placeholder="https://painel.seudominio.com.br"
+                           autocomplete="url" required autofocus>
+                    <small>{{i18n.onboarding.base_url_help}}</small>
+                </label>
+
+                <div class="setup-step-actions is-next">
+                    <button type="submit">{{i18n.onboarding.next}}</button>
+                </div>
+
+            </div>
+
+            <div class="card onboarding-step">
+                <div class="setup-guide-inline">
+                    <div class="setup-section-heading">
+                        <span aria-hidden="true">🔒</span>
+                        <div>
+                            <h2>{{i18n.onboarding.https_heading}}</h2>
+                            <p>{{i18n.onboarding.https_intro}}</p>
+                        </div>
+                    </div>
+
+                    {{#is_ip_url}}
+                        <div class="alert warning setup-alert">
+                            <strong>{{i18n.onboarding.ip_detected_heading}}</strong>
+                            <p>{{i18n.onboarding.ip_detected_intro}}</p>
+                        </div>
+                    {{/is_ip_url}}
+
+                    {{#has_domain_url}}
+                        {{#is_https_url}}
+                            <div class="alert ok setup-alert">
+                                <strong>{{i18n.onboarding.https_detected_heading}}</strong>
+                                <p>{{i18n.onboarding.https_detected_intro}}</p>
+                            </div>
+                        {{/is_https_url}}
+                        {{#needs_https}}
+                            <div class="alert warning setup-alert">
+                                <strong>{{i18n.onboarding.domain_detected_heading}}</strong>
+                                <p>{{i18n.onboarding.domain_detected_intro}}</p>
+                            </div>
+                        {{/needs_https}}
+                    {{/has_domain_url}}
+
+                    <ol class="setup-steps">
+                        <li>
+                            <strong>{{i18n.onboarding.dns_step_heading}}</strong>
+                            <p>{{i18n.onboarding.dns_step_intro}}</p>
+                            <dl class="setup-dns-grid">
+                                <div>
+                                    <dt>{{i18n.onboarding.dns_type}}</dt>
+                                    <dd>A</dd>
+                                </div>
+                                <div>
+                                    <dt>{{i18n.onboarding.dns_name}}</dt>
+                                    <dd><code>{{dns_domain}}</code></dd>
+                                </div>
+                                <div>
+                                    <dt>{{i18n.onboarding.dns_destination}}</dt>
+                                    <dd>
+                                        {{#has_public_ip}}<code>{{public_ip}}</code>{{/has_public_ip}}
+                                        {{^has_public_ip}}{{i18n.onboarding.public_ip_unavailable}}{{/has_public_ip}}
+                                    </dd>
+                                </div>
+                            </dl>
+                        </li>
+                        <li>
+                            <strong>{{i18n.onboarding.dns_wait_heading}}</strong>
+                            <p>{{i18n.onboarding.dns_wait_intro}}</p>
+                            <pre class="setup-command"><code>{{dns_check_command}}</code></pre>
+                        </li>
+                        <li>
+                            <strong>{{i18n.onboarding.certbot_heading}}</strong>
+                            <p>{{i18n.onboarding.certbot_intro}}</p>
+                            <pre class="setup-command"><code>{{certbot_command}}</code></pre>
+                        </li>
+                    </ol>
+
+                    <div class="setup-note">
+                        <strong>{{i18n.onboarding.after_https_heading}}</strong>
+                        <p>{{i18n.onboarding.after_https_intro}}</p>
+                    </div>
+                </div>
+            </div>
+        </form>
+    {{/show_step_one}}
+
+    {{#show_step_two}}
+        <form method="post" class="form">
+            <input type="hidden" name="csrf_token" value="{{csrf_token}}">
+            <input type="hidden" name="action" value="finish">
+
+            <div class="card onboarding-step">
+                <div class="setup-section-heading">
+                    <span>2</span>
+                    <div>
+                        <h2>{{i18n.onboarding.security_heading}}</h2>
+                        <p>{{i18n.onboarding.security_intro}}</p>
+                    </div>
+                </div>
+
+                <label>
+                    {{i18n.onboarding.next_login_username}}
+                    <input type="text" value="admin" readonly>
+                    <small>{{i18n.onboarding.username_help}}</small>
+                </label>
+
+                <label>
+                    {{i18n.onboarding.new_password}}
+                    <input type="text" name="password" autocomplete="new-password" minlength="8" required autofocus>
+                    <small>{{i18n.onboarding.password_help}}</small>
+                </label>
+
+                <div class="setup-step-actions">
+                    <a class="button secondary" href="/onboarding.php?step=1">{{i18n.onboarding.back}}</a>
+                    <button type="submit">{{i18n.onboarding.finish}}</button>
+                </div>
+            </div>
+        </form>
+    {{/show_step_two}}
+{{/show_wizard}}
