@@ -1220,7 +1220,7 @@ ensure_sites_enabled_includes() {
 configure_apache_remoteip() {
     log "Configuring Apache RemoteIP"
     mkdir -p /etc/apache/conf.d
-    cp "${INSTALL_DIR}/install/httpd/conf.d/remoteip.conf" /etc/apache2/conf-available/remoteip.conf
+    cp "${INSTALL_DIR}/install/apache/conf.d/remoteip.conf" /etc/apache2/conf-available/remoteip.conf
 }
 
 configure_apache_port() {
