@@ -867,7 +867,6 @@ class AppManager {
             $body = curl_exec($curl);
             $error = curl_error($curl);
             $status = (int) curl_getinfo($curl, CURLINFO_HTTP_CODE);
-            curl_close($curl);
 
             if ($body === false) {
                 throw new RuntimeException(I18n::get("app_errors.moodle_config_fetch_failed", ["message" => $error]));

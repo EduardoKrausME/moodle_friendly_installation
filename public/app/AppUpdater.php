@@ -708,7 +708,6 @@ class AppUpdater {
             $result = curl_exec($curl);
             $error = curl_error($curl);
             $status = curl_getinfo($curl, CURLINFO_HTTP_CODE);
-            curl_close($curl);
 
             if ($result === false) {
                 throw new RuntimeException("Unable to query GitHub: {$error}");

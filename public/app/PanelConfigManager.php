@@ -465,7 +465,6 @@ class PanelConfigManager {
                     if (is_string($result)) {
                         $response = $result;
                     }
-                    curl_close($curl);
                 }
             } else if (filter_var(ini_get("allow_url_fopen"), FILTER_VALIDATE_BOOLEAN)) {
                 $context = stream_context_create([

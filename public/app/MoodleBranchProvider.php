@@ -94,7 +94,6 @@ class MoodleBranchProvider {
 
             $response = curl_exec($curl);
             $statuscode = curl_getinfo($curl, CURLINFO_RESPONSE_CODE);
-            curl_close($curl);
 
             if (is_string($response) && $response != "" && $statuscode >= 200 && $statuscode < 300) {
                 return $response;
