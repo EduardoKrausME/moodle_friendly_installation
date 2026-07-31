@@ -72,7 +72,7 @@ foreach ($alljobs as $job) {
     $haslog = !empty($job["log_file"]) && is_readable($job["log_file"]);
     $jobid = $job["id"];
     $jobtype = $job["type"];
-    $cleanupjobid = $job["cleanup_job_id"];
+    $cleanupjobid = (string) ($job["cleanup_job_id"] ?? "");
     $cleanupjob = $cleanupjobid !== "" && isset($jobsbyid[$cleanupjobid]) ? $jobsbyid[$cleanupjobid] : null;
     $cleanupactive = is_array($cleanupjob)
         && in_array(($cleanupjob["status"] ?? ""), ["pending", "running"], true);
