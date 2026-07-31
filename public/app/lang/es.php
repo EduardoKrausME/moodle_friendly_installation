@@ -72,10 +72,6 @@ return [
         "enable_moodle" => "Activar Moodle",
         "cancel" => "Cancelar",
     ],
-    "site_info" => [
-        "fullname" => "Nombre completo",
-        "shortname" => "Nombre corto",
-    ],
     "login" => [
         "title" => "Login",
         "heading" => "Entrar al panel",

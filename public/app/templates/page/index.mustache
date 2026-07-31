@@ -25,21 +25,11 @@
             <article class="site-card">
                 <div class="site-card-header">
                     <div>
-                        <h2>{{domain}}</h2>
+                        <h2>{{site_fullname}} - {{domain}}</h2>
                     </div>
                     {{{status_badge}}}
                 </div>
                 <dl class="site-meta">
-                    {{#has_site_identity}}
-                        <div>
-                            <dt>{{i18n.site_info.fullname}}</dt>
-                            <dd>{{site_fullname}}</dd>
-                        </div>
-                        <div>
-                            <dt>{{i18n.site_info.shortname}}</dt>
-                            <dd>{{site_shortname}}</dd>
-                        </div>
-                    {{/has_site_identity}}
                     <div>
                         <dt>{{i18n.index.branch}}</dt>
                         <dd>{{moodle_branch}}</dd>

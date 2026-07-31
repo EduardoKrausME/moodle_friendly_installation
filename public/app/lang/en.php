@@ -73,10 +73,6 @@ return [
         "enable_moodle" => "Enable Moodle",
         "cancel" => "Cancel",
     ],
-    "site_info" => [
-        "fullname" => "Full name",
-        "shortname" => "Short name",
-    ],
     "login" => [
         "title" => "Login",
         "heading" => "Sign in to the panel",
