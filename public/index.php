@@ -140,5 +140,6 @@ echo render_app_template("page/index", [
     "server" => $serveroverview,
     "has_sites" => !empty($sites),
     "sites" => $sites,
+    "csrf_token" => csrf_token(),
 ]);
 render_footer();

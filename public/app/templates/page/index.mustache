@@ -3,7 +3,13 @@
         <h1>{{i18n.index.heading}}</h1>
         <p>{{i18n.index.intro}}</p>
     </div>
-    <a class="button" href="/install.php">{{i18n.actions.install_moodle}}</a>
+    <div style="display:grid;gap:12px;">
+        <a class="button" href="/install.php" target="_blank">{{i18n.actions.install_moodle}}</a>
+        <form action="/phpmyadmin-signon.php" method="post" target="_blank">
+            <input type="hidden" name="csrf_token" value="{{csrf_token}}">
+            <button class="button" type="submit">Abrir phpMyAdmin</button>
+        </form>
+    </div>
 </section>
 
 {{#has_flash}}
@@ -16,7 +22,7 @@
             <div class="server-stat-heading">
                 <span class="server-stat-icon" aria-hidden="true">
                     <svg viewBox="0 0 24 24" role="img">
-                        <path d="M4 6.5A2.5 2.5 0 0 1 6.5 4h11A2.5 2.5 0 0 1 20 6.5v11a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 4 17.5v-11Zm3 8.5h10M8 9h8" />
+                        <path d="M4 6.5A2.5 2.5 0 0 1 6.5 4h11A2.5 2.5 0 0 1 20 6.5v11a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 4 17.5v-11Zm3 8.5h10M8 9h8"/>
                     </svg>
                 </span>
                 <span>{{i18n.server.disk}}</span>
@@ -24,7 +30,8 @@
             <strong class="server-stat-value">{{server.disk.used}}</strong>
             <span class="server-stat-caption">{{i18n.server.used_of}} {{server.disk.total}}</span>
             {{#server.disk.has_data}}
-                <div class="server-stat-progress" role="progressbar" aria-label="{{i18n.server.disk_usage}}" aria-valuenow="{{server.disk.percent_raw}}" aria-valuemin="0" aria-valuemax="100">
+                <div class="server-stat-progress" role="progressbar" aria-label="{{i18n.server.disk_usage}}"
+                     aria-valuenow="{{server.disk.percent_raw}}" aria-valuemin="0" aria-valuemax="100">
                     <span style="width: {{server.disk.percent_raw}}%"></span>
                 </div>
             {{/server.disk.has_data}}
@@ -38,8 +45,8 @@
             <div class="server-stat-heading">
                 <span class="server-stat-icon" aria-hidden="true">
                     <svg viewBox="0 0 24 24" role="img">
-                        <rect x="7" y="7" width="10" height="10" rx="2" />
-                        <path d="M9 2v3m3-3v3m3-3v3M9 19v3m3-3v3m3-3v3M2 9h3m-3 3h3m-3 3h3m14-6h3m-3 3h3m-3 3h3" />
+                        <rect x="7" y="7" width="10" height="10" rx="2"/>
+                        <path d="M9 2v3m3-3v3m3-3v3M9 19v3m3-3v3m3-3v3M2 9h3m-3 3h3m-3 3h3m14-6h3m-3 3h3m-3 3h3"/>
                     </svg>
                 </span>
                 <span>{{i18n.server.memory}}</span>
@@ -47,7 +54,8 @@
             <strong class="server-stat-value">{{server.memory.used}}</strong>
             <span class="server-stat-caption">{{i18n.server.used_of}} {{server.memory.total}}</span>
             {{#server.memory.has_data}}
-                <div class="server-stat-progress" role="progressbar" aria-label="{{i18n.server.memory_usage}}" aria-valuenow="{{server.memory.percent_raw}}" aria-valuemin="0" aria-valuemax="100">
+                <div class="server-stat-progress" role="progressbar" aria-label="{{i18n.server.memory_usage}}"
+                     aria-valuenow="{{server.memory.percent_raw}}" aria-valuemin="0" aria-valuemax="100">
                     <span style="width: {{server.memory.percent_raw}}%"></span>
                 </div>
             {{/server.memory.has_data}}
@@ -61,7 +69,7 @@
             <div class="server-stat-heading">
                 <span class="server-stat-icon" aria-hidden="true">
                     <svg viewBox="0 0 24 24" role="img">
-                        <path d="M4 19V9m5 10V5m5 14v-7m5 7V3" />
+                        <path d="M4 19V9m5 10V5m5 14v-7m5 7V3"/>
                     </svg>
                 </span>
                 <span>{{i18n.server.load}}</span>
@@ -79,8 +87,8 @@
             <div class="server-stat-heading">
                 <span class="server-stat-icon" aria-hidden="true">
                     <svg viewBox="0 0 24 24" role="img">
-                        <rect x="3" y="4" width="18" height="16" rx="3" />
-                        <path d="m7 9 3 3-3 3m5 0h5" />
+                        <rect x="3" y="4" width="18" height="16" rx="3"/>
+                        <path d="m7 9 3 3-3 3m5 0h5"/>
                     </svg>
                 </span>
                 <span>{{i18n.server.environment}}</span>

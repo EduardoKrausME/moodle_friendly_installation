@@ -7,7 +7,7 @@
  * or at <https://docs.phpmyadmin.net/>.
  */
 
-declare(strict_types=1);
+declare(strict_types = 1);
 
 $cfg['Export']['method'] = "custom";
 $cfg['Export']['sql_if_not_exists'] = true;
@@ -31,24 +31,30 @@ $i = 0;
 $i++;
 /* Authentication type */
 
-$user = $_SESSION["user"] ?? false;
-if ($user) {
-    $configbase = require "../config.php";
-    $cfg['Servers'][$i]['auth_type'] = 'config';
-    $cfg['Servers'][$i]['host'] = $configbase['mysql_admin_host'];
-    $cfg['Servers'][$i]['port'] = $configbase['mysql_admin_port'];
-    $cfg['Servers'][$i]['socket'] = $configbase['mysql_admin_socket'];
-    $cfg['Servers'][$i]['user'] = $configbase['mysql_admin_user'];
-    $cfg['Servers'][$i]['password'] = $configbase['mysql_admin_pass'];
-    $cfg['Servers'][$i]['compress'] = false;
-    $cfg['Servers'][$i]['AllowNoPassword'] = false;
-} else {
-    // header("Location: ../");
-}
+$configbase = require __DIR__ . "/../config.php";
 
-/**
- * Directories for saving/loading files from server
- */
-$cfg['UploadDir'] = '';
-$cfg['SaveDir'] = '';
+$i = 0;
+$i++;
 
+$baseurl = rtrim($configbase["base_url"], "/");
+
+$cfg["Servers"][$i]["auth_type"] = "signon";
+$cfg["Servers"][$i]["host"] = $configbase["mysql_admin_host"];
+$cfg["Servers"][$i]["port"] = $configbase["mysql_admin_port"];
+$cfg["Servers"][$i]["socket"] = $configbase["mysql_admin_socket"];
+$cfg["Servers"][$i]["compress"] = false;
+$cfg["Servers"][$i]["AllowNoPassword"] = false;
+
+$cfg["Servers"][$i]["SignonSession"] = "PMA_SIGNON";
+
+$cfg["Servers"][$i]["SignonCookieParams"] = [
+    "lifetime" => 0,
+    "path" => "/",
+    "domain" => "",
+    "secure" => false,
+    "httponly" => true,
+    "samesite" => "Strict",
+];
+
+$cfg["Servers"][$i]["SignonURL"] = "{$baseurl}/";
+$cfg["Servers"][$i]["LogoutURL"] = "{$baseurl}/";

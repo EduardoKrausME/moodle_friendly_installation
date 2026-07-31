@@ -142,6 +142,7 @@ function details_page_context(
         "flash" => $flash,
         "stats_warning" => !$statsconnected,
         "stats_error" => $stats["error"] ?? t("details.unknown_error"),
+        "csrf_token" => csrf_token(),
         "stat_boxes" => [
             [
                 "label" => t("details.users"),

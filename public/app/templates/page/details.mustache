@@ -9,7 +9,13 @@
             <p>{{moodle_branch}}</p>
         {{/has_site_identity}}
     </div>
-    <a class="button secondary" href="/">{{i18n.actions.back_to_sites}}</a>
+    <div style="display:grid;gap:12px;">
+        <a class="button secondary" href="/">{{i18n.actions.back_to_sites}}</a>
+        <form action="/phpmyadmin-signon.php" method="post" target="_blank">
+            <input type="hidden" name="csrf_token" value="{{csrf_token}}">
+            <button class="button" type="submit">Abrir phpMyAdmin</button>
+        </form>
+    </div>
 </section>
 
 {{#has_flash}}
