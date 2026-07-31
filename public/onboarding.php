@@ -1,5 +1,6 @@
 <?php
 
+use app\AppUpdater;
 use app\Auth;
 use app\PanelConfigManager;
 
@@ -24,13 +25,17 @@ if ($detectedbaseurl === "" && $publicip !== "") {
 }
 
 $requestedstep = (int) ($_GET["step"] ?? 1);
-$step = $requestedstep === 2 ? 2 : 1;
+$step = in_array($requestedstep, [1, 2, 3], true) ? $requestedstep : 1;
 $sessionbaseurl = trim((string) ($_SESSION["onboarding"]["base_url"] ?? ""));
 $baseurl = $sessionbaseurl !== "" ? $sessionbaseurl : $detectedbaseurl;
 $errors = [];
 $setupcompleted = false;
 $nextloginusername = "admin";
 $nextloginpassword = "";
+$updatecheckerror = "";
+$updatechecked = false;
+$updateavailable = false;
+$updatestate = AppUpdater::state();
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
     validate_csrf();
@@ -42,14 +47,26 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         try {
             $baseurl = PanelConfigManager::normalizeBaseUrl($baseurl);
             $_SESSION["onboarding"]["base_url"] = $baseurl;
+            unset($_SESSION["onboarding"]["update_check_complete"]);
             redirect_to("/onboarding.php?step=2");
         } catch (Throwable $exception) {
             $errors[] = $exception->getMessage();
         }
-    } else if ($action === "finish") {
+    } else if ($action === "continue_after_update_check") {
         $step = 2;
         if ($sessionbaseurl === "") {
             redirect_to("/onboarding.php?step=1");
+        }
+
+        $_SESSION["onboarding"]["update_check_complete"] = true;
+        redirect_to("/onboarding.php?step=3");
+    } else if ($action === "finish") {
+        $step = 3;
+        if ($sessionbaseurl === "") {
+            redirect_to("/onboarding.php?step=1");
+        }
+        if (empty($_SESSION["onboarding"]["update_check_complete"])) {
+            redirect_to("/onboarding.php?step=2");
         }
 
         $baseurl = $sessionbaseurl;
@@ -90,9 +107,27 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     }
 }
 
-if (!$setupcompleted && $step === 2 && $sessionbaseurl === "") {
+if (!$setupcompleted && $step > 1 && $sessionbaseurl === "") {
     redirect_to("/onboarding.php?step=1");
 }
+if (!$setupcompleted && $step === 3 && empty($_SESSION["onboarding"]["update_check_complete"])) {
+    redirect_to("/onboarding.php?step=2");
+}
+
+if (!$setupcompleted && $step === 2) {
+    try {
+        $updatecheck = AppUpdater::check();
+        $updatestate = $updatecheck["state"];
+        $updatechecked = true;
+        $updateavailable = !empty($updatecheck["update_available"]);
+    } catch (Throwable $exception) {
+        $updatecheckerror = $exception->getMessage();
+    }
+}
+
+$installedtag = trim((string) ($updatestate["installed_tag"] ?? ""));
+$latesttag = trim((string) ($updatestate["latest_tag"] ?? ""));
+$latesthtmlurl = trim((string) ($updatestate["latest_html_url"] ?? ""));
 
 $host = PanelConfigManager::baseUrlHost($baseurl);
 $isipurl = PanelConfigManager::isIpBaseUrl($baseurl);
@@ -106,9 +141,12 @@ echo render_app_template("page/onboarding", [
     "show_wizard" => !$setupcompleted,
     "show_step_one" => !$setupcompleted && $step === 1,
     "show_step_two" => !$setupcompleted && $step === 2,
+    "show_step_three" => !$setupcompleted && $step === 3,
     "step_one_active" => !$setupcompleted && $step === 1,
-    "step_one_complete" => !$setupcompleted && $step === 2,
+    "step_one_complete" => !$setupcompleted && $step > 1,
     "step_two_active" => !$setupcompleted && $step === 2,
+    "step_two_complete" => !$setupcompleted && $step === 3,
+    "step_three_active" => !$setupcompleted && $step === 3,
     "csrf_token" => csrf_token(),
     "base_url" => $baseurl,
     "detected_base_url" => $detectedbaseurl,
@@ -125,6 +163,15 @@ echo render_app_template("page/onboarding", [
     "dns_domain" => $dnsdomain,
     "certbot_command" => "sudo certbot --nginx -d {$dnsdomain} --redirect",
     "dns_check_command" => "dig +short {$dnsdomain}",
+    "update_available" => $updatechecked && $updateavailable,
+    "update_is_current" => $updatechecked && !$updateavailable,
+    "update_check_failed" => $updatecheckerror !== "",
+    "update_check_error" => $updatecheckerror,
+    "installed_version" => $installedtag,
+    "latest_version" => $latesttag,
+    "has_latest_version" => $updatechecked && $latesttag !== "",
+    "latest_release_url" => $latesthtmlurl,
+    "has_latest_release_url" => $updatechecked && $latesthtmlurl !== "",
     "next_login_username" => $nextloginusername,
     "next_login_password" => $nextloginpassword,
 ]);

@@ -38,8 +38,12 @@
                 <span>1</span>
                 <strong>{{i18n.onboarding.address_step}}</strong>
             </li>
-            <li class="setup-progress-step{{#step_two_active}} is-active{{/step_two_active}}">
+            <li class="setup-progress-step{{#step_two_active}} is-active{{/step_two_active}}{{#step_two_complete}} is-complete{{/step_two_complete}}">
                 <span>2</span>
+                <strong>{{i18n.onboarding.update_step}}</strong>
+            </li>
+            <li class="setup-progress-step{{#step_three_active}} is-active{{/step_three_active}}">
+                <span>3</span>
                 <strong>{{i18n.onboarding.security_step}}</strong>
             </li>
         </ol>
@@ -162,11 +166,74 @@
     {{#show_step_two}}
         <form method="post" class="form">
             <input type="hidden" name="csrf_token" value="{{csrf_token}}">
-            <input type="hidden" name="action" value="finish">
+            <input type="hidden" name="action" value="continue_after_update_check">
 
             <div class="card onboarding-step">
                 <div class="setup-section-heading">
                     <span>2</span>
+                    <div>
+                        <h2>{{i18n.onboarding.update_heading}}</h2>
+                        <p>{{i18n.onboarding.update_intro}}</p>
+                    </div>
+                </div>
+
+                <dl class="setup-credentials setup-update-versions">
+                    <div>
+                        <dt>{{i18n.onboarding.installed_version}}</dt>
+                        <dd><code>{{installed_version}}</code></dd>
+                    </div>
+                    {{#has_latest_version}}
+                        <div>
+                            <dt>{{i18n.onboarding.latest_version}}</dt>
+                            <dd><code>{{latest_version}}</code></dd>
+                        </div>
+                    {{/has_latest_version}}
+                </dl>
+
+                {{#update_is_current}}
+                    <div class="alert ok setup-alert">
+                        <strong>{{i18n.onboarding.update_current_heading}}</strong>
+                        <p>{{i18n.onboarding.update_current_intro}}</p>
+                    </div>
+                {{/update_is_current}}
+
+                {{#update_available}}
+                    <div class="alert warning setup-alert">
+                        <strong>{{i18n.onboarding.update_available_heading}}</strong>
+                        <p>{{i18n.onboarding.update_available_intro}}</p>
+                        {{#has_latest_release_url}}
+                            <p><a href="{{latest_release_url}}" target="_blank" rel="noopener">{{i18n.onboarding.open_release}}</a></p>
+                        {{/has_latest_release_url}}
+                    </div>
+                {{/update_available}}
+
+                {{#update_check_failed}}
+                    <div class="alert danger setup-alert">
+                        <strong>{{i18n.onboarding.update_error_heading}}</strong>
+                        <p>{{i18n.onboarding.update_error_intro}}</p>
+                        <p><code>{{update_check_error}}</code></p>
+                    </div>
+                {{/update_check_failed}}
+
+                <div class="setup-step-actions">
+                    <a class="button secondary" href="/onboarding.php?step=1">{{i18n.onboarding.back}}</a>
+                    <div class="setup-step-action-group">
+                        <a class="button secondary" href="/onboarding.php?step=2">{{i18n.onboarding.check_again}}</a>
+                        <button type="submit">{{i18n.onboarding.continue_setup}}</button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    {{/show_step_two}}
+
+    {{#show_step_three}}
+        <form method="post" class="form">
+            <input type="hidden" name="csrf_token" value="{{csrf_token}}">
+            <input type="hidden" name="action" value="finish">
+
+            <div class="card onboarding-step">
+                <div class="setup-section-heading">
+                    <span>3</span>
                     <div>
                         <h2>{{i18n.onboarding.security_heading}}</h2>
                         <p>{{i18n.onboarding.security_intro}}</p>
@@ -186,10 +253,10 @@
                 </label>
 
                 <div class="setup-step-actions">
-                    <a class="button secondary" href="/onboarding.php?step=1">{{i18n.onboarding.back}}</a>
+                    <a class="button secondary" href="/onboarding.php?step=2">{{i18n.onboarding.back}}</a>
                     <button type="submit">{{i18n.onboarding.finish}}</button>
                 </div>
             </div>
         </form>
-    {{/show_step_two}}
+    {{/show_step_three}}
 {{/show_wizard}}
