@@ -193,7 +193,7 @@ function executeInstallJob(array $job, string $mode = "install"): array {
 
     $apacheconf = apacheConfPath($domain);
     $nginxconf = "/etc/nginx/sites-enabled/{$domain}.conf";
-    $cronfile = "/etc/cron.d/moodle-{$domain}";
+    $cronfile = "/etc/cron.d/moodle-{$domain}.cron";
     $configfile = "{$moodledir}/config.php";
 
     $apacheTemplate = renderTemplateFile(app_config_path("/install/templates/httpd-site.conf"), [
