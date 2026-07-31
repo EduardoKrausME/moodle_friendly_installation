@@ -4,7 +4,7 @@
         <p>{{i18n.index.intro}}</p>
     </div>
     <div style="display:grid;gap:12px;">
-        <a class="button" href="/install.php" target="_blank">{{i18n.actions.install_moodle}}</a>
+        <a class="button" href="/install.php">{{i18n.actions.install_moodle}}</a>
         <form action="/phpmyadmin-signon.php" method="post" target="_blank">
             <input type="hidden" name="csrf_token" value="{{csrf_token}}">
             <button class="button" type="submit">Abrir phpMyAdmin</button>
