@@ -147,7 +147,23 @@ run_family_installer() {
 
     export REPO_URL REPO_BRANCH
     log "Running ${installer_path}"
-    exec bash "${installer_path}" "${REPO_BRANCH}"
+    bash "${installer_path}" "${REPO_BRANCH}" || die "The distribution installer failed."
+}
+
+install_letsencrypt_renew_cron() {
+    command_exists certbot || die "Certbot was not found after the installation."
+
+    local cron_file="/etc/cron.d/moodle-friendly-installation-certbot"
+    log "Creating the Let's Encrypt renewal cron in ${cron_file}"
+
+    {
+        printf '%s\n' 'SHELL=/bin/bash'
+        printf '%s\n' 'PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
+        printf '\n'
+        printf '%s\n' '17 3,15 * * * root certbot renew --quiet --deploy-hook "systemctl reload nginx"'
+    } > "${cron_file}"
+
+    chmod 0644 "${cron_file}"
 }
 
 main() {
@@ -159,6 +175,7 @@ main() {
 
     clone_project
     run_family_installer "${installer}"
+    install_letsencrypt_renew_cron
 }
 
 main "$@"
