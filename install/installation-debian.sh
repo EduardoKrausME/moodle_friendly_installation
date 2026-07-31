@@ -244,13 +244,13 @@ prompt_database_select() {
     if [[ -n "${DB_ENGINE:-}" ]]; then
         DB_ENGINE="$(printf '%s' "${DB_ENGINE}" | tr '[:upper:]' '[:lower:]')"
         case "${DB_ENGINE}" in
-            mariadb|mysql)
+            mariadb|mysqli)
                 log "Using saved database option: ${DB_ENGINE}"
                 save_progress
                 return 0
                 ;;
             *)
-                die "Invalid saved database option: ${DB_ENGINE}. Use mariadb or mysql."
+                die "Invalid saved database option: ${DB_ENGINE}. Use MariaDB or MySql."
                 ;;
         esac
     fi
@@ -264,7 +264,7 @@ prompt_database_select() {
             --title "Moodle Friendly Installation" \
             --menu "Selecione o banco de dados para instalar" \
             14 78 2 \
-            "mysql" "MySQL ${MYSQL_REQUIRED:+>= ${MYSQL_REQUIRED}}" \
+            "mysqli" "MySQL ${MYSQL_REQUIRED:+>= ${MYSQL_REQUIRED}}" \
             "mariadb" "MariaDB ${MARIADB_REQUIRED:+>= ${MARIADB_REQUIRED}}" \
             3>&1 1>&2 2>&3 < /dev/tty)" || die "Database selection cancelled."
         DB_ENGINE="${choice}"
@@ -290,8 +290,8 @@ prompt_database_select() {
                     DB_ENGINE="mariadb"
                     break
                     ;;
-                2|mysql|MySQL|MYSQL)
-                    DB_ENGINE="mysql"
+                2|mysqli|MySQL|MYSQL)
+                    DB_ENGINE="mysqli"
                     break
                     ;;
                 *)
@@ -302,8 +302,8 @@ prompt_database_select() {
     fi
 
     case "${DB_ENGINE}" in
-        mariadb|mysql) ;;
-        *) die "Invalid database option: ${DB_ENGINE}. Use mariadb or mysql." ;;
+        mariadb|mysqli) ;;
+        *) die "Invalid database option: ${DB_ENGINE}. Use MariaDB or MySql." ;;
     esac
 
     save_progress
@@ -649,14 +649,14 @@ for item in moodle.iter('PHP'):
 vendors = {}
 for vendor in moodle.iter('VENDOR'):
     name = vendor.attrib.get('name', '').strip().lower()
-    if name in {'mariadb', 'mysql'}:
+    if name in {'mariadb', 'mysqli'}:
         vendors[name] = vendor.attrib.get('version', '').strip()
 
 emit('MOODLE_VERSION', moodle.attrib.get('version', '').strip())
 emit('MOODLE_REQUIRES', moodle.attrib.get('requires', '').strip())
 emit('PHP_REQUIRED', php_required)
 emit('MARIADB_REQUIRED', vendors.get('mariadb', ''))
-emit('MYSQL_REQUIRED', vendors.get('mysql', ''))
+emit('MYSQL_REQUIRED', vendors.get('mysqli', ''))
 PY
 
     # shellcheck source=/tmp/moodle-env-requirements.env
@@ -1074,7 +1074,7 @@ install_mysql() {
         printf 'mysql-community-server mysql-community-server/re-root-pass password %s\n' "${DB_ROOT_PASS}" | debconf-set-selections || true
     fi
     pkg_install mysql-server mysql-client || pkg_install default-mysql-server default-mysql-client
-    DB_SERVICE="mysql"
+    DB_SERVICE="mysqli"
     systemctl enable --now mysql || systemctl enable --now mysqld
 }
 
@@ -1122,7 +1122,7 @@ FLUSH PRIVILEGES;
         local client
         client="$(mysql_client)" || die "MySQL/MariaDB client was not found."
 
-        if [[ "${DB_ENGINE}" == "mysql" && -f /var/log/mysqld.log ]]; then
+        if [[ "${DB_ENGINE}" == "mysqli" && -f /var/log/mysqld.log ]]; then
             current="$(grep -i 'temporary password' /var/log/mysqld.log 2>/dev/null | tail -n1 | awk '{print $NF}' || true)"
             if [[ -n "${current}" ]]; then
                 if MYSQL_PWD="${current}" "${client}" --connect-expired-password -uroot -e "${sql}" >/dev/null 2>&1; then
@@ -1720,7 +1720,7 @@ database_requirement_installed() {
         if command_exists systemctl && systemctl list-unit-files mariadb.service >/dev/null 2>&1; then
             DB_SERVICE="mariadb"
         elif command_exists systemctl && systemctl list-unit-files mysql.service >/dev/null 2>&1; then
-            DB_SERVICE="mysql"
+            DB_SERVICE="mysqli"
         else
             DB_SERVICE="mariadb"
         fi
@@ -1730,11 +1730,11 @@ database_requirement_installed() {
         printf '%s' "${raw_version}" | grep -qi 'mariadb' && return 1
         version="$(printf '%s' "${raw_version}" | grep -oE '[0-9]+(\.[0-9]+){1,2}' | head -n1 || true)"
         if command_exists systemctl && systemctl list-unit-files mysql.service >/dev/null 2>&1; then
-            DB_SERVICE="mysql"
+            DB_SERVICE="mysqli"
         elif command_exists systemctl && systemctl list-unit-files mysqld.service >/dev/null 2>&1; then
             DB_SERVICE="mysqld"
         else
-            DB_SERVICE="mysql"
+            DB_SERVICE="mysqli"
         fi
     fi
 

@@ -263,7 +263,7 @@ prompt_database_select() {
                 return 0
                 ;;
             *)
-                die "Invalid saved database option: ${DB_ENGINE}. Use mariadb or mysql."
+                die "Invalid saved database option: ${DB_ENGINE}. Use MariaDB or MySql."
                 ;;
         esac
     fi
@@ -273,11 +273,11 @@ prompt_database_select() {
         DB_ENGINE="$(printf '%s' "${DB_ENGINE}" | tr '[:upper:]' '[:lower:]')"
     elif ui_available; then
         local choice=""
-        choice="$(whiptail             --title "Moodle Friendly Installation"             --menu "Database to install"             14 78 2             "mysql" "MySQL ${MYSQL_REQUIRED:+>= ${MYSQL_REQUIRED}}"             "mariadb" "MariaDB ${MARIADB_REQUIRED:+>= ${MARIADB_REQUIRED}}"             3>&1 1>&2 2>&3 < /dev/tty)" || die "Database selection cancelled."
+        choice="$(whiptail --title "Moodle Friendly Installation" --menu "Database to install" 14 78 2 "mysqli" "MySQL ${MYSQL_REQUIRED:+>= ${MYSQL_REQUIRED}}" "mariadb" "MariaDB ${MARIADB_REQUIRED:+>= ${MARIADB_REQUIRED}}"             3>&1 1>&2 2>&3 < /dev/tty)" || die "Database selection cancelled."
         DB_ENGINE="${choice}"
     else
         [[ "${TTY_IN_FD_OPENED}" == "1" ]] || open_interactive_terminal
-        local options=("mariadb" "mysql")
+        local options=("mariadb" "mysqli")
         local choice=""
         printf '
 Database to install:
@@ -299,7 +299,7 @@ Database to install:
 
     case "${DB_ENGINE}" in
         mariadb|mysql) ;;
-        *) die "Invalid database option: ${DB_ENGINE}. Use mariadb or mysql." ;;
+        *) die "Invalid database option: ${DB_ENGINE}. Use MariaDB or MySql." ;;
     esac
 
     save_progress
@@ -319,7 +319,7 @@ prompt_domain_box() {
         PANEL_DOMAIN="${PANEL_DOMAIN:-}"
     elif ui_available; then
         local value=""
-        value="$(whiptail             --title "Moodle Friendly Installation"             --inputbox "Panel domain, or leave blank to use the public IP."             10 78 "${PANEL_DOMAIN:-}"             3>&1 1>&2 2>&3 < /dev/tty)" || die "Domain input cancelled."
+        value="$(whiptail --title "Moodle Friendly Installation" --inputbox "Panel domain, or leave blank to use the public IP."             10 78 "${PANEL_DOMAIN:-}"             3>&1 1>&2 2>&3 < /dev/tty)" || die "Domain input cancelled."
         PANEL_DOMAIN="${value}"
     else
         prompt_text PANEL_DOMAIN "Panel domain, or press ENTER to use the public IP" ""
@@ -1034,7 +1034,7 @@ FLUSH PRIVILEGES;
         local client
         client="$(mysql_client)" || die "MySQL/MariaDB client was not found."
 
-        if [[ "${DB_ENGINE}" == "mysql" && -f /var/log/mysqld.log ]]; then
+        if [[ "${DB_ENGINE}" == "mysqli" && -f /var/log/mysqld.log ]]; then
             current="$(grep -i 'temporary password' /var/log/mysqld.log 2>/dev/null | tail -n1 | awk '{print $NF}' || true)"
             if [[ -n "${current}" ]]; then
                 if MYSQL_PWD="${current}" "${client}" --connect-expired-password -uroot -e "${sql}" >/dev/null 2>&1; then
@@ -1422,8 +1422,8 @@ prompt_lets_encrypt_email() {
         LE_EMAIL="${LE_EMAIL:-${default_email}}"
     elif ui_available; then
         value="$(whiptail \
-            --title "Moodle Friendly Installation" \
-            --inputbox "Digite o e-mail para registrar o certificado Let's Encrypt." \
+ --title "Moodle Friendly Installation" \
+ --inputbox "Digite o e-mail para registrar o certificado Let's Encrypt." \
             10 78 "${LE_EMAIL:-${default_email}}" \
             3>&1 1>&2 2>&3 < /dev/tty)" || die "Let's Encrypt email input cancelled."
 
@@ -1671,7 +1671,7 @@ database_requirement_installed() {
         if command_exists systemctl && systemctl list-unit-files mariadb.service >/dev/null 2>&1; then
             DB_SERVICE="mariadb"
         elif command_exists systemctl && systemctl list-unit-files mysql.service >/dev/null 2>&1; then
-            DB_SERVICE="mysql"
+            DB_SERVICE="mysqli"
         else
             DB_SERVICE="mariadb"
         fi
@@ -1681,11 +1681,11 @@ database_requirement_installed() {
         printf '%s' "${raw_version}" | grep -qi 'mariadb' && return 1
         version="$(printf '%s' "${raw_version}" | grep -oE '[0-9]+(\.[0-9]+){1,2}' | head -n1 || true)"
         if command_exists systemctl && systemctl list-unit-files mysql.service >/dev/null 2>&1; then
-            DB_SERVICE="mysql"
+            DB_SERVICE="mysqli"
         elif command_exists systemctl && systemctl list-unit-files mysqld.service >/dev/null 2>&1; then
             DB_SERVICE="mysqld"
         else
-            DB_SERVICE="mysql"
+            DB_SERVICE="mysqli"
         fi
     fi
 
