@@ -25,7 +25,7 @@
             <article class="site-card">
                 <div class="site-card-header">
                     <div>
-                        <h2>{{domain}}</h2>
+                        <h2>{{site_fullname}} - {{domain}}</h2>
                     </div>
                     {{{status_badge}}}
                 </div>
@@ -34,6 +34,12 @@
                         <dt>{{i18n.index.branch}}</dt>
                         <dd>{{moodle_branch}}</dd>
                     </div>
+                    {{#has_resource_usage}}
+                        <div>
+                            <dt>{{i18n.resources.site_total}}</dt>
+                            <dd>{{resource_usage}}</dd>
+                        </div>
+                    {{/has_resource_usage}}
                 </dl>
                 <a class="button secondary" href="{{details_url}}">{{i18n.actions.view_details}}</a>
             </article>

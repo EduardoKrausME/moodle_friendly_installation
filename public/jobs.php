@@ -6,7 +6,31 @@ use app\JobManager;
 require_once __DIR__ . "/app/bootstrap.php";
 Auth::requireLogin();
 
-$selectedjobid = trim($_GET["job"] ?? $_GET["id"] ?? "");
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
+    validate_csrf();
+    $action = isset($_POST["action"]) && is_string($_POST["action"]) ? $_POST["action"] : "";
+    $jobid = isset($_POST["job_id"]) && is_string($_POST["job_id"]) ? trim($_POST["job_id"]) : "";
+
+    if ($action === "cancel_job") {
+        $username = (string) (Auth::user()["username"] ?? "system");
+        $result = JobManager::cancelJob($jobid, $username);
+        if ($result["cancelled"]) {
+            $_SESSION["flash"] = t("jobs.cancelled", ["id" => $jobid]);
+            $_SESSION["flash_status"] = "ok";
+        } else if ($result["job"] === null) {
+            $_SESSION["flash"] = t("jobs.not_found");
+            $_SESSION["flash_status"] = "danger";
+        } else {
+            $_SESSION["flash"] = t("jobs.cancel_not_allowed");
+            $_SESSION["flash_status"] = "danger";
+        }
+        redirect_to($jobid === "" ? "/jobs.php" : "/jobs.php?job=" . rawurlencode($jobid));
+    }
+}
+
+$selectedjobid = isset($_GET["job"]) && is_string($_GET["job"])
+    ? trim($_GET["job"])
+    : (isset($_GET["id"]) && is_string($_GET["id"]) ? trim($_GET["id"]) : "");
 $jobs = [];
 $selectedjob = null;
 $shouldrefresh = false;
@@ -46,6 +70,8 @@ foreach (JobManager::all() as $job) {
         "has_log" => $haslog,
         "log" => $log,
         "url" => "/jobs.php?job=" . rawurlencode($jobid),
+        "can_cancel" => in_array($status, ["pending", "waiting_dns"], true),
+        "csrf_token" => csrf_token(),
     ];
 
     if ($selectedjobid !== "" && $jobid === $selectedjobid) {
@@ -55,12 +81,15 @@ foreach (JobManager::all() as $job) {
     $jobs[] = $viewjob;
 }
 
+$flashclass = isset($_SESSION["flash_status"]) && $_SESSION["flash_status"] === "danger" ? "danger" : "ok";
+unset($_SESSION["flash_status"]);
 $flash = flash_message();
 
 render_header(t("jobs.title"));
 echo render_app_template("page/jobs", [
     "has_flash" => !empty($flash),
     "flash" => $flash,
+    "flash_class" => $flashclass,
     "has_jobs" => !empty($jobs),
     "jobs" => $jobs,
     "has_selected_job" => !empty($selectedjob),

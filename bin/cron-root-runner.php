@@ -10,6 +10,7 @@ use app\AppUpdater;
 use app\JobManager;
 use app\JsonStorage;
 use app\PanelConfigManager;
+use app\ResourceUsageManager;
 
 require_once __DIR__ . "/../public/app/bootstrap.php";
 
@@ -38,9 +39,26 @@ try {
         exit(0);
     }
 
+    try {
+        ResourceUsageManager::scheduleDueCollections();
+    } catch (Throwable $e) {
+        fwrite(STDERR, "Resource scheduling failed: {$e->getMessage()}\n");
+    }
+
     $job = JobManager::nextPendingJob();
     if ($job) {
-        require_once "cron-{$job["type"]}.php";
+        $jobscripts = [
+            "install_moodle" => "cron-install_moodle.php",
+            "restore_moodle" => "cron-restore_moodle.php",
+            "app_build" => "cron-app_build.php",
+            "resource_usage" => "cron-resource_usage.php",
+            "server_control" => "cron-server_control.php",
+        ];
+        $jobtype = (string) ($job["type"] ?? "");
+        if (!isset($jobscripts[$jobtype])) {
+            throw new RuntimeException("Unsupported queued job type: {$jobtype}");
+        }
+        require_once __DIR__ . "/{$jobscripts[$jobtype]}";
     } else {
         echo "No pending jobs.\n";
         runDailySelfUpdateCheck();

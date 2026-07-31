@@ -6,8 +6,14 @@ log() {
 }
 
 log "Creating base directories"
-mkdir -p "{{BASE_DIR}}" "{{BASE_DIR}}/moodledata"
-chmod -R 777 "{{BASE_DIR}}"
+mkdir -p "{{BASE_DIR}}" "{{BASE_DIR}}/moodledata" "{{BASE_DIR}}/logs"
+touch "{{BASE_DIR}}/logs/nginx-access.log" "{{BASE_DIR}}/logs/nginx-error.log"
+touch "{{BASE_DIR}}/logs/apache-access.log" "{{BASE_DIR}}/logs/apache-error.log"
+chown -R "{{APACHE_USER}}:{{APACHE_GROUP}}" "{{BASE_DIR}}/logs"
+chmod 0755 "{{BASE_DIR}}"
+chmod 0770 "{{BASE_DIR}}/moodledata"
+chmod 0750 "{{BASE_DIR}}/logs"
+chmod 0640 "{{BASE_DIR}}/logs/"*.log
 
 if [ -e "{{BASE_DIR}}/moodle" ] && [ ! -d "{{BASE_DIR}}/moodle/.git" ]; then
     echo "{{BASE_DIR}}/moodle exists but is not a git checkout" >&2
@@ -42,6 +48,24 @@ APACHECONF
 cat > "{{NGINX_CONF}}" <<'NGINXCONF'
 {{NGINX_TEMPLATE}}
 NGINXCONF
+
+log "Configuring log rotation"
+cat > "/etc/logrotate.d/moodle-friendly-{{DOMAIN}}" <<'LOGROTATE'
+{{BASE_DIR}}/logs/*.log {
+    daily
+    rotate 14
+    compress
+    delaycompress
+    missingok
+    notifempty
+    create 0640 {{APACHE_USER}} {{APACHE_GROUP}}
+    sharedscripts
+    postrotate
+        systemctl reload nginx >/dev/null 2>&1 || true
+        systemctl reload apache2 >/dev/null 2>&1 || systemctl reload httpd >/dev/null 2>&1 || true
+    endscript
+}
+LOGROTATE
 
 
 cd {{BASE_DIR}}/moodle/public
@@ -143,7 +167,14 @@ cp "{{TEMPLATES_DIR}}/moodle-logar-admin.php"  "{{BASE_DIR}}/moodle/public/"
 
 log "Fixing owner and permissions"
 chown -R "{{APACHE_USER}}:{{APACHE_GROUP}}" "{{BASE_DIR}}"
-chmod -R 777 "{{BASE_DIR}}"
+find "{{BASE_DIR}}/moodle" -type d -exec chmod 0755 {} +
+find "{{BASE_DIR}}/moodle" -type f -exec chmod 0644 {} +
+chmod 0755 "{{BASE_DIR}}"
+chmod 0640 "{{CONFIG_FILE}}"
+find "{{BASE_DIR}}/moodledata" -type d -exec chmod 0770 {} +
+find "{{BASE_DIR}}/moodledata" -type f -exec chmod 0660 {} +
+chmod 0750 "{{BASE_DIR}}/logs"
+chmod 0640 "{{BASE_DIR}}/logs/"*.log
 
 log "Creating Moodle cron"
 cat > "{{CRON_FILE}}" <<EOF

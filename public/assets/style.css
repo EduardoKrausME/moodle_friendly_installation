@@ -623,6 +623,35 @@ small {
   gap: 10px;
 }
 
+.moodle-disable-dialog {
+  width: min(560px, 100% - 32px);
+  border: 0;
+  border-radius: 22px;
+  padding: 24px;
+  color: var(--text);
+  box-shadow: 0 28px 80px rgba(15, 23, 42, 0.28);
+}
+
+.moodle-disable-dialog::backdrop {
+  background: rgba(15, 23, 42, 0.58);
+  backdrop-filter: blur(3px);
+}
+
+.moodle-disable-dialog h2 {
+  margin: 0 0 8px;
+}
+
+.moodle-disable-dialog p {
+  margin: 0;
+  color: var(--muted);
+}
+
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
 .details-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1259,6 +1288,177 @@ body.auth-page.onboarding-page {
   margin-top: 0.65rem;
   font-size: 0.875rem;
   opacity: 0.78;
+}
+
+.section-heading-actions,
+.log-viewer-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.resource-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.resource-item {
+  display: grid;
+  gap: 5px;
+  padding: 15px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: #f8fafc;
+}
+.resource-item span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 850;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.resource-item strong {
+  color: #0f172a;
+  font-size: 21px;
+}
+
+.disk-progress {
+  height: 12px;
+  margin-top: 18px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #e2e8f0;
+}
+
+.disk-progress-bar {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--primary), #60a5fa);
+}
+
+.resource-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+  margin-top: 10px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.server-control-grid {
+  display: grid;
+  gap: 14px;
+}
+
+.server-control-item {
+  display: grid;
+  align-content: start;
+  gap: 12px;
+  padding: 17px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: #f8fafc;
+}
+.server-control-item p {
+  margin: 0;
+  color: var(--muted);
+}
+.server-control-item .flag-actions {
+  margin-top: auto;
+}
+
+.log-layout {
+  display: grid;
+  grid-template-columns: minmax(250px, 320px) minmax(0, 1fr);
+  align-items: start;
+  gap: 18px;
+}
+
+.log-sources {
+  display: grid;
+  gap: 8px;
+}
+
+.log-source {
+  display: grid;
+  gap: 4px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: #f8fafc;
+  color: var(--text);
+}
+.log-source.is-active {
+  border-color: #93c5fd;
+  background: var(--primary-soft);
+  color: var(--primary-dark);
+}
+
+.log-filter-form {
+  display: grid;
+  grid-template-columns: minmax(200px, 1fr) auto auto;
+  align-items: end;
+  gap: 12px;
+  margin: 18px 0;
+}
+.log-filter-form .checkbox {
+  min-height: 48px;
+}
+
+.log-line-count {
+  display: block;
+  margin: 10px 0 6px;
+}
+
+.server-log {
+  min-height: 340px;
+  max-height: 70vh;
+  margin: 0;
+  overflow: auto;
+  padding: 16px;
+  border: 1px solid #334155;
+  border-radius: 16px;
+  background: #0f172a;
+  color: #dbeafe;
+  font: 12px/1.55 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.job-card-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.job-cancel-form {
+  display: inline-flex;
+  margin-top: 12px;
+}
+
+.job-card-actions .job-cancel-form {
+  margin-top: 0;
+}
+
+@media (max-width: 900px) {
+  .resource-grid,
+  .server-control-grid,
+  .log-layout {
+    grid-template-columns: 1fr;
+  }
+  .section-heading-actions,
+  .log-viewer-heading {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .log-filter-form {
+    grid-template-columns: 1fr;
+  }
 }
 
 /*# sourceMappingURL=style.css.map */

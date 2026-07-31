@@ -28,7 +28,10 @@ function runInstallMoodleQueueJob(array $job): void {
         $message =
             "DNS ainda não configurado para {$domain}. Configure o registro A ou AAAA apontando para este servidor. O cron verificará novamente em 1 minuto.";
         appendJobLog($job, $message, "danger");
-        JobManager::markWaitingDns($job["id"], $message);
+        if (JobManager::markWaitingDns($job["id"], $message) === null) {
+            echo "Job is no longer pending: {$job["id"]}\n";
+            return;
+        }
         echo "Job waiting DNS: {$job["id"]} - {$message}\n";
         return;
     }
@@ -37,9 +40,11 @@ function runInstallMoodleQueueJob(array $job): void {
         appendJobLog($job, "DNS detectado para {$domain}. Continuando instalação.");
     }
 
-    $job = JobManager::markRunning($job["id"]);
+    $jobid = (string) $job["id"];
+    $job = JobManager::markRunning($jobid);
     if (!$job) {
-        throw new RuntimeException("Cannot mark job as running.");
+        echo "Job is no longer pending: {$jobid}\n";
+        return;
     }
 
     $result = executeInstallJob($job);
@@ -280,6 +285,7 @@ function executeInstallJob(array $job, string $mode = "install"): array {
             "moodle_dir" => $moodledir,
             "webroot" => $webroot,
             "dataroot" => "{$base}/moodledata",
+            "config_file" => $configfile,
             "dbname" => $dbname,
             "dbuser" => $dbuser,
             "dbpass" => $dbpass,

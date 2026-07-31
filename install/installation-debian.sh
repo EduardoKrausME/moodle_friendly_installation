@@ -1173,7 +1173,9 @@ validate_database_version() {
 install_web_servers() {
     log "Installing Apache, NGINX and Certbot"
     pkg_install apache2 nginx certbot python3-certbot-nginx
-    a2enmod proxy proxy_fcgi setenvif rewrite headers >/dev/null 2>&1 || true
+    pkg_install libapache2-mod-security2 || warn "ModSecurity package was not installed. The panel will show the control as unavailable."
+    pkg_install modsecurity-crs || warn "ModSecurity CRS package was not installed."
+    a2enmod proxy proxy_fcgi setenvif rewrite headers security2 >/dev/null 2>&1 || true
 }
 
 install_bundled_nginx_files() {
@@ -1905,4 +1907,3 @@ main() {
 }
 
 main "$@"
-

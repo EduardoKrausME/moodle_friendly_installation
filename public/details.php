@@ -2,6 +2,9 @@
 
 use app\AppManager;
 use app\Auth;
+use app\JobManager;
+use app\ResourceUsageManager;
+use app\ServerControlManager;
 use app\SiteManager;
 
 require_once __DIR__ . "/app/bootstrap.php";
@@ -24,10 +27,36 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     if ($action == "toggle_flag") {
         $flag = isset($_POST["flag"]) && is_string($_POST["flag"]) ? $_POST["flag"] : "";
-        $enabled = !empty($_POST["enabled"]) &&$_POST["enabled"] == "1";
+        $enabled = !empty($_POST["enabled"]) && $_POST["enabled"] == "1";
         $value = isset($_POST["value"]) && is_string($_POST["value"]) ? $_POST["value"] : null;
         $result = SiteManager::setFeatureFlag($site, $flag, $enabled, $value);
         $_SESSION["flash"] = $result["message"] ?? t("details.action_done");
+        redirect_to("/details.php?domain=" . urlencode($domain));
+    }
+
+    if ($action == "toggle_moodle") {
+        $enabled = isset($_POST["enabled"]) && $_POST["enabled"] === "1";
+        $message = isset($_POST["message"]) && is_string($_POST["message"]) ? $_POST["message"] : null;
+        $result = SiteManager::setMoodleEnabled($site, $enabled, $message);
+        $_SESSION["flash"] = $result["message"] ?? t("details.action_done");
+        redirect_to("/details.php?domain=" . urlencode($domain));
+    }
+
+    if ($action == "refresh_resources") {
+        $job = JobManager::createResourceUsageJob($site);
+        $_SESSION["flash"] = t("resources.queued", ["id" => $job["id"]]);
+        redirect_to("/details.php?domain=" . urlencode($domain));
+    }
+
+    if ($action == "server_control") {
+        $control = isset($_POST["control"]) && is_string($_POST["control"]) ? $_POST["control"] : "";
+        $enabled = isset($_POST["enabled"]) && $_POST["enabled"] === "1";
+        if (!in_array($control, ["modsecurity", "cache"], true)) {
+            $_SESSION["flash"] = t("server_controls.invalid");
+        } else {
+            $job = JobManager::createServerControlJob($site, $control, $enabled);
+            $_SESSION["flash"] = t("server_controls.queued", ["id" => $job["id"]]);
+        }
         redirect_to("/details.php?domain=" . urlencode($domain));
     }
 
@@ -43,10 +72,17 @@ $config += $site["moodle_config"] ?? [];
 $diagnostics = $site["diagnostics"] ?? [];
 $stats = $site["database_stats"] ?? ["connected" => false, "items" => [], "error" => ""];
 $featureflags = $diagnostics["feature_flags"] ?? [];
+$resources = ResourceUsageManager::snapshot($domain);
+$resourcejob = JobManager::activeJob("resource_usage", $domain);
+$servercontrols = ServerControlManager::status($site);
+$site["course_identity"] = SiteManager::courseIdentity($site);
 $flash = flash_message();
 
 render_header($domain);
-echo render_app_template("page/details", details_page_context($site, $config, $diagnostics, $stats, $featureflags, $flash));
+echo render_app_template(
+    "page/details",
+    details_page_context($site, $config, $diagnostics, $stats, $featureflags, $resources, $resourcejob, $servercontrols, $flash)
+);
 render_footer();
 
 /**
@@ -57,6 +93,9 @@ render_footer();
  * @param array $diagnostics
  * @param array $stats
  * @param array $featureflags
+ * @param array $resources
+ * @param array|null $resourcejob
+ * @param array $servercontrols
  * @param string|null $flash
  * @return array
  * @throws \Random\RandomException
@@ -67,20 +106,33 @@ function details_page_context(
     array $diagnostics,
     array $stats,
     array $featureflags,
+    array $resources,
+    ?array $resourcejob,
+    array $servercontrols,
     ?string $flash
 ): array {
     $statsconnected = !empty($stats["connected"]);
     $statsitems = is_array($stats["items"] ?? null) ? $stats["items"] : [];
 
     $domain = $site["domain"] ?? "";
+    $siteidentity = is_array($site["course_identity"] ?? null) ? $site["course_identity"] : [];
     $appsettings = AppManager::getSettings($site);
     $appfiles = AppManager::buildFiles($domain);
 
     return [
         "domain" => $domain,
+        "has_site_identity" => !empty($siteidentity["available"]),
+        "site_fullname" => $siteidentity["fullname"] ?? "",
+        "site_shortname" => $siteidentity["shortname"] ?? "",
         "moodle_branch" => $site["moodle_branch"] ?? "",
+        "moodle_status_badge" => status_badge((string) ($site["status"] ?? "active")),
+        "moodle_is_enabled" => !empty($site["moodle_enabled"]),
+        "moodle_is_disabled" => empty($site["moodle_enabled"]),
+        "moodle_disabled_message" => $site["moodle_disabled_message"] ?? "",
+        "moodle_status_csrf_token" => csrf_token(),
         "url" => $site["url"] ?? "",
         "sso_url" => $site["sso_url"] ?? "",
+        "logs_url" => "/logs.php?domain=" . urlencode($domain),
         "app_exist" => file_exists("../app-MoodleMobile-V2/config.xml"),
         "app_manage_url" => "/app_manager.php?domain=" . urlencode($domain),
         "app_package_uid" => $appsettings["package_uid"] ?? "",
@@ -88,7 +140,7 @@ function details_page_context(
         "app_has_files" => !empty($appfiles),
         "app_files" => $appfiles,
         "has_flash" => $flash != null && $flash != "",
-        "flash" =>$flash,
+        "flash" => $flash,
         "stats_warning" => !$statsconnected,
         "stats_error" => $stats["error"] ?? t("details.unknown_error"),
         "stat_boxes" => [
@@ -121,6 +173,9 @@ function details_page_context(
         ],
         "feature_flags" => details_feature_flags($featureflags),
         "has_feature_flags" => !empty($featureflags),
+        "resources" => details_resource_usage($resources, $resourcejob),
+        "server_controls" => details_server_controls($domain, $servercontrols),
+        "should_refresh" => $resourcejob !== null || details_has_active_server_control($domain),
         "file_rows" => [
             details_info_row("Base", $site["base_dir"] ?? ""),
             details_info_row("Moodle", $site["moodle_dir"] ?? ""),
@@ -139,6 +194,134 @@ function details_page_context(
             details_info_row("sslproxy", $config["sslproxy"] ?? "", false),
         ],
     ];
+}
+
+/**
+ * Builds the resource usage section.
+ *
+ * @param array $snapshot
+ * @param array|null $activejob
+ * @return array
+ */
+function details_resource_usage(array $snapshot, ?array $activejob): array {
+    $hassnapshot = !empty($snapshot["collected_at"]);
+    $collectedat = "";
+    if ($hassnapshot) {
+        $timestamp = strtotime((string) $snapshot["collected_at"]);
+        $collectedat = $timestamp ? date("d/m/Y H:i:s", $timestamp) : (string) $snapshot["collected_at"];
+    }
+
+    $items = [
+        [
+            "label" => t("resources.moodle_code"), "value" => ResourceUsageManager::formatBytes(
+            (int) ($snapshot["moodle_code_bytes"] ?? 0)
+        ),
+        ],
+        [
+            "label" => t("resources.moodledata"), "value" => ResourceUsageManager::formatBytes(
+            (int) ($snapshot["moodledata_bytes"] ?? 0)
+        ),
+        ],
+        [
+            "label" => t("resources.database"), "value" => ResourceUsageManager::formatBytes(
+            (int) ($snapshot["database_bytes"] ?? 0)
+        ),
+        ],
+        ["label" => t("resources.site_total"), "value" => ResourceUsageManager::formatBytes((int) ($snapshot["total_bytes"] ?? 0))],
+        [
+            "label" => t("resources.server_used"), "value" => ResourceUsageManager::formatBytes(
+            (int) ($snapshot["filesystem_used_bytes"] ?? 0)
+        ),
+        ],
+        [
+            "label" => t("resources.server_free"), "value" => ResourceUsageManager::formatBytes(
+            (int) ($snapshot["filesystem_free_bytes"] ?? 0)
+        ),
+        ],
+    ];
+
+    return [
+        "has_snapshot" => $hassnapshot,
+        "has_active_job" => $activejob !== null,
+        "active_job_id" => $activejob["id"] ?? "",
+        "active_job_url" => !empty($activejob["id"]) ? "/jobs.php?job=" . rawurlencode($activejob["id"]) : "",
+        "is_stale" => $hassnapshot && ResourceUsageManager::isStale($snapshot),
+        "collected_at" => $collectedat,
+        "duration" => number_format(
+            (float) ($snapshot["duration_seconds"] ?? 0), 2, t("decimal_separator"), t("thousands_separator")
+        ),
+        "items" => $items,
+        "server_percent" => (string) ($snapshot["filesystem_used_percent"] ?? 0),
+        "server_percent_style" => "width: " . min(100, max(0, (float) ($snapshot["filesystem_used_percent"] ?? 0))) . "%",
+        "database_tables" => (int) ($snapshot["database_tables"] ?? 0),
+        "has_database_error" => !empty($snapshot["database_error"]),
+        "database_error" => $snapshot["database_error"] ?? "",
+        "csrf_token" => csrf_token(),
+    ];
+}
+
+/**
+ * Builds the queued web server controls.
+ *
+ * @param string $domain
+ * @param array $controls
+ * @return array
+ */
+function details_server_controls(string $domain, array $controls): array {
+    $items = [];
+    foreach (["modsecurity", "cache"] as $key) {
+        $control = is_array($controls[$key] ?? null) ? $controls[$key] : [];
+        $activejob = null;
+        foreach (JobManager::all() as $job) {
+            if (($job["type"] ?? "") === "server_control"
+                && ($job["domain"] ?? "") === $domain
+                && ($job["control"] ?? "") === $key
+                && in_array(($job["status"] ?? ""), ["pending", "running"], true)
+            ) {
+                $activejob = $job;
+                break;
+            }
+        }
+
+        $enabled = ($control["enabled"] ?? null) === true;
+        $targetenabled = !$enabled;
+        $items[] = [
+            "key" => $key,
+            "label" => $control["label"] ?? $key,
+            "message" => $control["message"] ?? "",
+            "path" => $control["path"] ?? "",
+            "has_path" => !empty($control["path"]),
+            "supported" => !empty($control["supported"]),
+            "has_active_job" => $activejob !== null,
+            "active_job_url" => !empty($activejob["id"]) ? "/jobs.php?job=" . rawurlencode($activejob["id"]) : "",
+            "badge_html" => $activejob !== null
+                ? status_badge((string) ($activejob["status"] ?? "pending"))
+                : status_badge((string) ($control["status"] ?? "muted"), (string) ($control["status_label"] ?? "-")),
+            "enabled_value" => $targetenabled ? "1" : "0",
+            "button_label" => t($targetenabled ? "actions.enable" : "actions.disable"),
+            "button_class" => $targetenabled ? "button" : "button warning",
+            "csrf_token" => csrf_token(),
+        ];
+    }
+    return $items;
+}
+
+/**
+ * Checks if a server control job should refresh this page.
+ *
+ * @param string $domain
+ * @return bool
+ */
+function details_has_active_server_control(string $domain): bool {
+    foreach (JobManager::all() as $job) {
+        if (($job["type"] ?? "") === "server_control"
+            && ($job["domain"] ?? "") === $domain
+            && in_array(($job["status"] ?? ""), ["pending", "running"], true)
+        ) {
+            return true;
+        }
+    }
+    return false;
 }
 
 /**
@@ -216,9 +399,9 @@ function details_feature_flags(array $featureflags): array {
         }
 
         $items[] = [
-            "flag" =>$flag,
+            "flag" => $flag,
             "label" => $item["label"] ?? $flag,
-            "control_class" => $enabled ? "flag-control alert alert-danger" : "flag-control",
+            "control_class" => "flag-control {$item["class"]}",
             "status_badge_html" => status_badge(($item["status"] ?? "muted"), ($item["status_label"] ?? "-")),
             "description" => $item["description"] ?? "",
             "has_path" => !empty($item["path"]),
@@ -250,7 +433,7 @@ function details_value(mixed $value): string {
     if ($value == null || $value == "") {
         return "-";
     }
-    return$value;
+    return $value;
 }
 
 /**

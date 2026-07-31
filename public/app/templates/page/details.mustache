@@ -1,7 +1,13 @@
 <section class="page-title">
     <div>
-        <h1>{{domain}}</h1>
-        <p>{{moodle_branch}}</p>
+        {{#has_site_identity}}
+            <h1>{{site_fullname}}</h1>
+            <p>{{site_shortname}} · {{domain}} · {{moodle_branch}}</p>
+        {{/has_site_identity}}
+        {{^has_site_identity}}
+            <h1>{{domain}}</h1>
+            <p>{{moodle_branch}}</p>
+        {{/has_site_identity}}
     </div>
     <a class="button secondary" href="/">{{i18n.actions.back_to_sites}}</a>
 </section>
@@ -12,21 +18,69 @@
 
 
 {{#app_exist}}
-    <div class="details-grid">
+    <div>
 {{/app_exist}}
     <div class="card hero-card">
         <div>
-            <h2>{{i18n.details.shortcuts_heading}}</h2>
+            <div class="flag-header">
+                <h2>{{i18n.details.shortcuts_heading}}</h2>
+                {{{moodle_status_badge}}}
+            </div>
             <p>{{i18n.details.shortcuts_intro}}</p>
+            {{#moodle_is_disabled}}
+                <div class="alert warning compact-alert">
+                    <strong>{{i18n.details.moodle_disabled_message_label}}</strong>
+                    {{moodle_disabled_message}}
+                </div>
+            {{/moodle_is_disabled}}
         </div>
         <div class="hero-actions">
-            <a class="button" href="{{url}}" target="_blank" rel="noopener">{{i18n.actions.open_moodle}}</a>
-            {{#sso_url}}
-                <a class="button secondary" href="{{sso_url}}" target="_blank"
-                   rel="noopener">{{i18n.actions.access_admin}}</a>
-            {{/sso_url}}
+            {{#moodle_is_enabled}}
+                <a class="button" href="{{url}}" target="_blank" rel="noopener">{{i18n.actions.open_moodle}}</a>
+                {{#sso_url}}
+                    <a class="button secondary" href="{{sso_url}}" target="_blank"
+                       rel="noopener">{{i18n.actions.access_admin}}</a>
+                {{/sso_url}}
+                <button type="button" class="button danger" id="open-disable-moodle-dialog">
+                    {{i18n.actions.disable_moodle}}
+                </button>
+            {{/moodle_is_enabled}}
+            {{#moodle_is_disabled}}
+                <form method="post" class="inline-form">
+                    <input type="hidden" name="csrf_token" value="{{moodle_status_csrf_token}}">
+                    <input type="hidden" name="action" value="toggle_moodle">
+                    <input type="hidden" name="enabled" value="1">
+                    <button type="submit" class="button">{{i18n.actions.enable_moodle}}</button>
+                </form>
+            {{/moodle_is_disabled}}
+            <a class="button secondary" href="{{logs_url}}">{{i18n.actions.view_logs}}</a>
         </div>
     </div>
+
+{{#moodle_is_enabled}}
+        <dialog class="moodle-disable-dialog" id="disable-moodle-dialog">
+            <form method="post" class="form">
+                <input type="hidden" name="csrf_token" value="{{moodle_status_csrf_token}}">
+                <input type="hidden" name="action" value="toggle_moodle">
+                <input type="hidden" name="enabled" value="0">
+                <div>
+                    <h2>{{i18n.details.moodle_disable_heading}}</h2>
+                    <p>{{i18n.details.moodle_disable_intro}}</p>
+                </div>
+                <label>
+                    {{i18n.details.moodle_disable_message_label}}
+                    <textarea name="message" rows="5" maxlength="2000"
+                              placeholder="{{i18n.details.moodle_disable_message_placeholder}}" required></textarea>
+                </label>
+                <div class="dialog-actions">
+                    <button type="button" class="button secondary" id="close-disable-moodle-dialog">
+                        {{i18n.actions.cancel}}
+                    </button>
+                    <button type="submit" class="button danger">{{i18n.actions.disable_moodle}}</button>
+                </div>
+            </form>
+        </dialog>
+{{/moodle_is_enabled}}
 
 {{#app_exist}}
         <div class="card hero-card">
@@ -66,31 +120,59 @@
         {{/stats_warning}}
     </div>
 
-    <div class="card">
-        <h2>{{i18n.details.diagnostics_heading}}</h2>
-        <div class="details-table">
-            {{#diagnostic_rows}}
-                <h2 style="display: flex;justify-content: space-between;">{{label}} {{{badge_html}}}</h2>
-                <div style="margin-bottom:16px;">
-                    <div class="diagnostic-message">{{message}}</div>
-                    {{#has_path}}
-                        <small><code>{{path}}</code></small>
-                    {{/has_path}}
-                    {{#has_resolved_ips}}
-                        <small>{{i18n.details.dns}}: {{resolved_ips}}</small>
-                    {{/has_resolved_ips}}
-                    {{#has_server_ips}}
-                        <small>{{i18n.details.server}}: {{server_ips}}</small>
-                    {{/has_server_ips}}
-                    {{#has_valid_to}}
-                        <small>{{i18n.details.valid_to}}: {{valid_to}}</small>
-                    {{/has_valid_to}}
-                    {{#has_issuer}}
-                        <small>{{i18n.details.issuer}}: {{issuer}}</small>
-                    {{/has_issuer}}
-                </div>
-            {{/diagnostic_rows}}
+    <div class="card resource-card">
+        <div class="section-heading-actions">
+            <div>
+                <h2>{{i18n.resources.heading}}</h2>
+                <p class="card-subtitle">{{i18n.resources.intro}}</p>
+            </div>
+            {{#resources}}
+                <form method="post" class="inline-form">
+                    <input type="hidden" name="csrf_token" value="{{csrf_token}}">
+                    <input type="hidden" name="action" value="refresh_resources">
+                    <button type="submit" class="button secondary" {{#has_active_job}}disabled{{/has_active_job}}>
+                        {{i18n.resources.refresh}}
+                    </button>
+                </form>
+            {{/resources}}
         </div>
+
+        {{#resources}}
+            {{#has_active_job}}
+                <div class="alert warning compact-alert">
+                    {{i18n.resources.collecting}}
+                    <a href="{{active_job_url}}">{{active_job_id}}</a>
+                </div>
+            {{/has_active_job}}
+            {{^has_snapshot}}
+                <div class="alert warning compact-alert">{{i18n.resources.no_snapshot}}</div>
+            {{/has_snapshot}}
+            {{#has_snapshot}}
+                {{#is_stale}}
+                    <div class="alert warning compact-alert">{{i18n.resources.stale}}</div>
+                {{/is_stale}}
+                <div class="resource-grid">
+                    {{#items}}
+                        <div class="resource-item">
+                            <span>{{label}}</span>
+                            <strong>{{value}}</strong>
+                        </div>
+                    {{/items}}
+                </div>
+                <div class="disk-progress" aria-label="{{i18n.resources.server_disk}} {{server_percent}}%">
+                    <div class="disk-progress-bar" style="{{server_percent_style}}"></div>
+                </div>
+                <div class="resource-meta">
+                    <span>{{i18n.resources.server_disk}}: <strong>{{server_percent}}%</strong></span>
+                    <span>{{i18n.resources.database_tables}}: <strong>{{database_tables}}</strong></span>
+                    <span>{{i18n.resources.collected_at}}: <strong>{{collected_at}}</strong></span>
+                    <span>{{i18n.resources.duration}}: <strong>{{duration}}s</strong></span>
+                </div>
+                {{#has_database_error}}
+                    <div class="alert warning compact-alert">{{i18n.resources.database_error}} {{database_error}}</div>
+                {{/has_database_error}}
+            {{/has_snapshot}}
+        {{/resources}}
     </div>
 
     {{^stats_warning}}
@@ -146,6 +228,67 @@
                 {{/feature_flags}}
             </div>
         </div>
+    {{/stats_warning}}
+
+    <div class="card">
+        <h2>{{i18n.details.diagnostics_heading}}</h2>
+        <div class="details-table">
+            {{#diagnostic_rows}}
+                <h2 style="display: flex;justify-content: space-between;">{{label}} {{{badge_html}}}</h2>
+                <div style="margin-bottom:16px;">
+                    <div class="diagnostic-message">{{message}}</div>
+                    {{#has_path}}
+                        <small><code>{{path}}</code></small>
+                    {{/has_path}}
+                    {{#has_resolved_ips}}
+                        <small>{{i18n.details.dns}}: {{resolved_ips}}</small>
+                    {{/has_resolved_ips}}
+                    {{#has_server_ips}}
+                        <small>{{i18n.details.server}}: {{server_ips}}</small>
+                    {{/has_server_ips}}
+                    {{#has_valid_to}}
+                        <small>{{i18n.details.valid_to}}: {{valid_to}}</small>
+                    {{/has_valid_to}}
+                    {{#has_issuer}}
+                        <small>{{i18n.details.issuer}}: {{issuer}}</small>
+                    {{/has_issuer}}
+                </div>
+            {{/diagnostic_rows}}
+        </div>
+    </div>
+
+    {{^stats_warning}}
+        <div class="card">
+            <h2>{{i18n.server_controls.heading}}</h2>
+            <p class="card-subtitle">{{i18n.server_controls.intro}}</p>
+            <div class="server-control-grid">
+                {{#server_controls}}
+                    <div class="server-control-item">
+                        <div class="flag-header">
+                            <strong>{{label}}</strong>
+                            {{{badge_html}}}
+                        </div>
+                        <p>{{message}}</p>
+                        {{#has_path}}<small><code>{{path}}</code></small>{{/has_path}}
+                        {{#has_active_job}}
+                            <a href="{{active_job_url}}">{{i18n.server_controls.view_job}}</a>
+                        {{/has_active_job}}
+                        {{#supported}}
+                            <form method="post" class="inline-form flag-actions">
+                                <input type="hidden" name="csrf_token" value="{{csrf_token}}">
+                                <input type="hidden" name="action" value="server_control">
+                                <input type="hidden" name="control" value="{{key}}">
+                                <input type="hidden" name="enabled" value="{{enabled_value}}">
+                                <button type="submit" class="{{button_class}}"
+                                        {{#has_active_job}}disabled{{/has_active_job}}>
+                                    {{button_label}}
+                                </button>
+                            </form>
+                        {{/supported}}
+                    </div>
+                {{/server_controls}}
+            </div>
+        </div>
 
         <div class="card">
             <h2>{{i18n.details.files_heading}}</h2>
@@ -182,3 +325,31 @@
         </div>
     {{/stats_warning}}
 </div>
+
+{{#should_refresh}}
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            setTimeout(function () {
+                window.location.reload();
+            }, 15000);
+        });
+    </script>
+{{/should_refresh}}
+
+{{#moodle_is_enabled}}
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const dialog = document.getElementById("disable-moodle-dialog");
+            const openButton = document.getElementById("open-disable-moodle-dialog");
+            const closeButton = document.getElementById("close-disable-moodle-dialog");
+
+            openButton.addEventListener("click", function () {
+                dialog.showModal();
+                dialog.querySelector("textarea").focus();
+            });
+            closeButton.addEventListener("click", function () {
+                dialog.close();
+            });
+        });
+    </script>
+{{/moodle_is_enabled}}

@@ -6,7 +6,7 @@
 </section>
 
 {{#has_flash}}
-    <div class="alert ok">{{flash}}</div>
+    <div class="alert {{flash_class}}">{{flash}}</div>
 {{/has_flash}}
 
 {{#selected_job_not_found}}
@@ -22,6 +22,15 @@
             <div><strong>{{i18n.jobs.domain}}</strong>: {{domain}}</div>
             <div class="status-{{status_class}}"><strong>{{i18n.jobs.status}}</strong>: {{{status_badge}}}</div>
             <div class="nowrap"><strong>{{i18n.jobs.created}}</strong>: {{created_at}}</div>
+            {{#can_cancel}}
+                <form method="post" action="/jobs.php?job={{id}}" class="job-cancel-form"
+                      onsubmit="return confirm('{{i18n.jobs.cancel_confirm}}');">
+                    <input type="hidden" name="csrf_token" value="{{csrf_token}}">
+                    <input type="hidden" name="action" value="cancel_job">
+                    <input type="hidden" name="job_id" value="{{id}}">
+                    <button type="submit" class="button danger small">{{i18n.jobs.cancel}}</button>
+                </form>
+            {{/can_cancel}}
             <div>
                 {{#has_error}}
                     <span class="error">{{error}}</span><br>
@@ -51,12 +60,21 @@
                 <div><strong>{{i18n.jobs.domain}}</strong>: {{domain}}</div>
                 <div class="status-{{status_class}}"><strong>{{i18n.jobs.status}}</strong>: {{{status_badge}}}</div>
                 <div class="nowrap"><strong>{{i18n.jobs.created}}</strong>: {{created_at}}</div>
-                <div>
+                <div class="job-card-actions">
                     {{#has_error}}
                         <span class="error">{{error}}</span><br>
                     {{/has_error}}
 
                     <a href="{{url}}">{{i18n.jobs.open_job}}</a>
+                    {{#can_cancel}}
+                        <form method="post" action="{{url}}" class="job-cancel-form"
+                              onsubmit="return confirm('{{i18n.jobs.cancel_confirm}}');">
+                            <input type="hidden" name="csrf_token" value="{{csrf_token}}">
+                            <input type="hidden" name="action" value="cancel_job">
+                            <input type="hidden" name="job_id" value="{{id}}">
+                            <button type="submit" class="button danger small">{{i18n.jobs.cancel}}</button>
+                        </form>
+                    {{/can_cancel}}
                 </div>
             </div>
         {{/jobs}}

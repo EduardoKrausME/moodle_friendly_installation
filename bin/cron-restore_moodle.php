@@ -32,7 +32,10 @@ function runRestoreMoodleQueueJob(array $job): void {
         $message =
             "DNS ainda não configurado para {$domain}. Configure o registro A ou AAAA apontando para este servidor. O cron verificará novamente em 1 minuto.";
         appendJobLog($job, $message, "danger");
-        JobManager::markWaitingDns($job["id"], $message);
+        if (JobManager::markWaitingDns($job["id"], $message) === null) {
+            echo "Restore job is no longer pending: {$job["id"]}\n";
+            return;
+        }
         echo "Restore job waiting DNS: {$job["id"]} - {$message}\n";
         return;
     }
@@ -41,9 +44,11 @@ function runRestoreMoodleQueueJob(array $job): void {
         appendJobLog($job, "DNS detectado para {$domain}. Continuando restauração.");
     }
 
-    $job = JobManager::markRunning($job["id"]);
+    $jobid = (string) $job["id"];
+    $job = JobManager::markRunning($jobid);
     if (!$job) {
-        throw new RuntimeException("Cannot mark restore job as running.");
+        echo "Restore job is no longer pending: {$jobid}\n";
+        return;
     }
 
     try {
@@ -161,6 +166,7 @@ function restoreTargetFromDomain(string $domain): array {
         "moodle_dir" => $moodledir,
         "webroot" => $webroot,
         "dataroot" => $moodleconfig["dataroot"] ?? ("{$base}/moodledata"),
+        "config_file" => "{$moodledir}/config.php",
         "dbname" => $moodleconfig["dbname"] ?? "",
         "dbuser" => $moodleconfig["dbuser"] ?? "",
         "dbpass" => $moodleconfig["dbpass"] ?? "",
@@ -1575,8 +1581,30 @@ function restoreFixPermissions(array $target): void {
     }
     $user = (string) ($target["apache_user"] ?? "apache");
     $group = (string) ($target["apache_group"] ?? "apache");
+    $moodle = (string) ($target["moodle_dir"] ?? "");
+    $dataroot = (string) ($target["dataroot"] ?? "");
+    $configfile = (string) ($target["config_file"] ?? "");
+    $logs = rtrim($base, "/") . "/logs";
+
     exec("chown -R " . escapeshellarg("{$user}:{$group}") . " " . escapeshellarg($base));
-    exec("chmod -R 777 " . escapeshellarg($base));
+    @chmod($base, 0755);
+    if ($moodle !== "" && is_dir($moodle)) {
+        exec("find " . escapeshellarg($moodle) . " -type d -exec chmod 0755 {} +");
+        exec("find " . escapeshellarg($moodle) . " -type f -exec chmod 0644 {} +");
+    }
+    if ($configfile !== "" && is_file($configfile)) {
+        @chmod($configfile, 0640);
+    }
+    if ($dataroot !== "" && is_dir($dataroot)) {
+        exec("find " . escapeshellarg($dataroot) . " -type d -exec chmod 0770 {} +");
+        exec("find " . escapeshellarg($dataroot) . " -type f -exec chmod 0660 {} +");
+    }
+    if (is_dir($logs)) {
+        @chmod($logs, 0750);
+        foreach (glob("{$logs}/*.log") ?: [] as $logfile) {
+            @chmod($logfile, 0640);
+        }
+    }
 }
 
 /**

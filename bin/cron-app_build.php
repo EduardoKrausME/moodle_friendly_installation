@@ -5,7 +5,8 @@ use app\JobManager;
 
 $job = JobManager::markRunning($job["id"]);
 if (!$job) {
-    throw new RuntimeException("Cannot mark app build job as running.");
+    echo "App build job is no longer pending.\n";
+    return;
 }
 
 $result = executeAppBuildJob($job);

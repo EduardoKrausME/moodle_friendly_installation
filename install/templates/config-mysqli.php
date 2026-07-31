@@ -39,6 +39,12 @@ if (file_exists(__DIR__ . "/public/local/alternative_file_system/classes/externa
 // {{EXTRA_CONFIG}}
 
 $domainroot = dirname(__DIR__);
+if (file_exists("{$domainroot}/moodle.enable")) {
+    $message = file_get_contents("{$domainroot}/moodle.enable");
+    http_response_code(503);
+    die(nl2br(htmlspecialchars(trim((string) $message), ENT_QUOTES | ENT_SUBSTITUTE, "UTF-8")));
+}
+
 if (file_exists("{$domainroot}/debug.enable")) {
     set_time_limit(0);
     ini_set("max_execution_time", 0);

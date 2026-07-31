@@ -75,6 +75,57 @@ class SiteManager {
     }
 
     /**
+     * Returns the front-page course name and caches it for the current session.
+     *
+     * @param array $site
+     * @return array{fullname: string, shortname: string, available: bool}
+     */
+    public static function courseIdentity(array $site): array {
+        $domain = (string) ($site["domain"] ?? "");
+        $empty = ["fullname" => "", "shortname" => "", "available" => false];
+        if ($domain === "") {
+            return $empty;
+        }
+
+        if (isset($_SESSION["moodle_course_identity"][$domain])
+            && is_array($_SESSION["moodle_course_identity"][$domain])
+        ) {
+            return array_merge($empty, $_SESSION["moodle_course_identity"][$domain]);
+        }
+
+        $identity = $empty;
+        $configsite = self::readMoodleConfig((string) ($site["config_file"] ?? ""));
+        if (!empty($configsite["dbname"])) {
+            $host = app_config("mysql_admin_host");
+            $port = app_config("mysql_admin_port");
+            $user = app_config("mysql_admin_user");
+            $pass = app_config("mysql_admin_pass");
+
+            try {
+                $dsn = "mysql:host={$host};port={$port};dbname={$configsite["dbname"]};charset=utf8mb4";
+                $pdo = new PDO($dsn, $user, $pass, [
+                    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+                    PDO::ATTR_EMULATE_PREPARES => false,
+                ]);
+                $row = $pdo->query("SELECT fullname, shortname FROM mdl_course WHERE id = 1")->fetch();
+                if (is_array($row)) {
+                    $identity = [
+                        "fullname" => trim((string) ($row["fullname"] ?? "")),
+                        "shortname" => trim((string) ($row["shortname"] ?? "")),
+                        "available" => true,
+                    ];
+                }
+            } catch (Throwable) {
+                $identity = $empty;
+            }
+        }
+
+        $_SESSION["moodle_course_identity"][$domain] = $identity;
+        return $identity;
+    }
+
+    /**
      * Function discoverMoodleDirs
      *
      * @return array
@@ -121,11 +172,20 @@ class SiteManager {
 
         $domain = strtolower(trim($domain));
         $release = self::readMoodleRelease($moodledir, $publicroot);
+        $moodleenablefile = rtrim($base, "/") . "/moodle.enable";
+        $moodleenabled = !file_exists($moodleenablefile);
+        $moodledisabledmessage = "";
+        if (!$moodleenabled && is_readable($moodleenablefile)) {
+            $moodledisabledmessage = trim((string) file_get_contents($moodleenablefile));
+        }
 
         $return = [
             "id" => "site_" . substr(sha1($moodledir), 0, 16),
             "domain" => $domain,
-            "status" => "active",
+            "status" => $moodleenabled ? "active" : "site_disabled",
+            "moodle_enabled" => $moodleenabled,
+            "moodle_enable_file" => $moodleenablefile,
+            "moodle_disabled_message" => $moodledisabledmessage,
             "moodle_branch" => $release["release"] ?: ($release["branch"] ?: ""),
             "moodle_release" => $release["release"],
             "moodle_version" => $release["version"],
@@ -772,6 +832,61 @@ class SiteManager {
     }
 
     /**
+     * Enables or disables access to a Moodle installation.
+     *
+     * @param array $site
+     * @param bool $enabled
+     * @param string|null $message
+     * @return array{ok: bool, message: string}
+     */
+    public static function setMoodleEnabled(array $site, bool $enabled, ?string $message = null): array {
+        $file = self::featureFlagFile($site, "moodle.enable");
+        if ($file == "") {
+            return [
+                "ok" => false,
+                "message" => I18n::get("details.moodle_status_path_missing"),
+            ];
+        }
+
+        if ($enabled) {
+            if (file_exists($file) && !@unlink($file)) {
+                return [
+                    "ok" => false,
+                    "message" => I18n::get("details.moodle_enable_failed", ["file" => $file]),
+                ];
+            }
+
+            clearstatcache(true, $file);
+            return [
+                "ok" => true,
+                "message" => I18n::get("details.moodle_enabled", ["domain" => ($site["domain"] ?? "")]),
+            ];
+        }
+
+        $message = trim((string) $message);
+        if ($message == "") {
+            return [
+                "ok" => false,
+                "message" => I18n::get("details.moodle_disable_message_required"),
+            ];
+        }
+
+        if (@file_put_contents($file, $message . PHP_EOL, LOCK_EX) === false) {
+            return [
+                "ok" => false,
+                "message" => I18n::get("details.moodle_disable_failed", ["file" => $file]),
+            ];
+        }
+
+        @chmod($file, 0640);
+        clearstatcache(true, $file);
+        return [
+            "ok" => true,
+            "message" => I18n::get("details.moodle_disabled", ["domain" => ($site["domain"] ?? "")]),
+        ];
+    }
+
+    /**
      * Function setFeatureFlag
      *
      * @param array $site
@@ -900,9 +1015,9 @@ class SiteManager {
                 "label" => I18n::get("feature_flags.slow_sql_label"),
                 "file" => "slow-sql.disable",
                 "description" => I18n::get("feature_flags.slow_sql_description"),
-                "enabled_label" => I18n::get("status.enabled"),
-                "disabled_label" => I18n::get("status.disabled"),
-                "enabled_status" => "warning",
+                "enabled_label" => I18n::get("status.disabled"),
+                "disabled_label" => I18n::get("status.enabled"),
+                "enabled_status" => "ok",
                 "inverted" => true,
                 "dangerous" => true,
             ],
@@ -941,11 +1056,15 @@ class SiteManager {
                 $description .= " " . I18n::get("diagnostic.email_current", ["email" => $value]);
             }
 
+           $enabled = !empty($definition["inverted"]) ? !$enabled : $enabled;
+
             $items[$key] = [
                 "label" => $definition["label"] ?? $key,
+                "class" => $enabled ? "alert alert-danger" : "",
                 "description" => $description,
                 "path" => $file,
                 "enabled" => $enabled,
+                "inverted" => !empty($definition["inverted"]) && $definition["inverted"],
                 "value" => $value,
                 "value_type" => $definition["value_type"] ?? "",
                 "dangerous" => !empty($definition["dangerous"]),

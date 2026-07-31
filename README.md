@@ -19,6 +19,9 @@ The project was designed for a server where each Moodle™ is located inside `/h
 - Lists the Moodle™ installations found on the server.
 - Reads basic data from each Moodle™ `config.php`.
 - Shows diagnostics for DNS, SSL, NGINX/Apache, debug mode, and control flags.
+- Collects code, Moodledata, database, and disk usage through the root queue.
+- Displays bounded NGINX, Apache, and job logs for each domain.
+- Enables or disables ModSecurity and the per-site NGINX cache through validated queued jobs.
 - Creates a new Moodle™ installation through a queue.
 - Generates server configuration files using templates.
 - Installs the default plugins defined in `templates/install-moodle.sh`.
@@ -95,6 +98,16 @@ The base line is:
 Adjust the project path before placing it in `/etc/cron.d/admin-runner`.
 
 This runner executes one pending job at a time and uses a lock to prevent two simultaneous executions.
+Resource usage is collected automatically when the saved snapshot is missing or older than six hours. Manual refreshes and server configuration changes also use this queue, so the web server user never needs permission to scan site files or reload services.
+Pending jobs and installation jobs waiting for DNS can be canceled from the queue. The job-state lock guarantees that a job cannot be canceled after the root runner has changed it to running.
+
+## Resources, logs, and server controls
+
+The domain details screen shows the size of the Moodle code, Moodledata, database, combined site total, table count, and host disk usage. The data comes from a saved snapshot generated in the background, avoiding slow recursive scans during page requests.
+
+The logs screen reads only known files for the selected domain and job logs associated with that domain. Reads are limited to the final 256 KB and 500 lines, with an optional text filter and 15-second auto-refresh. New per-domain web server logs are rotated daily and retained for 14 rotations.
+
+ModSecurity and NGINX cache controls create root jobs. Before a changed configuration is activated, the runner validates it with `apache2ctl`/`httpd` or `nginx -t`. If validation or reload fails, the original configuration is restored. New installations include per-domain access/error logs and a managed ModSecurity block enabled by default when the module is available.
 
 ## Software Moodle™ installation
 

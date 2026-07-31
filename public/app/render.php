@@ -53,7 +53,7 @@ function render_navigation_items(): array {
         "url" => "/",
         "label" => t("index.title"),
         "icon" => "S",
-        "active_on" => ["index.php", "details.php"],
+        "active_on" => ["index.php", "details.php", "logs.php"],
     ];
     $items[] = [
         "url" => "/app_manager.php",
@@ -144,6 +144,10 @@ function render_footer(): void {
 function status_badge(string $status, $label = null): string {
     if ($status == "waiting_dns") {
         $label = t("status.waiting_dns");
+    } else if ($status == "pending") {
+        $label = t("status.pending");
+    } else if ($status == "canceled") {
+        $label = t("status.canceled");
     } else if ($status == "running") {
         $label = t("status.running");
     } else if ($status == "failed") {
@@ -152,6 +156,8 @@ function status_badge(string $status, $label = null): string {
         $label = t("status.error");
     } else if ($status == "active") {
         $label = t("status.active");
+    } else if ($status == "site_disabled") {
+        $label = t("status.site_disabled");
     } else if ($status == "done") {
         $label = t("status.done");
     } else if (!$label) {
@@ -162,7 +168,7 @@ function status_badge(string $status, $label = null): string {
         "done", "active", "ok" => "ok",
         "running" => "running",
         "waiting_dns", "warning" => "warning",
-        "failed", "error", "danger" => "danger",
+        "failed", "error", "danger", "site_disabled" => "danger",
         default => "muted",
     };
 
