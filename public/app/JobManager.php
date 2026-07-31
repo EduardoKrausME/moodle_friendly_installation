@@ -32,12 +32,18 @@ class JobManager {
         $hasbackup = !empty($data["kopere_backup_zip"]);
         $type = $hasbackup ? "restore_moodle" : "install_moodle";
         $logprefix = $hasbackup ? "restore" : "install";
+        $domain = (string) ($data["domain"] ?? "");
+        $base = "/home/{$domain}";
+        if (file_exists($base) || is_link($base)) {
+            throw new \RuntimeException(I18n::get("validation.domain_path_exists"));
+        }
 
         $job = [
             "id" => self::newId(),
             "type" => $type,
             "status" => "pending",
             "domain" => $data["domain"],
+            "installation_path_existed" => false,
             "site_fullname" => $data["site_fullname"],
             "admin_user" => $data["admin_user"],
             "admin_pass" => $data["admin_pass"],
@@ -184,6 +190,23 @@ class JobManager {
     }
 
     /**
+     * Returns the newest installation or restore job for a domain.
+     *
+     * @param string $domain
+     * @return array|null
+     */
+    public static function latestInstallationJob(string $domain): ?array {
+        foreach (self::all() as $job) {
+            if (($job["domain"] ?? "") === $domain
+                && in_array(($job["type"] ?? ""), ["install_moodle", "restore_moodle"], true)
+            ) {
+                return $job;
+            }
+        }
+        return null;
+    }
+
+    /**
      * Makes a root-generated job log readable by the panel process.
      *
      * @param string $file
@@ -278,18 +301,160 @@ class JobManager {
     }
 
     /**
+     * Queues removal of files created by a failed installation or restore.
+     *
+     * @param string $sourcejobid
+     * @param string $createdby
+     * @return array
+     * @throws \Random\RandomException
+     * @throws \DateMalformedStringException
+     */
+    public static function createFailedInstallationCleanupJob(string $sourcejobid, string $createdby): array {
+        $jobsfile = app_config_path("/data/jobs.json");
+        $cleanupjob = null;
+        $created = false;
+
+        self::withJobsLock(static function() use (
+            $jobsfile,
+            $sourcejobid,
+            $createdby,
+            &$cleanupjob,
+            &$created
+        ): void {
+            $jobs = JsonStorage::read($jobsfile);
+            $sourceindex = null;
+            foreach ($jobs as $index => $job) {
+                if (($job["id"] ?? "") === $sourcejobid) {
+                    $sourceindex = $index;
+                    break;
+                }
+            }
+
+            if ($sourceindex === null) {
+                throw new \RuntimeException(I18n::get("jobs.not_found"));
+            }
+
+            $sourcejob = $jobs[$sourceindex];
+            if (($sourcejob["status"] ?? "") !== "failed"
+                || !in_array(($sourcejob["type"] ?? ""), ["install_moodle", "restore_moodle"], true)
+                || !empty($sourcejob["files_deleted"])
+                || !empty($sourcejob["installation_path_existed"])
+            ) {
+                throw new \RuntimeException(I18n::get("jobs.delete_files_not_allowed"));
+            }
+
+            $domain = (string) ($sourcejob["domain"] ?? "");
+            if (!self::isValidInstallationDomain($domain)) {
+                throw new \RuntimeException(I18n::get("jobs.delete_files_invalid_domain"));
+            }
+
+            foreach ($jobs as $candidate) {
+                if (($candidate["id"] ?? "") === $sourcejobid
+                    || ($candidate["domain"] ?? "") !== $domain
+                    || !in_array(($candidate["type"] ?? ""), ["install_moodle", "restore_moodle"], true)
+                ) {
+                    continue;
+                }
+                if (strcmp((string) ($candidate["created_at"] ?? ""), (string) ($sourcejob["created_at"] ?? "")) > 0) {
+                    throw new \RuntimeException(I18n::get("jobs.delete_files_newer_installation"));
+                }
+            }
+
+            foreach ($jobs as $existingjob) {
+                if (($existingjob["type"] ?? "") === "cleanup_failed_installation"
+                    && ($existingjob["source_job_id"] ?? "") === $sourcejobid
+                    && in_array(($existingjob["status"] ?? ""), ["pending", "running"], true)
+                ) {
+                    $cleanupjob = $existingjob;
+                    return;
+                }
+            }
+
+            $cleanupjob = [
+                "id" => self::newId(),
+                "type" => "cleanup_failed_installation",
+                "status" => "pending",
+                "domain" => $domain,
+                "source_job_id" => $sourcejobid,
+                "base_dir" => "/home/{$domain}",
+                "created_at" => now_iso(),
+                "updated_at" => now_iso(),
+                "created_by" => $createdby,
+                "log_file" => app_config_path("/data/logs") . "/cleanup-{$domain}-" . date("Ymd-His") . ".log",
+            ];
+            $jobs[] = $cleanupjob;
+            $jobs[$sourceindex]["cleanup_job_id"] = $cleanupjob["id"];
+            $jobs[$sourceindex]["cleanup_status"] = "pending";
+            $jobs[$sourceindex]["cleanup_requested_at"] = now_iso();
+            $jobs[$sourceindex]["cleanup_requested_by"] = $createdby;
+            $jobs[$sourceindex]["updated_at"] = now_iso();
+
+            JsonStorage::write($jobsfile, $jobs);
+            self::fixSharedStoragePermissions($jobsfile);
+            $created = true;
+        });
+
+        if ($created && is_array($cleanupjob)) {
+            self::writeQueueFile($cleanupjob);
+        }
+        if (!is_array($cleanupjob)) {
+            throw new \RuntimeException(I18n::get("jobs.delete_files_not_allowed"));
+        }
+        return $cleanupjob;
+    }
+
+    /**
+     * Updates cleanup information on the failed source job.
+     *
+     * @param string $sourcejobid
+     * @param string $cleanupjobid
+     * @param string $status
+     * @param array $extra
+     * @return array|null
+     */
+    public static function updateFailedInstallationCleanup(
+        string $sourcejobid,
+        string $cleanupjobid,
+        string $status,
+        array $extra = []
+    ): ?array {
+        return self::updateJob($sourcejobid, static function(array $job) use (
+            $cleanupjobid,
+            $status,
+            $extra
+        ): array {
+            if (($job["status"] ?? "") !== "failed"
+                || !in_array(($job["type"] ?? ""), ["install_moodle", "restore_moodle"], true)
+            ) {
+                return $job;
+            }
+
+            $job["cleanup_job_id"] = $cleanupjobid;
+            $job["cleanup_status"] = $status;
+            $job = array_merge($job, $extra);
+            return $job;
+        });
+    }
+
+    /**
      * Function nextPendingJob
      *
      * @return array|null
      */
     public static function nextPendingJob(): ?array {
         $jobs = JsonStorage::read(app_config_path("/data/jobs.json"));
+        $priorityjobs = [];
         $foregroundjobs = [];
         $backgroundjobs = [];
 
         foreach ($jobs as $job) {
             $status = $job["status"] ?? "";
             $type = $job["type"] ?? "";
+
+            if ($type === "cleanup_failed_installation" && $status === "pending") {
+                $priorityjobs[] = $job;
+                continue;
+            }
 
             if (in_array($type, ["install_moodle", "restore_moodle"], true) && in_array($status, ["pending", "waiting_dns"], true)) {
                 $foregroundjobs[] = $job;
@@ -306,13 +471,25 @@ class JobManager {
             }
         }
 
-        $pendingjobs = !empty($foregroundjobs) ? $foregroundjobs : $backgroundjobs;
+        $pendingjobs = !empty($priorityjobs)
+            ? $priorityjobs
+            : (!empty($foregroundjobs) ? $foregroundjobs : $backgroundjobs);
         if (empty($pendingjobs)) {
             return null;
         }
 
         usort($pendingjobs, static fn(array $a, array $b): int => strcmp(($a["created_at"] ?? ""), ($b["created_at"] ?? "")));
         return $pendingjobs[0];
+    }
+
+    /**
+     * Validates a domain before it is used to build a cleanup path.
+     *
+     * @param string $domain
+     * @return bool
+     */
+    private static function isValidInstallationDomain(string $domain): bool {
+        return preg_match('/^(?=.{4,253}$)([a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$/', $domain) === 1;
     }
 
     /**

@@ -31,6 +31,23 @@
                     <button type="submit" class="button danger small">{{i18n.jobs.cancel}}</button>
                 </form>
             {{/can_cancel}}
+            {{#can_delete_files}}
+                <form method="post" action="/jobs.php?job={{id}}" class="job-cancel-form"
+                      onsubmit="return confirm('{{delete_files_confirm}}');">
+                    <input type="hidden" name="csrf_token" value="{{csrf_token}}">
+                    <input type="hidden" name="action" value="delete_failed_installation_files">
+                    <input type="hidden" name="job_id" value="{{id}}">
+                    <button type="submit" class="button danger small">{{i18n.jobs.delete_files}}</button>
+                </form>
+            {{/can_delete_files}}
+            {{#cleanup_active}}
+                <div class="alert warning compact-alert">
+                    {{i18n.jobs.delete_files_processing}} <a href="{{cleanup_url}}">{{i18n.jobs.open_job}}</a>
+                </div>
+            {{/cleanup_active}}
+            {{#files_deleted}}
+                <div class="alert ok compact-alert">{{i18n.jobs.files_deleted}}</div>
+            {{/files_deleted}}
             <div>
                 {{#has_error}}
                     <span class="error">{{error}}</span><br>
@@ -75,6 +92,23 @@
                             <button type="submit" class="button danger small">{{i18n.jobs.cancel}}</button>
                         </form>
                     {{/can_cancel}}
+                    {{#can_delete_files}}
+                        <form method="post" action="{{url}}" class="job-cancel-form"
+                              onsubmit="return confirm('{{delete_files_confirm}}');">
+                            <input type="hidden" name="csrf_token" value="{{csrf_token}}">
+                            <input type="hidden" name="action" value="delete_failed_installation_files">
+                            <input type="hidden" name="job_id" value="{{id}}">
+                            <button type="submit" class="button danger small">{{i18n.jobs.delete_files}}</button>
+                        </form>
+                    {{/can_delete_files}}
+                    {{#cleanup_active}}
+                        <span class="muted">
+                            {{i18n.jobs.delete_files_processing}} <a href="{{cleanup_url}}">{{i18n.jobs.open_job}}</a>
+                        </span>
+                    {{/cleanup_active}}
+                    {{#files_deleted}}
+                        <span class="status-ok">{{i18n.jobs.files_deleted}}</span>
+                    {{/files_deleted}}
                 </div>
             </div>
         {{/jobs}}

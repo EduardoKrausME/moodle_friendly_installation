@@ -21,6 +21,16 @@ class SiteManager {
         foreach ($moodledirs as $moodledir) {
             $site = self::buildBasicSite($moodledir);
             if ($site != null) {
+                $installationjob = JobManager::latestInstallationJob((string) ($site["domain"] ?? ""));
+                $installationstatus = (string) ($installationjob["status"] ?? "done");
+                $site["installation_complete"] = $installationjob === null || $installationstatus === "done";
+                if (!$site["installation_complete"]) {
+                    $site["status"] = $installationstatus;
+                    $site["installation_job_id"] = $installationjob["id"] ?? "";
+                    $site["installation_job_url"] = !empty($installationjob["id"])
+                        ? "/jobs.php?job=" . rawurlencode((string) $installationjob["id"])
+                        : "/jobs.php";
+                }
                 $sites[] = $site;
             }
         }
@@ -1015,9 +1025,9 @@ class SiteManager {
                 "label" => I18n::get("feature_flags.slow_sql_label"),
                 "file" => "slow-sql.disable",
                 "description" => I18n::get("feature_flags.slow_sql_description"),
-                "enabled_label" => I18n::get("status.disabled"),
-                "disabled_label" => I18n::get("status.enabled"),
-                "enabled_status" => "ok",
+                "enabled_label" => I18n::get("status.enabled"),
+                "disabled_label" => I18n::get("status.disabled"),
+                "enabled_status" => "warning",
                 "inverted" => true,
                 "dangerous" => true,
             ],
@@ -1056,15 +1066,11 @@ class SiteManager {
                 $description .= " " . I18n::get("diagnostic.email_current", ["email" => $value]);
             }
 
-           $enabled = !empty($definition["inverted"]) ? !$enabled : $enabled;
-
             $items[$key] = [
                 "label" => $definition["label"] ?? $key,
-                "class" => $enabled ? "alert alert-danger" : "",
                 "description" => $description,
                 "path" => $file,
                 "enabled" => $enabled,
-                "inverted" => !empty($definition["inverted"]) && $definition["inverted"],
                 "value" => $value,
                 "value_type" => $definition["value_type"] ?? "",
                 "dangerous" => !empty($definition["dangerous"]),

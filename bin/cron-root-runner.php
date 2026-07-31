@@ -53,6 +53,7 @@ try {
             "app_build" => "cron-app_build.php",
             "resource_usage" => "cron-resource_usage.php",
             "server_control" => "cron-server_control.php",
+            "cleanup_failed_installation" => "cron-cleanup_failed_installation.php",
         ];
         $jobtype = (string) ($job["type"] ?? "");
         if (!isset($jobscripts[$jobtype])) {

@@ -25,11 +25,21 @@
             <article class="site-card">
                 <div class="site-card-header">
                     <div>
-                        <h2>{{site_fullname}} - {{domain}}</h2>
+                        <h2>{{domain}}</h2>
                     </div>
                     {{{status_badge}}}
                 </div>
                 <dl class="site-meta">
+                    {{#has_site_identity}}
+                        <div>
+                            <dt>{{i18n.site_info.fullname}}</dt>
+                            <dd>{{site_fullname}}</dd>
+                        </div>
+                        <div>
+                            <dt>{{i18n.site_info.shortname}}</dt>
+                            <dd>{{site_shortname}}</dd>
+                        </div>
+                    {{/has_site_identity}}
                     <div>
                         <dt>{{i18n.index.branch}}</dt>
                         <dd>{{moodle_branch}}</dd>
@@ -41,7 +51,7 @@
                         </div>
                     {{/has_resource_usage}}
                 </dl>
-                <a class="button secondary" href="{{details_url}}">{{i18n.actions.view_details}}</a>
+                <a class="button secondary" href="{{details_url}}">{{details_label}}</a>
             </article>
         {{/sites}}
     </section>

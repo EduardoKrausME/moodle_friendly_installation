@@ -9,8 +9,11 @@ Auth::requireLogin();
 
 $sites = array_map(static function(array $site): array {
     $domain = $site["domain"] ?? "";
-    $resources = ResourceUsageManager::snapshot($domain);
-    $identity = SiteManager::courseIdentity($site);
+    $installationcomplete = !empty($site["installation_complete"]);
+    $resources = $installationcomplete ? ResourceUsageManager::snapshot($domain) : [];
+    $identity = $installationcomplete
+        ? SiteManager::courseIdentity($site)
+        : ["fullname" => "", "shortname" => "", "available" => false];
 
     return [
         "domain" => $domain,
@@ -19,7 +22,10 @@ $sites = array_map(static function(array $site): array {
         "site_shortname" => $identity["shortname"] ?? "",
         "webroot" => $site["webroot"] ?? "",
         "moodle_branch" => $site["moodle_branch"] ?? "",
-        "details_url" => "/details.php?domain=" . rawurlencode($domain),
+        "details_url" => $installationcomplete
+            ? "/details.php?domain=" . rawurlencode($domain)
+            : ($site["installation_job_url"] ?? "/jobs.php"),
+        "details_label" => t($installationcomplete ? "actions.view_details" : "jobs.open_job"),
         "status_badge" => status_badge((string) ($site["status"] ?? "active")),
         "has_resource_usage" => !empty($resources),
         "resource_usage" => !empty($resources)

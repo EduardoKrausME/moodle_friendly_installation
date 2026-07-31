@@ -40,6 +40,8 @@ class Validator {
             $errors["domain"] = I18n::get("validation.domain_invalid");
         } else if (in_array($domain, app_config("reserved_domains"), true)) {
             $errors["domain"] = I18n::get("validation.domain_reserved");
+        } else if (file_exists("/home/{$domain}") || is_link("/home/{$domain}")) {
+            $errors["domain"] = I18n::get("validation.domain_path_exists");
         }
 
         $jobs = JsonStorage::read(app_config_path("/data/jobs.json"));
