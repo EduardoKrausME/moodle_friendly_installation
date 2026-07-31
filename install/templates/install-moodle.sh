@@ -174,7 +174,7 @@ chmod 0640 "{{BASE_DIR}}/logs/"*.log
 
 log "Creating Moodle cron"
 cat > "{{CRON_FILE}}" <<EOF
-* * * * * {{APACHE_USER}} {{PHP_BIN}} {{BASE_DIR}}/moodle/public/admin/cli/cron.php >/dev/null 2>&1
+* * * * * {{APACHE_USER}} {{PHP_BIN}} {{BASE_DIR}}/moodle/admin/cli/cron.php >/dev/null 2>&1
 EOF
 
 log "Testing and reloading services"
