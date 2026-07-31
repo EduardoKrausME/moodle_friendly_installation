@@ -205,6 +205,9 @@ function executeInstallJob(array $job, string $mode = "install"): array {
     ]);
 
     $dbengine = strtolower(app_config("db_engine") ?: "mysqli");
+    if ($dbengine == "mysql") {
+        $dbengine == "mysqli";
+    }
     $extraConfig = trim(app_config("extra_moodle_config") ?? "");
 
     $configTemplate = renderTemplateFile(app_config_path("/install/templates/config-mysqli.php"), [
