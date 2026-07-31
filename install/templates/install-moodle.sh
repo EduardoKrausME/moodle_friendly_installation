@@ -11,7 +11,7 @@ touch "{{BASE_DIR}}/logs/nginx-access.log" "{{BASE_DIR}}/logs/nginx-error.log"
 touch "{{BASE_DIR}}/logs/apache-access.log" "{{BASE_DIR}}/logs/apache-error.log"
 chown -R "{{APACHE_USER}}:{{APACHE_GROUP}}" "{{BASE_DIR}}/logs"
 chmod 0755 "{{BASE_DIR}}"
-chmod 0770 "{{BASE_DIR}}/moodledata"
+chmod 0777 "{{BASE_DIR}}/moodledata"
 chmod 0750 "{{BASE_DIR}}/logs"
 chmod 0640 "{{BASE_DIR}}/logs/"*.log
 
@@ -135,7 +135,7 @@ if [ "{{INSTALL_MODE}}" = "install" ]; then
     sudo -u "{{APACHE_USER}}" "{{PHP_BIN}}" {{BASE_DIR}}/moodle/admin/cli/cfg.php --name=autologinguests    --set=0
     sudo -u "{{APACHE_USER}}" "{{PHP_BIN}}" {{BASE_DIR}}/moodle/admin/cli/cfg.php --name=guestloginbutton   --set=0
     sudo -u "{{APACHE_USER}}" "{{PHP_BIN}}" {{BASE_DIR}}/moodle/admin/cli/cfg.php --name=passwordpolicy     --set=0
-    CRON_REMOTE_PASSWORD=$(tr -dc 'A-Za-z0-9' < /dev/urandom | head -c 32)
+    CRON_REMOTE_PASSWORD=$("{{PHP_BIN}}" -r 'echo bin2hex(random_bytes(16));')
     sudo -u "{{APACHE_USER}}" "{{PHP_BIN}}" {{BASE_DIR}}/moodle/admin/cli/cfg.php --name=cronremotepassword --set="$CRON_REMOTE_PASSWORD"
     sudo -u "{{APACHE_USER}}" "{{PHP_BIN}}" {{BASE_DIR}}/moodle/admin/cli/cfg.php --name=cronclionly        --set=0
     sudo -u "{{APACHE_USER}}" "{{PHP_BIN}}" {{BASE_DIR}}/moodle/admin/cli/cfg.php --name=siteadmins         --set=3,2
@@ -167,12 +167,8 @@ cp "{{TEMPLATES_DIR}}/moodle-logar-admin.php"  "{{BASE_DIR}}/moodle/public/"
 
 log "Fixing owner and permissions"
 chown -R "{{APACHE_USER}}:{{APACHE_GROUP}}" "{{BASE_DIR}}"
-find "{{BASE_DIR}}/moodle" -type d -exec chmod 0755 {} +
-find "{{BASE_DIR}}/moodle" -type f -exec chmod 0644 {} +
-chmod 0755 "{{BASE_DIR}}"
-chmod 0640 "{{CONFIG_FILE}}"
-find "{{BASE_DIR}}/moodledata" -type d -exec chmod 0770 {} +
-find "{{BASE_DIR}}/moodledata" -type f -exec chmod 0660 {} +
+find "{{BASE_DIR}}/moodle"     -type d -exec chmod 0755 {} +
+find "{{BASE_DIR}}/moodledata" -type d -exec chmod 0755 {} +
 chmod 0750 "{{BASE_DIR}}/logs"
 chmod 0640 "{{BASE_DIR}}/logs/"*.log
 
