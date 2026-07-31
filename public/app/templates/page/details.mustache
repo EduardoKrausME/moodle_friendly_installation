@@ -53,11 +53,10 @@
                     <button type="submit" class="button">{{i18n.actions.enable_moodle}}</button>
                 </form>
             {{/moodle_is_disabled}}
-            <a class="button secondary" href="{{logs_url}}">{{i18n.actions.view_logs}}</a>
         </div>
     </div>
 
-{{#moodle_is_enabled}}
+    {{#moodle_is_enabled}}
         <dialog class="moodle-disable-dialog" id="disable-moodle-dialog">
             <form method="post" class="form">
                 <input type="hidden" name="csrf_token" value="{{moodle_status_csrf_token}}">
@@ -80,7 +79,7 @@
                 </div>
             </form>
         </dialog>
-{{/moodle_is_enabled}}
+    {{/moodle_is_enabled}}
 
 {{#app_exist}}
         <div class="card hero-card">
@@ -175,6 +174,64 @@
         {{/resources}}
     </div>
 
+    <div class="card">
+        <h2>{{i18n.server_controls.heading}}</h2>
+        <p class="card-subtitle">{{i18n.server_controls.intro}}</p>
+        <div class="server-control-grid">
+            {{#server_controls}}
+                <div class="server-control-item">
+                    <div class="flag-header">
+                        <strong>{{label}}</strong>
+                        {{{badge_html}}}
+                    </div>
+                    <p>{{message}}</p>
+                    {{#has_path}}<small><code>{{path}}</code></small>{{/has_path}}
+                    {{#has_active_job}}
+                        <a href="{{active_job_url}}">{{i18n.server_controls.view_job}}</a>
+                    {{/has_active_job}}
+                    {{#supported}}
+                        <form method="post" class="inline-form flag-actions">
+                            <input type="hidden" name="csrf_token" value="{{csrf_token}}">
+                            <input type="hidden" name="action" value="server_control">
+                            <input type="hidden" name="control" value="{{key}}">
+                            <input type="hidden" name="enabled" value="{{enabled_value}}">
+                            <button type="submit" class="{{button_class}}" {{#has_active_job}}disabled{{/has_active_job}}>
+                                {{button_label}}
+                            </button>
+                        </form>
+                    {{/supported}}
+                </div>
+            {{/server_controls}}
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>{{i18n.details.diagnostics_heading}}</h2>
+        <div class="details-table">
+            {{#diagnostic_rows}}
+                <h2 style="display: flex;justify-content: space-between;">{{label}} {{{badge_html}}}</h2>
+                <div style="margin-bottom:16px;">
+                    <div class="diagnostic-message">{{message}}</div>
+                    {{#has_path}}
+                        <small><code>{{path}}</code></small>
+                    {{/has_path}}
+                    {{#has_resolved_ips}}
+                        <small>{{i18n.details.dns}}: {{resolved_ips}}</small>
+                    {{/has_resolved_ips}}
+                    {{#has_server_ips}}
+                        <small>{{i18n.details.server}}: {{server_ips}}</small>
+                    {{/has_server_ips}}
+                    {{#has_valid_to}}
+                        <small>{{i18n.details.valid_to}}: {{valid_to}}</small>
+                    {{/has_valid_to}}
+                    {{#has_issuer}}
+                        <small>{{i18n.details.issuer}}: {{issuer}}</small>
+                    {{/has_issuer}}
+                </div>
+            {{/diagnostic_rows}}
+        </div>
+    </div>
+
     {{^stats_warning}}
         <div class="card full-card">
             <h2>{{i18n.details.flags_heading}}</h2>
@@ -226,67 +283,6 @@
                         {{/no_value}}
                     </div>
                 {{/feature_flags}}
-            </div>
-        </div>
-    {{/stats_warning}}
-
-    <div class="card">
-        <h2>{{i18n.details.diagnostics_heading}}</h2>
-        <div class="details-table">
-            {{#diagnostic_rows}}
-                <h2 style="display: flex;justify-content: space-between;">{{label}} {{{badge_html}}}</h2>
-                <div style="margin-bottom:16px;">
-                    <div class="diagnostic-message">{{message}}</div>
-                    {{#has_path}}
-                        <small><code>{{path}}</code></small>
-                    {{/has_path}}
-                    {{#has_resolved_ips}}
-                        <small>{{i18n.details.dns}}: {{resolved_ips}}</small>
-                    {{/has_resolved_ips}}
-                    {{#has_server_ips}}
-                        <small>{{i18n.details.server}}: {{server_ips}}</small>
-                    {{/has_server_ips}}
-                    {{#has_valid_to}}
-                        <small>{{i18n.details.valid_to}}: {{valid_to}}</small>
-                    {{/has_valid_to}}
-                    {{#has_issuer}}
-                        <small>{{i18n.details.issuer}}: {{issuer}}</small>
-                    {{/has_issuer}}
-                </div>
-            {{/diagnostic_rows}}
-        </div>
-    </div>
-
-    {{^stats_warning}}
-        <div class="card">
-            <h2>{{i18n.server_controls.heading}}</h2>
-            <p class="card-subtitle">{{i18n.server_controls.intro}}</p>
-            <div class="server-control-grid">
-                {{#server_controls}}
-                    <div class="server-control-item">
-                        <div class="flag-header">
-                            <strong>{{label}}</strong>
-                            {{{badge_html}}}
-                        </div>
-                        <p>{{message}}</p>
-                        {{#has_path}}<small><code>{{path}}</code></small>{{/has_path}}
-                        {{#has_active_job}}
-                            <a href="{{active_job_url}}">{{i18n.server_controls.view_job}}</a>
-                        {{/has_active_job}}
-                        {{#supported}}
-                            <form method="post" class="inline-form flag-actions">
-                                <input type="hidden" name="csrf_token" value="{{csrf_token}}">
-                                <input type="hidden" name="action" value="server_control">
-                                <input type="hidden" name="control" value="{{key}}">
-                                <input type="hidden" name="enabled" value="{{enabled_value}}">
-                                <button type="submit" class="{{button_class}}"
-                                        {{#has_active_job}}disabled{{/has_active_job}}>
-                                    {{button_label}}
-                                </button>
-                            </form>
-                        {{/supported}}
-                    </div>
-                {{/server_controls}}
             </div>
         </div>
 

@@ -51,7 +51,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if ($action == "server_control") {
         $control = isset($_POST["control"]) && is_string($_POST["control"]) ? $_POST["control"] : "";
         $enabled = isset($_POST["enabled"]) && $_POST["enabled"] === "1";
-        if (!in_array($control, ["modsecurity", "cache"], true)) {
+        if (!in_array($control, ["cache"], true)) {
             $_SESSION["flash"] = t("server_controls.invalid");
         } else {
             $job = JobManager::createServerControlJob($site, $control, $enabled);
@@ -132,7 +132,6 @@ function details_page_context(
         "moodle_status_csrf_token" => csrf_token(),
         "url" => $site["url"] ?? "",
         "sso_url" => $site["sso_url"] ?? "",
-        "logs_url" => "/logs.php?domain=" . urlencode($domain),
         "app_exist" => file_exists("../app-MoodleMobile-V2/config.xml"),
         "app_manage_url" => "/app_manager.php?domain=" . urlencode($domain),
         "app_package_uid" => $appsettings["package_uid"] ?? "",
@@ -269,7 +268,7 @@ function details_resource_usage(array $snapshot, ?array $activejob): array {
  */
 function details_server_controls(string $domain, array $controls): array {
     $items = [];
-    foreach (["modsecurity", "cache"] as $key) {
+    foreach (["cache"] as $key) {
         $control = is_array($controls[$key] ?? null) ? $controls[$key] : [];
         $activejob = null;
         foreach (JobManager::all() as $job) {
