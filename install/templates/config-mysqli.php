@@ -39,7 +39,7 @@ if (file_exists(__DIR__ . "/public/local/alternative_file_system/classes/externa
 // {{EXTRA_CONFIG}}
 
 $domainroot = dirname(__DIR__);
-if (file_exists("{$domainroot}/../debug.enable")) {
+if (file_exists("{$domainroot}/debug.enable")) {
     set_time_limit(0);
     ini_set("max_execution_time", 0);
     error_reporting(E_ALL);
