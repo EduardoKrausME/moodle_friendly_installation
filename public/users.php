@@ -9,7 +9,7 @@ Auth::requireLogin();
 $errors = [];
 $flash = flash_message();
 $currentuser = Auth::user();
-$currentusername = UserManager::normalizeUsername((string) ($currentuser["username"] ?? ""));
+$currentusername = UserManager::normalizeUsername($currentuser["username"]);
 $action = isset($_GET["action"]) && is_string($_GET["action"]) ? $_GET["action"] : "list";
 $editingusername =
     isset($_GET["username"]) && is_string($_GET["username"]) ? UserManager::normalizeUsername($_GET["username"]) : "";
@@ -61,7 +61,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         redirect_to("/users.php");
     } catch (Throwable $exception) {
         $errors[] = ["message" => $exception->getMessage()];
-        $editingusername = UserManager::normalizeUsername((string) ($_POST["original_username"] ?? ""));
+        $editingusername = UserManager::normalizeUsername($_POST["original_username"]);
         $showform = true;
         $showlist = false;
         $action = $editingusername != "" ? "edit" : "create";

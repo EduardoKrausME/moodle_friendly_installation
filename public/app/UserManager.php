@@ -37,7 +37,7 @@ class UserManager {
         }
 
         usort($normalized, static function(array $a, array $b): int {
-            return strcasecmp((string) ($a["username"] ?? ""), (string) ($b["username"] ?? ""));
+            return strcasecmp($a["username"], $b["username"]);
         });
 
         return $normalized;
@@ -294,8 +294,8 @@ class UserManager {
      * @return array<string, mixed>
      */
     private static function normalizeUser(array $user): array {
-        $username = self::normalizeUsername((string) ($user["username"] ?? ""));
-        $name = trim((string) ($user["name"] ?? ""));
+        $username = self::normalizeUsername($user["username"]);
+        $name = trim($user["name"]);
         $status = self::normalizeStatus($user["status"] ?? "active");
 
         $user["username"] = $username;
@@ -352,7 +352,7 @@ class UserManager {
         }
 
         $currentuser = Auth::user();
-        $currentusername = self::normalizeUsername((string) ($currentuser["username"] ?? ""));
+        $currentusername = self::normalizeUsername($currentuser["username"]);
         if ($currentusername != "" && $currentusername == $username) {
             throw new RuntimeException(t("users.cannot_disable_current"));
         }

@@ -37,7 +37,7 @@ class ResourceUsageManager {
     public static function scheduleDueCollections(): void {
         $statefile = app_config_path("/data/runtime/resource-usage-schedule.json");
         $state = JsonStorage::read($statefile);
-        $lastscan = strtotime((string) ($state["last_scan_at"] ?? ""));
+        $lastscan = strtotime($state["last_scan_at"]);
         if ($lastscan !== false && (time() - $lastscan) < self::SCHEDULE_SCAN_INTERVAL) {
             return;
         }
@@ -45,7 +45,7 @@ class ResourceUsageManager {
         JsonStorage::write($statefile, ["last_scan_at" => now_iso()]);
 
         foreach (SiteManager::all() as $site) {
-            $domain = (string) ($site["domain"] ?? "");
+            $domain = $site["domain"];
             if ($domain === "" || !self::isStale(self::snapshot($domain))) {
                 continue;
             }
@@ -61,17 +61,17 @@ class ResourceUsageManager {
      * @throws \Random\RandomException
      */
     public static function collect(array $job): array {
-        $domain = (string) ($job["domain"] ?? "");
+        $domain = $job["domain"];
         $site = SiteManager::get($domain);
         if ($site === null) {
             throw new RuntimeException("Site not found for resource collection: {$domain}");
         }
 
         $startedat = microtime(true);
-        $codebytes = self::directoryBytes((string) ($site["moodle_dir"] ?? ""));
-        $databytes = self::directoryBytes((string) ($site["dataroot"] ?? ""));
-        $database = self::databaseUsage((string) ($site["config_file"] ?? ""));
-        $filesystem = self::filesystemUsage((string) ($site["base_dir"] ?? ""));
+        $codebytes = self::directoryBytes($site["moodle_dir"]);
+        $databytes = self::directoryBytes($site["dataroot"]);
+        $database = self::databaseUsage($site["config_file"]);
+        $filesystem = self::filesystemUsage($site["base_dir"]);
 
         $snapshot = [
             "domain" => $domain,
@@ -123,7 +123,7 @@ class ResourceUsageManager {
      * @return bool
      */
     public static function isStale(array $snapshot): bool {
-        $collectedat = strtotime((string) ($snapshot["collected_at"] ?? ""));
+        $collectedat = strtotime($snapshot["collected_at"]);
         return $collectedat === false || (time() - $collectedat) >= self::COLLECTION_INTERVAL;
     }
 
@@ -186,7 +186,7 @@ class ResourceUsageManager {
      */
     private static function databaseUsage(string $configfile): array {
         $moodleconfig = self::readMoodleConfig($configfile);
-        $dbname = (string) ($moodleconfig["dbname"] ?? "");
+        $dbname = $moodleconfig["dbname"];
         if ($dbname === "") {
             return ["bytes" => 0, "tables" => 0, "error" => "Database name was not found in config.php."];
         }

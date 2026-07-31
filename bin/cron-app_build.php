@@ -28,7 +28,7 @@ if ($result["exitcode"] === 0) {
  * @return array
  */
 function executeAppBuildJob(array $job): array {
-    $domain = sanitizeDomain((string) ($job["domain"] ?? ""));
+    $domain = sanitizeDomain($job["domain"]);
     if ($job["moodle_url"] === "") {
         $job["moodle_url"] = "https://{$domain}";
     }

@@ -9,18 +9,14 @@ use RuntimeException;
  * Class ServerControlManager
  */
 class ServerControlManager {
-    private const string MODSECURITY_BEGIN = "# BEGIN MOODLE FRIENDLY MODSECURITY";
-    private const string MODSECURITY_END = "# END MOODLE FRIENDLY MODSECURITY";
-
     /**
-     * Returns ModSecurity and NGINX cache status for a site.
+     * Returns NGINX cache status for a site.
      *
      * @param array $site
      * @return array
      */
     public static function status(array $site): array {
         return [
-            "modsecurity" => self::modSecurityStatus($site),
             "cache" => self::cacheStatus($site),
         ];
     }
@@ -32,82 +28,18 @@ class ServerControlManager {
      * @return array
      */
     public static function apply(array $job): array {
-        $domain = (string) ($job["domain"] ?? "");
+        $domain = $job["domain"];
         $site = SiteManager::get($domain);
         if ($site === null) {
             throw new RuntimeException("Site not found for server control: {$domain}");
         }
 
-        $control = (string) ($job["control"] ?? "");
+        $control = $job["control"];
         $enabled = !empty($job["enabled"]);
         return match ($control) {
-            "modsecurity" => self::setModSecurity($site, $enabled),
             "cache" => self::setCache($site, $enabled),
             default => throw new RuntimeException("Unsupported server control: {$control}"),
         };
-    }
-
-    /**
-     * Reads the per-site ModSecurity state.
-     *
-     * @param array $site
-     * @return array
-     */
-    private static function modSecurityStatus(array $site): array {
-        $path = self::apacheConfigPath((string) ($site["domain"] ?? ""));
-        $moduleavailable = self::apacheModuleAvailable();
-        if ($path === "" || !is_file($path) || !is_readable($path)) {
-            return self::controlState(
-                "modsecurity",
-                I18n::get("server_controls.modsecurity"),
-                false,
-                null,
-                "muted",
-                I18n::get("status.unavailable"),
-                I18n::get("server_controls.apache_config_missing"),
-                $path
-            );
-        }
-
-        $content = (string) file_get_contents($path);
-        $managedstate = self::managedModSecurityState($content);
-        if (!$moduleavailable) {
-            return self::controlState(
-                "modsecurity",
-                I18n::get("server_controls.modsecurity"),
-                false,
-                $managedstate === "On",
-                "muted",
-                I18n::get("status.unavailable"),
-                I18n::get("server_controls.modsecurity_module_missing"),
-                $path
-            );
-        }
-
-        if ($managedstate === "") {
-            return self::controlState(
-                "modsecurity",
-                I18n::get("server_controls.modsecurity"),
-                true,
-                null,
-                "warning",
-                I18n::get("status.inherited"),
-                I18n::get("server_controls.modsecurity_inherited"),
-                $path
-            );
-        }
-
-        $enabled = $managedstate === "On";
-        return self::controlState(
-            "modsecurity",
-            I18n::get("server_controls.modsecurity"),
-            true,
-            $enabled,
-            $enabled ? "ok" : "warning",
-            I18n::get($enabled ? "status.enabled" : "status.disabled"),
-            I18n::get($enabled ? "server_controls.modsecurity_enabled" : "server_controls.modsecurity_disabled"),
-            $path
-        );
     }
 
     /**
@@ -117,7 +49,7 @@ class ServerControlManager {
      * @return array
      */
     private static function cacheStatus(array $site): array {
-        $path = self::nginxConfigPath((string) ($site["domain"] ?? ""));
+        $path = self::nginxConfigPath($site["domain"]);
         if ($path === "" || !is_file($path) || !is_readable($path)) {
             return self::controlState(
                 "cache",
@@ -165,48 +97,6 @@ class ServerControlManager {
     }
 
     /**
-     * Updates the managed ModSecurity block and reloads Apache.
-     *
-     * @param array $site
-     * @param bool $enabled
-     * @return array
-     */
-    private static function setModSecurity(array $site, bool $enabled): array {
-        if (!self::apacheModuleAvailable()) {
-            throw new RuntimeException(I18n::get("server_controls.modsecurity_module_missing"));
-        }
-
-        $path = self::apacheConfigPath((string) ($site["domain"] ?? ""));
-        $original = self::readConfig($path, "Apache");
-        $content = preg_replace(
-            '/\R?' . preg_quote(self::MODSECURITY_BEGIN, '/') . '.*?' . preg_quote(self::MODSECURITY_END, '/') . '\R?/s',
-            "\n",
-            $original
-        );
-        if (!is_string($content)) {
-            throw new RuntimeException("Cannot update the managed ModSecurity block.");
-        }
-        $state = $enabled ? "On" : "Off";
-        $block = self::MODSECURITY_BEGIN . "\n"
-            . "<IfModule security2_module>\n    SecRuleEngine {$state}\n</IfModule>\n"
-            . "<IfModule security3_module>\n    SecRuleEngine {$state}\n</IfModule>\n"
-            . self::MODSECURITY_END . "\n";
-
-        $position = strripos($content, "</VirtualHost>");
-        $content = $position === false
-            ? rtrim($content) . "\n\n{$block}"
-            : substr($content, 0, $position) . "\n{$block}" . substr($content, $position);
-
-        self::writeValidatedConfig($path, $original, $content, "apache");
-        return [
-            "message" => I18n::get(
-                $enabled ? "server_controls.modsecurity_enabled_done" : "server_controls.modsecurity_disabled_done",
-                ["domain" => (string) ($site["domain"] ?? "")]
-            ),
-        ];
-    }
-
-    /**
      * Enables or comments all managed NGINX cache includes and reloads NGINX.
      *
      * @param array $site
@@ -214,7 +104,7 @@ class ServerControlManager {
      * @return array
      */
     private static function setCache(array $site, bool $enabled): array {
-        $path = self::nginxConfigPath((string) ($site["domain"] ?? ""));
+        $path = self::nginxConfigPath($site["domain"]);
         $original = self::readConfig($path, "NGINX");
         $count = 0;
         $content = preg_replace_callback(
@@ -236,7 +126,7 @@ class ServerControlManager {
         return [
             "message" => I18n::get(
                 $enabled ? "server_controls.cache_enabled_done" : "server_controls.cache_disabled_done",
-                ["domain" => (string) ($site["domain"] ?? ""), "count" => $count]
+                ["domain" => $site["domain"], "count" => $count]
             ),
         ];
     }
@@ -276,44 +166,6 @@ class ServerControlManager {
             "message" => $message,
             "path" => $path,
         ], $extra);
-    }
-
-    /**
-     * Reads the state from the block managed by this panel.
-     *
-     * @param string $content
-     * @return string
-     */
-    private static function managedModSecurityState(string $content): string {
-        if (!preg_match(
-            '/' . preg_quote(self::MODSECURITY_BEGIN, '/') . '(.*?)' . preg_quote(self::MODSECURITY_END, '/') . '/s',
-            $content,
-            $block
-        )) {
-            return "";
-        }
-        return preg_match('/SecRuleEngine\s+(On|Off|DetectionOnly)/i', $block[1], $matches)
-            ? ucfirst(strtolower($matches[1]))
-            : "";
-    }
-
-    /**
-     * Checks loaded Apache modules without changing the server.
-     *
-     * @return bool
-     */
-    private static function apacheModuleAvailable(): bool {
-        static $available = null;
-        if (is_bool($available)) {
-            return $available;
-        }
-        $command = self::commandPath(["apache2ctl", "apachectl", "httpd"]);
-        if ($command === "") {
-            return $available = false;
-        }
-        $result = self::runCommand([$command, "-M"]);
-        return $available = stripos($result["output"], "security2_module") !== false
-            || stripos($result["output"], "security3_module") !== false;
     }
 
     /**

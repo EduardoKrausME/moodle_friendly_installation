@@ -55,7 +55,7 @@ try {
             "server_control" => "cron-server_control.php",
             "cleanup_failed_installation" => "cron-cleanup_failed_installation.php",
         ];
-        $jobtype = (string) ($job["type"] ?? "");
+        $jobtype = $job["type"];
         if (!isset($jobscripts[$jobtype])) {
             throw new RuntimeException("Unsupported queued job type: {$jobtype}");
         }

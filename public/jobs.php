@@ -55,12 +55,12 @@ foreach ($alljobs as $storedjob) {
     if (!empty($storedjob["id"])) {
         $jobsbyid[(string) $storedjob["id"]] = $storedjob;
     }
-    $storeddomain = (string) ($storedjob["domain"] ?? "");
+    $storeddomain = $storedjob["domain"];
     if ($storeddomain !== ""
         && !isset($latestinstallationbydomain[$storeddomain])
         && in_array(($storedjob["type"] ?? ""), ["install_moodle", "restore_moodle"], true)
     ) {
-        $latestinstallationbydomain[$storeddomain] = (string) ($storedjob["id"] ?? "");
+        $latestinstallationbydomain[$storeddomain] = $storedjob["id"];
     }
 }
 
@@ -70,15 +70,15 @@ foreach ($alljobs as $job) {
     $createdat = "";
     $log = "";
     $haslog = !empty($job["log_file"]) && is_readable($job["log_file"]);
-    $jobid = (string) ($job["id"] ?? "");
-    $jobtype = (string) ($job["type"] ?? "");
-    $cleanupjobid = (string) ($job["cleanup_job_id"] ?? "");
+    $jobid = $job["id"];
+    $jobtype = $job["type"];
+    $cleanupjobid = $job["cleanup_job_id"];
     $cleanupjob = $cleanupjobid !== "" && isset($jobsbyid[$cleanupjobid]) ? $jobsbyid[$cleanupjobid] : null;
     $cleanupactive = is_array($cleanupjob)
         && in_array(($cleanupjob["status"] ?? ""), ["pending", "running"], true);
     $failedinstallation = $status === "failed"
         && in_array($jobtype, ["install_moodle", "restore_moodle"], true)
-        && ($latestinstallationbydomain[(string) ($job["domain"] ?? "")] ?? "") === $jobid;
+        && ($latestinstallationbydomain[$job["domain"]] ?? "") === $jobid;
     $filesdeleted = !empty($job["files_deleted"]);
 
     if (!empty($job["created_at"])) {

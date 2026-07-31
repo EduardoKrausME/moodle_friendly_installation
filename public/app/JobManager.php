@@ -32,7 +32,7 @@ class JobManager {
         $hasbackup = !empty($data["kopere_backup_zip"]);
         $type = $hasbackup ? "restore_moodle" : "install_moodle";
         $logprefix = $hasbackup ? "restore" : "install";
-        $domain = (string) ($data["domain"] ?? "");
+        $domain = $data["domain"];
         $base = "/home/{$domain}";
         if (file_exists($base) || is_link($base)) {
             throw new \RuntimeException(I18n::get("validation.domain_path_exists"));
@@ -106,7 +106,7 @@ class JobManager {
      * @throws \DateMalformedStringException
      */
     public static function createResourceUsageJob(array $site, ?string $createdby = null): array {
-        $domain = (string) ($site["domain"] ?? "");
+        $domain = $site["domain"];
         $activejob = self::activeJob("resource_usage", $domain);
         if ($activejob !== null) {
             return $activejob;
@@ -138,11 +138,11 @@ class JobManager {
      * @throws \DateMalformedStringException
      */
     public static function createServerControlJob(array $site, string $control, bool $enabled): array {
-        if (!in_array($control, ["modsecurity", "cache"], true)) {
+        if (!in_array($control, ["cache"], true)) {
             throw new \InvalidArgumentException("Unsupported server control: {$control}");
         }
 
-        $domain = (string) ($site["domain"] ?? "");
+        $domain = $site["domain"];
         foreach (self::all() as $existing) {
             if (($existing["type"] ?? "") === "server_control"
                 && ($existing["domain"] ?? "") === $domain
@@ -343,7 +343,7 @@ class JobManager {
                 throw new \RuntimeException(I18n::get("jobs.delete_files_not_allowed"));
             }
 
-            $domain = (string) ($sourcejob["domain"] ?? "");
+            $domain = $sourcejob["domain"];
             if (!self::isValidInstallationDomain($domain)) {
                 throw new \RuntimeException(I18n::get("jobs.delete_files_invalid_domain"));
             }
@@ -355,7 +355,7 @@ class JobManager {
                 ) {
                     continue;
                 }
-                if (strcmp((string) ($candidate["created_at"] ?? ""), (string) ($sourcejob["created_at"] ?? "")) > 0) {
+                if (strcmp($candidate["created_at"], $sourcejob["created_at"]) > 0) {
                     throw new \RuntimeException(I18n::get("jobs.delete_files_newer_installation"));
                 }
             }

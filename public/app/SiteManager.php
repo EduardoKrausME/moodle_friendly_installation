@@ -21,7 +21,7 @@ class SiteManager {
         foreach ($moodledirs as $moodledir) {
             $site = self::buildBasicSite($moodledir);
             if ($site != null) {
-                $installationjob = JobManager::latestInstallationJob((string) ($site["domain"] ?? ""));
+                $installationjob = JobManager::latestInstallationJob($site["domain"]);
                 $installationstatus = (string) ($installationjob["status"] ?? "done");
                 $site["installation_complete"] = $installationjob === null || $installationstatus === "done";
                 if (!$site["installation_complete"]) {
@@ -91,7 +91,7 @@ class SiteManager {
      * @return array{fullname: string, shortname: string, available: bool}
      */
     public static function courseIdentity(array $site): array {
-        $domain = (string) ($site["domain"] ?? "");
+        $domain = $site["domain"];
         $empty = ["fullname" => "", "shortname" => "", "available" => false];
         if ($domain === "") {
             return $empty;
@@ -104,7 +104,7 @@ class SiteManager {
         }
 
         $identity = $empty;
-        $configsite = self::readMoodleConfig((string) ($site["config_file"] ?? ""));
+        $configsite = self::readMoodleConfig($site["config_file"]);
         if (!empty($configsite["dbname"])) {
             $host = app_config("mysql_admin_host");
             $port = app_config("mysql_admin_port");
@@ -121,8 +121,8 @@ class SiteManager {
                 $row = $pdo->query("SELECT fullname, shortname FROM mdl_course WHERE id = 1")->fetch();
                 if (is_array($row)) {
                     $identity = [
-                        "fullname" => trim((string) ($row["fullname"] ?? "")),
-                        "shortname" => trim((string) ($row["shortname"] ?? "")),
+                        "fullname" => trim($row["fullname"]),
+                        "shortname" => trim($row["shortname"]),
                         "available" => true,
                     ];
                 }
@@ -1066,11 +1066,21 @@ class SiteManager {
                 $description .= " " . I18n::get("diagnostic.email_current", ["email" => $value]);
             }
 
+            $enabled = !empty($definition["inverted"]) ? !$enabled : $enabled;
+            $class = $enabled ? "alert alert-danger" : "";
+
+            if(!empty($definition["inverted"]) && $definition["inverted"]){
+                $enabled = !$enabled;
+                $class = $enabled ? "alert alert-danger" : "";
+            }
+
             $items[$key] = [
                 "label" => $definition["label"] ?? $key,
+                "class" => $class,
                 "description" => $description,
                 "path" => $file,
                 "enabled" => $enabled,
+                "inverted" => !empty($definition["inverted"]) && $definition["inverted"],
                 "value" => $value,
                 "value_type" => $definition["value_type"] ?? "",
                 "dangerous" => !empty($definition["dangerous"]),

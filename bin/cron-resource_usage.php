@@ -27,7 +27,7 @@ echo "Resource collection completed: {$job["id"]}\n";
  * @return void
  */
 function resourceUsageLog(array $job, string $message): void {
-    $logfile = (string) ($job["log_file"] ?? "");
+    $logfile = $job["log_file"];
     if ($logfile === "") {
         return;
     }

@@ -66,7 +66,7 @@ class Auth {
             return false;
         }
 
-        return self::passwordMatches((string) ($user["password"] ?? ""), "admin");
+        return self::passwordMatches($user["password"], "admin");
     }
 
     /**
@@ -100,13 +100,13 @@ class Auth {
 
         foreach ($users as &$user) {
             if (!is_array($user)
-                || UserManager::normalizeUsername((string) ($user["username"] ?? "")) !== "admin"
-                || !self::passwordMatches((string) ($user["password"] ?? ""), "admin")
+                || UserManager::normalizeUsername($user["username"]) !== "admin"
+                || !self::passwordMatches($user["password"], "admin")
             ) {
                 continue;
             }
 
-            $name = trim((string) ($user["name"] ?? "")) ?: "Administrador";
+            $name = trim($user["name"]) ?: "Administrador";
             $user["password"] = password_hash($password, PASSWORD_DEFAULT);
             $user["updated_at"] = now_iso();
             $user["password_changed_at"] = now_iso();
@@ -157,7 +157,7 @@ class Auth {
             return false;
         }
 
-        return self::isDefaultPassword((string) ($user["password"] ?? ""));
+        return self::isDefaultPassword($user["password"]);
     }
 
     /**

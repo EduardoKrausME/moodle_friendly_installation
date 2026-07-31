@@ -18,9 +18,9 @@ if (($job["type"] ?? "") === "cleanup_failed_installation") {
  * @throws Throwable
  */
 function runFailedInstallationCleanupJob(array $job): void {
-    $jobid = (string) ($job["id"] ?? "");
-    $sourcejobid = (string) ($job["source_job_id"] ?? "");
-    $domain = (string) ($job["domain"] ?? "");
+    $jobid = $job["id"];
+    $sourcejobid = $job["source_job_id"];
+    $domain = $job["domain"];
 
     $job = JobManager::markRunning($jobid);
     if ($job === null) {
@@ -33,7 +33,7 @@ function runFailedInstallationCleanupJob(array $job): void {
     JobManager::updateFailedInstallationCleanup($sourcejobid, $jobid, "running");
 
     try {
-        $base = cleanupInstallationPath($domain, (string) ($job["base_dir"] ?? ""));
+        $base = cleanupInstallationPath($domain, $job["base_dir"]);
         cleanupAppendLog($job, "Removing incomplete installation files from {$base}.");
 
         $deleted = 0;
@@ -156,12 +156,12 @@ function cleanupInstallationFiles(string $domain, array $sourcejob): array {
         "/etc/logrotate.d/moodle-friendly-{$domain}",
     ];
 
-    $sourcejobid = (string) ($sourcejob["id"] ?? "");
+    $sourcejobid = $sourcejob["id"];
     if (preg_match('/^job_[a-zA-Z0-9._-]+$/', $sourcejobid) === 1) {
         $files[] = app_config_path("/data/runtime/scripts/install-{$domain}-{$sourcejobid}.sh");
     }
 
-    $backup = (string) ($sourcejob["kopere_backup_zip"] ?? "");
+    $backup = $sourcejob["kopere_backup_zip"];
     $uploadroot = realpath(app_config_path("/data/restore-uploads"));
     $backupreal = $backup !== "" ? realpath($backup) : false;
     if (is_string($uploadroot) && is_string($backupreal)
@@ -286,7 +286,7 @@ function cleanupReloadWebServers(array $job): void {
  * @return void
  */
 function cleanupAppendLog(array $job, string $message): void {
-    $logfile = (string) ($job["log_file"] ?? "");
+    $logfile = $job["log_file"];
     if ($logfile === "") {
         return;
     }

@@ -27,7 +27,7 @@ if ($job["type"] == "restore_moodle") {
 function runRestoreMoodleQueueJob(array $job): void {
     require_once __DIR__ . "/cron-install_moodle.php";
 
-    $domain = (string) ($job["domain"] ?? "");
+    $domain = $job["domain"];
     if (!domainHasDnsRecord($domain)) {
         $message =
             "DNS ainda não configurado para {$domain}. Configure o registro A ou AAAA apontando para este servidor. O cron verificará novamente em 1 minuto.";
@@ -994,7 +994,7 @@ function restoreSchemaKeysSql(array $schema, array $schemafields = []): array {
         if (empty($fields)) {
             continue;
         }
-        $type = strtolower((string) ($key["type"] ?? ""));
+        $type = strtolower($key["type"]);
         $name = restoreSafeIndexName((string) ($key["name"] ?? implode("_", $fields)));
         $columns = restoreSchemaIndexColumnsSql($fields, $schemafields);
         if (empty($columns)) {
@@ -1231,7 +1231,7 @@ function restoreCsvRowLooksLikeHeader(array $row, array $insertfields, array $fi
     $matches = 0;
     foreach ($insertfields as $position => $field) {
         $sourceIndex = $fieldIndexes[$position];
-        $expected = strtolower((string) ($field["name"] ?? ""));
+        $expected = strtolower($field["name"]);
         $actual = strtolower(trim((string) ($row[$sourceIndex] ?? "")));
         if ($expected !== "" && $expected === $actual) {
             $matches++;
@@ -1264,7 +1264,7 @@ function restoreConvertCsvValue(mixed $raw, array $field, array $targetcolumn): 
             ) ?? "text")
         )
     );
-    $sqltype = strtolower((string) ($targetcolumn["type"] ?? ""));
+    $sqltype = strtolower($targetcolumn["type"]);
 
     if ($raw === "") {
         return restoreConvertEmptyCsvValue($field, $type, $sqltype);
@@ -1533,8 +1533,8 @@ function restoreIsIgnoredMoodledataPath(string $relative): bool {
 function runMoodleCliAfterRestore(array $target, string $command): void {
     $php = (string) ($target["php_bin"] ?? "/usr/bin/php");
     $user = (string) ($target["apache_user"] ?? "apache");
-    $moodledir = rtrim((string) ($target["moodle_dir"] ?? ""), "/");
-    $webroot = rtrim((string) ($target["webroot"] ?? ""), "/");
+    $moodledir = rtrim($target["moodle_dir"], "/");
+    $webroot = rtrim($target["webroot"], "/");
 
     $parts = preg_split('/\s+/', trim($command), 2) ?: [];
     $script = $parts[0] ?? "";
@@ -1575,15 +1575,15 @@ function runMoodleCliAfterRestore(array $target, string $command): void {
  * @return void
  */
 function restoreFixPermissions(array $target): void {
-    $base = (string) ($target["base_dir"] ?? "");
+    $base = $target["base_dir"];
     if ($base === "" || !is_dir($base)) {
         return;
     }
     $user = (string) ($target["apache_user"] ?? "apache");
     $group = (string) ($target["apache_group"] ?? "apache");
-    $moodle = (string) ($target["moodle_dir"] ?? "");
-    $dataroot = (string) ($target["dataroot"] ?? "");
-    $configfile = (string) ($target["config_file"] ?? "");
+    $moodle = $target["moodle_dir"];
+    $dataroot = $target["dataroot"];
+    $configfile = $target["config_file"];
     $logs = rtrim($base, "/") . "/logs";
 
     exec("chown -R " . escapeshellarg("{$user}:{$group}") . " " . escapeshellarg($base));
@@ -1614,9 +1614,9 @@ function restoreFixPermissions(array $target): void {
  * @return PDO
  */
 function restorePdo(array $target): PDO {
-    $dbname = (string) ($target["dbname"] ?? "");
-    $user = (string) ($target["dbuser"] ?? "");
-    $pass = (string) ($target["dbpass"] ?? "");
+    $dbname = $target["dbname"];
+    $user = $target["dbuser"];
+    $pass = $target["dbpass"];
     $host = (string) ($target["dbhost"] ?? "localhost");
     if ($dbname === "" || $user === "") {
         throw new RuntimeException("Database credentials are missing for restore.");
@@ -1825,7 +1825,7 @@ function restoreEnsureMoodleConfigVersion(array $target, ?string $manifestfile =
     if ($version === "") {
         $source = "target_version_file";
         $versioninfo = restoreReadMoodleVersionFile($target);
-        $version = (string) ($versioninfo["version"] ?? "");
+        $version = $versioninfo["version"];
     }
 
     if ($version === "") {
@@ -1895,8 +1895,8 @@ function restoreReadBackupMoodleVersion(?string $manifestfile): string {
  * @return array
  */
 function restoreReadMoodleVersionFile(array $target): array {
-    $moodledir = rtrim((string) ($target["moodle_dir"] ?? ""), "/");
-    $webroot = rtrim((string) ($target["webroot"] ?? ""), "/");
+    $moodledir = rtrim($target["moodle_dir"], "/");
+    $webroot = rtrim($target["webroot"], "/");
     $candidates = array_unique(array_filter([
         "{$moodledir}/version.php",
         "{$webroot}/version.php",

@@ -35,10 +35,10 @@ $nextloginpassword = "";
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
     validate_csrf();
 
-    $action = (string) ($_POST["action"] ?? "");
+    $action = $_POST["action"];
     if ($action === "save_url") {
         $step = 1;
-        $baseurl = trim((string) ($_POST["base_url"] ?? ""));
+        $baseurl = trim($_POST["base_url"]);
         try {
             $baseurl = PanelConfigManager::normalizeBaseUrl($baseurl);
             $_SESSION["onboarding"]["base_url"] = $baseurl;

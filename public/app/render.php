@@ -19,7 +19,7 @@ function render_header(string $title): void {
     $currentlanguage = I18n::currentMeta();
     $hasupdate = $hasuser && AppUpdater::hasCachedUpdate();
     $bodyclasses = [$hasuser ? "has-sidebar" : "auth-page"];
-    if (basename((string) ($_SERVER["SCRIPT_NAME"] ?? "")) === "onboarding.php") {
+    if (basename($_SERVER["SCRIPT_NAME"]) === "onboarding.php") {
         $bodyclasses[] = "onboarding-page";
     }
     if ($hasupdate) {
@@ -53,7 +53,7 @@ function render_navigation_items(): array {
         "url" => "/",
         "label" => t("index.title"),
         "icon" => "S",
-        "active_on" => ["index.php", "details.php", "logs.php"],
+        "active_on" => ["index.php", "details.php"],
     ];
     $items[] = [
         "url" => "/app_manager.php",
