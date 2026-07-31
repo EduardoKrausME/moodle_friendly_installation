@@ -22,7 +22,6 @@ require_once __DIR__ . "/Validator.php";
 require_once __DIR__ . "/JobManager.php";
 require_once __DIR__ . "/SiteManager.php";
 require_once __DIR__ . "/ResourceUsageManager.php";
-require_once __DIR__ . "/LogManager.php";
 require_once __DIR__ . "/ServerControlManager.php";
 require_once __DIR__ . "/AppManager.php";
 require_once __DIR__ . "/AppUpdater.php";
@@ -123,7 +122,7 @@ function now_iso(): string {
 }
 
 if (PHP_SAPI != "cli") {
-    $scriptname = basename((string) ($_SERVER["SCRIPT_NAME"] ?? ""));
+    $scriptname = basename($_SERVER["SCRIPT_NAME"]);
     $requiresinitialsetup = PanelConfigManager::requiresInitialSetup()
         && Auth::hasInitialAdminCredentials();
 
