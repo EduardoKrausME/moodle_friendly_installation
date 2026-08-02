@@ -6,9 +6,13 @@ log() {
 }
 
 log "Creating base directories"
-mkdir -p "{{BASE_DIR}}" "{{BASE_DIR}}/moodledata"
+mkdir -p "{{BASE_DIR}}" "{{BASE_DIR}}/moodledata" "{{BASE_DIR}}/logs"
+touch "{{BASE_DIR}}/logs/nginx-access.log"
+chown -R "{{APACHE_USER}}:{{APACHE_GROUP}}" "{{BASE_DIR}}/logs"
 chmod 0777 "{{BASE_DIR}}"
 chmod 0777 "{{BASE_DIR}}/moodledata"
+chmod 0750 "{{BASE_DIR}}/logs"
+chmod 0640 "{{BASE_DIR}}/logs/"*.log
 
 if [ -e "{{BASE_DIR}}/moodle" ] && [ ! -d "{{BASE_DIR}}/moodle/.git" ]; then
     echo "{{BASE_DIR}}/moodle exists but is not a git checkout" >&2
@@ -145,6 +149,8 @@ log "Fixing owner and permissions"
 chown -R "{{APACHE_USER}}:{{APACHE_GROUP}}" "{{BASE_DIR}}"
 find "{{BASE_DIR}}/moodle"     -type d -exec chmod 0755 {} +
 find "{{BASE_DIR}}/moodledata" -type d -exec chmod 0755 {} +
+chmod 0750 "{{BASE_DIR}}/logs"
+chmod 0640 "{{BASE_DIR}}/logs/"*.log
 
 log "Creating Moodle cron"
 cat > "{{CRON_FILE}}" <<EOF
