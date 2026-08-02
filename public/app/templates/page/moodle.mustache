@@ -1,0 +1,54 @@
+<section class="page-title">
+    <div>
+        <h1>{{i18n.moodle.heading}}</h1>
+        <p>{{i18n.moodle.intro}}</p>
+    </div>
+    <div style="display:grid;gap:12px;">
+        <a class="button" href="/install.php">{{i18n.actions.install_moodle}}</a>
+        <form action="/phpmyadmin-signon.php" method="post" target="_blank">
+            <input type="hidden" name="csrf_token" value="{{csrf_token}}">
+            <button class="button" type="submit">{{i18n.actions.open_phpmyadmin}}</button>
+        </form>
+    </div>
+</section>
+
+{{#has_flash}}
+    <div class="alert ok">{{flash}}</div>
+{{/has_flash}}
+
+{{^has_sites}}
+    <div class="card empty-state">
+        <div class="empty-icon">+</div>
+        <h2>{{i18n.moodle.empty_heading}}</h2>
+        <p>{{i18n.moodle.empty_intro}}</p>
+        <a class="button" href="/install.php">{{i18n.actions.install_first_moodle}}</a>
+    </div>
+{{/has_sites}}
+
+{{#has_sites}}
+    <section class="site-grid">
+        {{#sites}}
+            <article class="site-card">
+                <div class="site-card-header">
+                    <div>
+                        <h2>{{site_fullname}} - {{domain}}</h2>
+                    </div>
+                    {{{status_badge}}}
+                </div>
+                <dl class="site-meta">
+                    <div>
+                        <dt>{{i18n.moodle.branch}}</dt>
+                        <dd>{{moodle_branch}}</dd>
+                    </div>
+                    {{#has_resource_usage}}
+                        <div>
+                            <dt>{{i18n.resources.site_total}}</dt>
+                            <dd>{{resource_usage}}</dd>
+                        </div>
+                    {{/has_resource_usage}}
+                </dl>
+                <a class="button secondary" href="{{details_url}}">{{details_label}}</a>
+            </article>
+        {{/sites}}
+    </section>
+{{/has_sites}}
