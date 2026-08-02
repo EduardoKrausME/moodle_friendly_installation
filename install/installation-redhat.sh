@@ -1135,6 +1135,9 @@ configure_apache_remoteip() {
     log "Configuring Apache RemoteIP"
     mkdir -p /etc/apache/conf.d
     cp "${INSTALL_DIR}/install/apache/conf.d/remoteip.conf" /etc/httpd/conf.d/remoteip.conf
+
+    mv /etc/httpd/conf.d/welcome.conf   /etc/httpd/conf.d/welcome.conf.disabled
+    mv /etc/httpd/conf.d/autoindex.conf /etc/httpd/conf.d/autoindex.conf.disabled
 }
 
 configure_apache_port() {
