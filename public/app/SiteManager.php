@@ -118,7 +118,8 @@ class SiteManager {
                     PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
                     PDO::ATTR_EMULATE_PREPARES => false,
                 ]);
-                $row = $pdo->query("SELECT fullname, shortname FROM mdl_course WHERE id = 1")->fetch();
+                $coursetable = self::databaseTable($configsite, "course");
+                $row = $pdo->query("SELECT fullname, shortname FROM {$coursetable} WHERE id = 1")->fetch();
                 if (is_array($row)) {
                     $identity = [
                         "fullname" => trim($row["fullname"]),
@@ -770,20 +771,26 @@ class SiteManager {
                 ]);
 
                 $items = [
-                    "users" => self::countQuery($pdo, "SELECT COUNT(*) FROM mdl_user WHERE deleted = 0 AND id > 1"),
-                    "courses" => self::countQuery($pdo, "SELECT COUNT(*) FROM mdl_course WHERE id > 1"),
+                    "users" => self::countQuery(
+                        $pdo,
+                        "SELECT COUNT(*) FROM " . self::databaseTable($configsite, "user") . " WHERE deleted = 0 AND id > 1"
+                    ),
+                    "courses" => self::countQuery(
+                        $pdo,
+                        "SELECT COUNT(*) FROM " . self::databaseTable($configsite, "course") . " WHERE id > 1"
+                    ),
                     "enrolments" => self::countQuery(
                         $pdo,
                         "SELECT COUNT(*)
-                       FROM mdl_user_enrolments ue
-                       JOIN mdl_enrol e ON e.id = ue.enrolid
+                       FROM " . self::databaseTable($configsite, "user_enrolments") . " ue
+                       JOIN " . self::databaseTable($configsite, "enrol") . " e ON e.id = ue.enrolid
                       WHERE e.courseid > 1"
                     ),
                     "active_enrolments" => self::countQuery(
                         $pdo,
                         "SELECT COUNT(*)
-                       FROM mdl_user_enrolments ue
-                       JOIN mdl_enrol e ON e.id = ue.enrolid
+                       FROM " . self::databaseTable($configsite, "user_enrolments") . " ue
+                       JOIN " . self::databaseTable($configsite, "enrol") . " e ON e.id = ue.enrolid
                       WHERE e.courseid > 1 AND ue.status = 0 AND e.status = 0"
                     ),
                 ];
@@ -816,7 +823,22 @@ class SiteManager {
      * @return int
      */
     private static function countQuery(PDO $pdo, string $sql): int {
-        return $pdo->query($sql)->fetchColumn();
+        return (int) $pdo->query($sql)->fetchColumn();
+    }
+
+    /**
+     * Returns a safely quoted Moodle table name using the configured prefix.
+     *
+     * @param array $configsite
+     * @param string $table
+     * @return string
+     */
+    private static function databaseTable(array $configsite, string $table): string {
+        $prefix = (string) ($configsite["prefix"] ?? "mdl_");
+        if (!preg_match('/^[A-Za-z0-9_]+$/', $prefix)) {
+            $prefix = "mdl_";
+        }
+        return "`{$prefix}{$table}`";
     }
 
     /**

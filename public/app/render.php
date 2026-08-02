@@ -51,59 +51,55 @@ function render_navigation_items(): array {
 
     $items[] = [
         "url" => "/",
-        "label" => t("index.title"),
-        "icon" => "S",
-        "active_on" => ["index.php", "details.php"],
+        "label" => t("dashboard.navigation"),
+        "icon" => "dashboard",
+        "active_on" => ["index.php"],
+    ];
+    $items[] = [
+        "url" => "/moodle.php",
+        "label" => t("moodle.navigation"),
+        "icon" => "database",
+        "active_on" => ["moodle.php", "details.php"],
+    ];
+    $items[] = [
+        "url" => "/install.php",
+        "label" => t("navigation.install_moodle"),
+        "icon" => "install",
+        "active_on" => ["install.php"],
     ];
     $items[] = [
         "url" => "/app_manager.php",
         "label" => t("app_manager.list_heading"),
-        "icon" => "A",
+        "icon" => "mobile",
         "active_on" => ["app_manager.php"],
     ];
-    if ($current == "install.php") {
-        $items[] = [
-            "url" => "/install.php",
-            "label" => t("navigation.install_moodle"),
-            "icon" => "+",
-            "active_on" => ["install.php"],
-        ];
-    }
     $items[] = [
         "url" => "/jobs.php",
         "label" => t("jobs.title"),
-        "icon" => "F",
+        "icon" => "jobs",
         "active_on" => ["jobs.php"],
     ];
     $items[] = [
         "url" => "/users.php",
         "label" => t("users.title"),
-        "icon" => "U",
+        "icon" => "users",
         "active_on" => ["users.php"],
     ];
     $items[] = [
         "url" => "/configuration.php",
         "label" => t("configuration.title"),
-        "icon" => "C",
+        "icon" => "settings",
         "active_on" => ["configuration.php"],
     ];
     if (AppUpdater::hasCachedUpdate() || $current == "update.php") {
         $items[] = [
             "url" => "/update.php",
             "label" => t("updater.title"),
-            "icon" => "↑",
+            "icon" => "update",
             "active_on" => ["update.php"],
             "extra_class" => AppUpdater::hasCachedUpdate() ? "update-link" : "",
         ];
     }
-    $items[] = [
-        "url" => "/logout.php",
-        "label" => t("navigation.logout"),
-        "icon" => "×",
-        "active_on" => [],
-        "extra_class" => "logout-link",
-    ];
-
     foreach ($items as $index => $item) {
         $classes = ["side-nav-link"];
         if (in_array($current, $item["active_on"], true)) {

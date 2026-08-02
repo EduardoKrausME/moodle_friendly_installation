@@ -10,11 +10,7 @@
         {{/has_site_identity}}
     </div>
     <div style="display:grid;gap:12px;">
-        <a class="button secondary" href="/">{{i18n.actions.back_to_sites}}</a>
-        <form action="/phpmyadmin-signon.php" method="post" target="_blank">
-            <input type="hidden" name="csrf_token" value="{{csrf_token}}">
-            <button class="button" type="submit">Abrir phpMyAdmin</button>
-        </form>
+        <a class="button secondary" href="/moodle.php">{{i18n.actions.back_to_sites}}</a>
     </div>
 </section>
 
@@ -26,7 +22,7 @@
 {{#app_exist}}
     <div>
 {{/app_exist}}
-    <div class="card hero-card">
+    <div class="card hero-card inverse">
         <div>
             <div class="flag-header">
                 <h2>{{i18n.details.shortcuts_heading}}</h2>
@@ -47,7 +43,12 @@
                     <a class="button secondary" href="{{sso_url}}" target="_blank"
                        rel="noopener">{{i18n.actions.access_admin}}</a>
                 {{/sso_url}}
-                <button type="button" class="button danger" id="open-disable-moodle-dialog">
+                <form action="/phpmyadmin-signon.php" method="post" target="_blank">
+                    <input type="hidden" name="csrf_token" value="{{csrf_token}}">
+                    <button class="button" type="submit">{{i18n.dashboard.open_phpmyadmin}}</button>
+                </form>
+                <button type="button" class="button danger" id="open-disable-moodle-dialog"
+                        style="margin-left: auto;">
                     {{i18n.actions.disable_moodle}}
                 </button>
             {{/moodle_is_enabled}}
@@ -62,7 +63,7 @@
         </div>
     </div>
 
-    {{#moodle_is_enabled}}
+{{#moodle_is_enabled}}
         <dialog class="moodle-disable-dialog" id="disable-moodle-dialog">
             <form method="post" class="form">
                 <input type="hidden" name="csrf_token" value="{{moodle_status_csrf_token}}">
@@ -85,7 +86,7 @@
                 </div>
             </form>
         </dialog>
-    {{/moodle_is_enabled}}
+{{/moodle_is_enabled}}
 
 {{#app_exist}}
         <div class="card hero-card">
@@ -201,7 +202,8 @@
                             <input type="hidden" name="action" value="server_control">
                             <input type="hidden" name="control" value="{{key}}">
                             <input type="hidden" name="enabled" value="{{enabled_value}}">
-                            <button type="submit" class="{{button_class}}" {{#has_active_job}}disabled{{/has_active_job}}>
+                            <button type="submit" class="{{button_class}}"
+                                    {{#has_active_job}}disabled{{/has_active_job}}>
                                 {{button_label}}
                             </button>
                         </form>

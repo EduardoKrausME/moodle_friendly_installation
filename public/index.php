@@ -1,21 +1,31 @@
 <?php
 
 use app\Auth;
+use app\DashboardManager;
 use app\ResourceUsageManager;
 use app\SiteManager;
 
 require_once __DIR__ . "/app/bootstrap.php";
 Auth::requireLogin();
 
-$formatpercentage = static function(float $value): string {
-    return number_format($value, 1, t("decimal_separator"), t("thousands_separator")) . "%";
-};
+$refresh = filter_input(INPUT_GET, "refresh", FILTER_VALIDATE_BOOL) === true;
+$dashboard = DashboardManager::collect(SiteManager::all(), $refresh);
+$flash = flash_message();
+
+foreach ($dashboard["sites"] as $index => $site) {
+    $dashboard["sites"][$index]["health_badge"] = status_badge(
+        (string) $site["health_status"],
+        (string) $site["health_label"]
+    );
+}
 
 $diskpath = app_config("base_dir");
 if (!is_string($diskpath) || !is_dir($diskpath)) {
     $diskpath = __DIR__;
 }
-
+$formatpercentage = static function(float $value): string {
+    return number_format($value, 1, t("decimal_separator"), t("thousands_separator")) . "%";
+};
 $disktotal = @disk_total_space($diskpath);
 $diskfree = @disk_free_space($diskpath);
 $hasdiskdata = is_float($disktotal) && $disktotal > 0 && is_float($diskfree);
@@ -72,74 +82,43 @@ if (is_readable("/proc/uptime")) {
 }
 
 $unknownvalue = t("server.unavailable");
-$serveroverview = [
-    "disk" => [
-        "has_data" => $hasdiskdata,
-        "used" => $hasdiskdata ? ResourceUsageManager::formatBytes((int) $diskused) : $unknownvalue,
-        "total" => $hasdiskdata ? ResourceUsageManager::formatBytes((int) $disktotal) : $unknownvalue,
-        "free" => $hasdiskdata ? ResourceUsageManager::formatBytes((int) $diskfree) : $unknownvalue,
-        "percent" => $hasdiskdata ? $formatpercentage($diskpercent) : $unknownvalue,
-        "percent_raw" => round($diskpercent, 1),
-    ],
-    "memory" => [
-        "has_data" => $hasmemorydata,
-        "used" => $hasmemorydata ? ResourceUsageManager::formatBytes($memoryused) : $unknownvalue,
-        "total" => $hasmemorydata ? ResourceUsageManager::formatBytes($memorytotal) : $unknownvalue,
-        "available" => $hasmemorydata ? ResourceUsageManager::formatBytes($memoryavailable) : $unknownvalue,
-        "percent" => $hasmemorydata ? $formatpercentage($memorypercent) : $unknownvalue,
-        "percent_raw" => round($memorypercent, 1),
-    ],
-    "load" => [
-        "has_data" => $hasloaddata,
-        "one" => $hasloaddata ? number_format((float) $loadaverages[0], 2, t("decimal_separator"), "") : $unknownvalue,
-        "five" => $hasloaddata ? number_format((float) $loadaverages[1], 2, t("decimal_separator"), "") : $unknownvalue,
-        "fifteen" => $hasloaddata ? number_format((float) $loadaverages[2], 2, t("decimal_separator"), "") : $unknownvalue,
-        "cpu_cores" => $cpucores > 0 ? (string) $cpucores : $unknownvalue,
-    ],
-    "environment" => [
-        "php_version" => PHP_VERSION,
-        "php_sapi" => PHP_SAPI,
-        "operating_system" => trim(php_uname("s") . " " . php_uname("r")),
-        "uptime" => $uptime,
-    ],
-];
 
-$sites = array_map(static function(array $site): array {
-    $domain = $site["domain"] ?? "";
-    $installationcomplete = !empty($site["installation_complete"]);
-    $resources = $installationcomplete ? ResourceUsageManager::snapshot($domain) : [];
-    $identity = $installationcomplete
-        ? SiteManager::courseIdentity($site)
-        : ["fullname" => "", "shortname" => "", "available" => false];
-
-    return [
-        "domain" => $domain,
-        "has_site_identity" => !empty($identity["available"]),
-        "site_fullname" => $identity["fullname"] ?? "",
-        "site_shortname" => $identity["shortname"] ?? "",
-        "webroot" => $site["webroot"] ?? "",
-        "moodle_branch" => $site["moodle_branch"] ?? "",
-        "details_url" => $installationcomplete
-            ? "/details.php?domain=" . rawurlencode($domain)
-            : ($site["installation_job_url"] ?? "/jobs.php"),
-        "details_label" => t($installationcomplete ? "actions.view_details" : "jobs.open_job"),
-        "status_badge" => status_badge((string) ($site["status"] ?? "active")),
-        "has_resource_usage" => !empty($resources),
-        "resource_usage" => !empty($resources)
-            ? ResourceUsageManager::formatBytes((int) ($resources["total_bytes"] ?? 0))
-            : "",
-    ];
-}, SiteManager::all());
-
-$flash = flash_message();
-
-render_header(t("index.title"));
+render_header(t("dashboard.title"));
 echo render_app_template("page/index", [
+    "dashboard" => $dashboard,
     "flash" => $flash,
-    "has_flash" => $flash != null && $flash != "",
-    "server" => $serveroverview,
-    "has_sites" => !empty($sites),
-    "sites" => $sites,
+    "has_flash" => $flash !== null && $flash !== "",
     "csrf_token" => csrf_token(),
+    "server" => [
+        "disk" => [
+            "has_data" => $hasdiskdata,
+            "used" => $hasdiskdata ? ResourceUsageManager::formatBytes((int) $diskused) : $unknownvalue,
+            "total" => $hasdiskdata ? ResourceUsageManager::formatBytes((int) $disktotal) : $unknownvalue,
+            "free" => $hasdiskdata ? ResourceUsageManager::formatBytes((int) $diskfree) : $unknownvalue,
+            "percent" => $hasdiskdata ? $formatpercentage($diskpercent) : $unknownvalue,
+            "percent_raw" => round($diskpercent, 1),
+        ],
+        "memory" => [
+            "has_data" => $hasmemorydata,
+            "used" => $hasmemorydata ? ResourceUsageManager::formatBytes($memoryused) : $unknownvalue,
+            "total" => $hasmemorydata ? ResourceUsageManager::formatBytes($memorytotal) : $unknownvalue,
+            "available" => $hasmemorydata ? ResourceUsageManager::formatBytes($memoryavailable) : $unknownvalue,
+            "percent" => $hasmemorydata ? $formatpercentage($memorypercent) : $unknownvalue,
+            "percent_raw" => round($memorypercent, 1),
+        ],
+        "load" => [
+            "has_data" => $hasloaddata,
+            "one" => $hasloaddata ? number_format((float) $loadaverages[0], 2, t("decimal_separator"), "") : $unknownvalue,
+            "five" => $hasloaddata ? number_format((float) $loadaverages[1], 2, t("decimal_separator"), "") : $unknownvalue,
+            "fifteen" => $hasloaddata ? number_format((float) $loadaverages[2], 2, t("decimal_separator"), "") : $unknownvalue,
+            "cpu_cores" => $cpucores > 0 ? (string) $cpucores : $unknownvalue,
+        ],
+        "environment" => [
+            "php_version" => PHP_VERSION,
+            "php_sapi" => PHP_SAPI,
+            "operating_system" => trim(php_uname("s") . " " . php_uname("r")),
+            "uptime" => $uptime,
+        ],
+    ],
 ]);
 render_footer();
