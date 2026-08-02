@@ -1085,8 +1085,6 @@ validate_database_version() {
 install_web_servers() {
     log "Installing Apache, NGINX and Certbot"
     pkg_install httpd nginx certbot python3-certbot-nginx || pkg_install httpd nginx certbot
-    pkg_install mod_security || warn "ModSecurity package was not installed. The panel will show the control as unavailable."
-    pkg_install mod_security_crs || warn "ModSecurity CRS package was not installed."
 }
 
 install_bundled_nginx_files() {
