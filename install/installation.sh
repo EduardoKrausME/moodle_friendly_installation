@@ -174,8 +174,8 @@ main() {
     installer="$(detect_installer)"
 
     clone_project
-    run_family_installer "${installer}"
     install_letsencrypt_renew_cron
+    run_family_installer "${installer}"
 }
 
 main "$@"
