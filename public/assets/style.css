@@ -910,11 +910,9 @@ body.auth-page.onboarding-page {
   padding: 28px 0;
 }
 .onboarding-hero {
+  display: block;
+  text-align: center;
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(239, 246, 255, 0.92)), radial-gradient(circle at top right, rgba(37, 99, 235, 0.24), transparent 24rem);
-}
-
-.onboarding-hero > div {
-  max-width: 650px;
 }
 
 .setup-badge {
@@ -933,8 +931,7 @@ body.auth-page.onboarding-page {
 
 .setup-progress {
   display: grid;
-  grid-template-columns: repeat(2, minmax(130px, 1fr));
-  width: min(390px, 100%);
+  grid-template-columns: repeat(3, minmax(130px, 1fr));
   margin: 0;
   padding: 0;
   list-style: none;
@@ -1007,9 +1004,6 @@ body.auth-page.onboarding-page {
 .setup-guide-inline {
   display: grid;
   gap: 18px;
-  margin-top: 4px;
-  border-top: 1px solid var(--line);
-  padding-top: 22px;
 }
 
 .setup-step-actions {
