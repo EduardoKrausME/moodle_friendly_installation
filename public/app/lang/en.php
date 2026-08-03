@@ -59,6 +59,7 @@ return [
         "open_moodle" => "Open Moodle",
         "access_admin" => "Access as Administrator",
         "manage_app" => "Manage APP",
+        "preview_app" => "Preview APP",
         "download" => "Download",
         "install_moodle" => "Install Moodle",
         "install_first_moodle" => "Install first Moodle",

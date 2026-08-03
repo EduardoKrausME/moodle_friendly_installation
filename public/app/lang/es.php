@@ -59,6 +59,7 @@ return [
         "open_moodle" => "Abrir Moodle",
         "access_admin" => "Acceder como Administrador",
         "manage_app" => "Gestionar APP",
+        "preview_app" => "Pré-visualizar APP",
         "download" => "Descargar",
         "install_moodle" => "Instalar Moodle",
         "install_first_moodle" => "Instalar primer Moodle",

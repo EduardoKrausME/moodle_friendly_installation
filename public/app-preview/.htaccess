@@ -1,0 +1,6 @@
+DirectoryIndex index.php
+Options -Indexes -MultiViews
+
+RewriteEngine On
+RewriteRule ^(?:index|preview)\.php$ - [L]
+RewriteRule ^(.*)$ index.php?asset=$1 [QSA,L]

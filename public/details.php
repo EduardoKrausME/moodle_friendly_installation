@@ -134,6 +134,9 @@ function details_page_context(
         "sso_url" => $site["sso_url"] ?? "",
         "app_exist" => file_exists("../app-MoodleMobile-V2/config.xml"),
         "app_manage_url" => "/app_manager.php?domain=" . urlencode($domain),
+        "app_preview_url" => "/app-preview/preview.php?package_name=" . urlencode($appsettings["package_name"]) .
+            "&wwwroot=" . urlencode($config["wwwroot"]) .
+            "&domain=" . urlencode($domain),
         "app_package_uid" => $appsettings["package_uid"] ?? "",
         "app_package_name" => $appsettings["package_name"] ?? "",
         "app_has_files" => !empty($appfiles),
@@ -213,30 +216,28 @@ function details_resource_usage(array $snapshot, ?array $activejob): array {
 
     $items = [
         [
-            "label" => t("resources.moodle_code"), "value" => ResourceUsageManager::formatBytes(
-            (int) ($snapshot["moodle_code_bytes"] ?? 0)
-        ),
+            "label" => t("resources.moodle_code"), "value" =>
+            ResourceUsageManager::formatBytes((int) ($snapshot["moodle_code_bytes"] ?? 0)),
         ],
         [
-            "label" => t("resources.moodledata"), "value" => ResourceUsageManager::formatBytes(
-            (int) ($snapshot["moodledata_bytes"] ?? 0)
-        ),
+            "label" => t("resources.moodledata"), "value" =>
+            ResourceUsageManager::formatBytes((int) ($snapshot["moodledata_bytes"] ?? 0)),
         ],
         [
-            "label" => t("resources.database"), "value" => ResourceUsageManager::formatBytes(
-            (int) ($snapshot["database_bytes"] ?? 0)
-        ),
-        ],
-        ["label" => t("resources.site_total"), "value" => ResourceUsageManager::formatBytes((int) ($snapshot["total_bytes"] ?? 0))],
-        [
-            "label" => t("resources.server_used"), "value" => ResourceUsageManager::formatBytes(
-            (int) ($snapshot["filesystem_used_bytes"] ?? 0)
-        ),
+            "label" => t("resources.database"), "value" =>
+            ResourceUsageManager::formatBytes((int) ($snapshot["database_bytes"] ?? 0)),
         ],
         [
-            "label" => t("resources.server_free"), "value" => ResourceUsageManager::formatBytes(
-            (int) ($snapshot["filesystem_free_bytes"] ?? 0)
-        ),
+            "label" => t("resources.site_total"), "value" =>
+            ResourceUsageManager::formatBytes((int) ($snapshot["total_bytes"] ?? 0)),
+        ],
+        [
+            "label" => t("resources.server_used"), "value" =>
+            ResourceUsageManager::formatBytes((int) ($snapshot["filesystem_used_bytes"] ?? 0)),
+        ],
+        [
+            "label" => t("resources.server_free"), "value" =>
+            ResourceUsageManager::formatBytes((int) ($snapshot["filesystem_free_bytes"] ?? 0)),
         ],
     ];
 
