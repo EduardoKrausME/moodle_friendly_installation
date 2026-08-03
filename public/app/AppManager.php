@@ -568,7 +568,11 @@ class AppManager {
     public static function storageDir(string $domain): string {
         $domain = preg_replace('/[^a-z0-9.-]+/', "-", strtolower(trim($domain)));
         $domain = trim($domain, ".-");
-        return app_config_path("/data/{$domain}");
+        $path = app_config_path("/data/{$domain}");
+        if (!file_exists($path)) {
+            @mkdir($path, 0777, true);
+        }
+        return $path;
     }
 
     /**
