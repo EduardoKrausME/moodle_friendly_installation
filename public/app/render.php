@@ -61,18 +61,22 @@ function render_navigation_items(): array {
         "icon" => "database",
         "active_on" => ["moodle.php", "details.php"],
     ];
-    $items[] = [
-        "url" => "/install.php",
-        "label" => t("navigation.install_moodle"),
-        "icon" => "install",
-        "active_on" => ["install.php"],
-    ];
-    $items[] = [
-        "url" => "/app_manager.php",
-        "label" => t("app_manager.list_heading"),
-        "icon" => "mobile",
-        "active_on" => ["app_manager.php"],
-    ];
+    if ($current == "install.php") {
+        $items[] = [
+            "url" => "/install.php",
+            "label" => t("navigation.install_moodle"),
+            "icon" => "install",
+            "active_on" => ["install.php"],
+        ];
+    }
+    if (file_exists("../app-MoodleMobile-V2/config.xml")) {
+        $items[] = [
+            "url" => "/app_manager.php",
+            "label" => t("app_manager.list_heading"),
+            "icon" => "mobile",
+            "active_on" => ["app_manager.php"],
+        ];
+    }
     $items[] = [
         "url" => "/jobs.php",
         "label" => t("jobs.title"),
