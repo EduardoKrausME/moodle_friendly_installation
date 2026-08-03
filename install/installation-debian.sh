@@ -1223,8 +1223,10 @@ configure_apache_remoteip() {
     cp "${INSTALL_DIR}/install/apache/conf.d/remoteip.conf" /etc/apache2/conf-available/remoteip.conf
 
     a2dissite 000-default.conf
-    a2disconf welcome
-    a2dismod autoindex
+    if a2query -c welcome >/dev/null 2>&1; then
+        a2disconf welcome
+    fi
+    a2dismod -f -q autoindex || true
 }
 
 configure_apache_port() {
