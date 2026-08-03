@@ -151,8 +151,6 @@ run_family_installer() {
 }
 
 install_letsencrypt_renew_cron() {
-    command_exists certbot || die "Certbot was not found after the installation."
-
     local cron_file="/etc/cron.d/moodle-friendly-installation-certbot"
     log "Creating the Let's Encrypt renewal cron in ${cron_file}"
 
