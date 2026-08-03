@@ -216,15 +216,6 @@ class PanelConfigManager {
         }
 
         $scheme = "http";
-        $forwardedproto = strtolower(trim(explode(",", $_SERVER["HTTP_X_FORWARDED_PROTO"])[0]));
-        $https = strtolower($_SERVER["HTTPS"]);
-        if ($forwardedproto === "https"
-            || ($https !== "" && $https !== "off" && $https !== "0")
-            || (int) ($_SERVER["SERVER_PORT"] ?? 0) === 443
-        ) {
-            $scheme = "https";
-        }
-
         try {
             return self::normalizeBaseUrl("{$scheme}://{$host}");
         } catch (\Throwable) {
@@ -257,7 +248,7 @@ class PanelConfigManager {
 
         $scheme = strtolower($parts["scheme"]);
         $host = strtolower(rtrim($parts["host"], "."));
-        $path = $parts["path"];
+        $path = $parts["path"] ?? "";
         $port = isset($parts["port"]) ? (int) $parts["port"] : null;
 
         if (!in_array($scheme, ["http", "https"], true)
