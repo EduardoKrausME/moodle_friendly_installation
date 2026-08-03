@@ -12,6 +12,7 @@
 
     {{#moodle_config_test_valid}}
         <div class="alert ok compact-alert">{{i18n.app_manager.moodle_config_ok}}</div>
+        <a class="button" href="{{app_preview_url}}" target="_blank">{{i18n.actions.preview_app}}</a>
     {{/moodle_config_test_valid}}
 
     {{#has_moodle_config_test_error}}

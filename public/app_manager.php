@@ -184,6 +184,9 @@ echo render_app_template("page/app-manager", [
     "domain" => $domain,
     "moodle_url" => $site["url"] ?? "",
     "back_url" => "/details.php?domain=" . urlencode($domain),
+    "app_preview_url" => "/app-preview/preview.php?package_name=" . urlencode($values["package_name"]) .
+        "&wwwroot=" . urlencode($config["wwwroot"]) .
+        "&domain=" . urlencode($domain),
     "csrf_token" => csrf_token(),
     "has_flash" => $flash != null && $flash != "",
     "flash" =>$flash,
