@@ -1012,7 +1012,39 @@ run_mysql_password() {
     MYSQL_PWD="${DB_ROOT_PASS}" "${client}" -uroot "$@"
 }
 
+configure_database_defaults() {
+    local config_dir="/etc/my.cnf.d"
+    local config_file="${config_dir}/moodle.cnf"
+    local service="${DB_SERVICE}"
+
+    log "Writing Moodle database defaults to ${config_file}"
+    mkdir -p "${config_dir}"
+    cat > "${config_file}" <<'MYSQLCNF'
+[mysqld]
+character-set-server=utf8mb4
+collation-server=utf8mb4_unicode_ci
+max_allowed_packet=256M
+innodb_file_per_table=1
+wait_timeout = 86400
+interactive_timeout = 86400
+net_read_timeout = 120
+net_write_timeout = 120
+
+[client]
+default-character-set=utf8mb4
+MYSQLCNF
+    chmod 0644 "${config_file}"
+
+    # The installer uses "mysqli" as the selected MySQL engine, while the
+    # corresponding systemd service is named "mysql".
+    if [[ "${service}" == "mysqli" ]]; then
+        service="mysql"
+    fi
+    systemctl restart "${service}" || die "Failed to restart database service ${service} after writing ${config_file}."
+}
+
 configure_database_root() {
+    configure_database_defaults
     log "Configuring the database root password"
     local pass_sql
     pass_sql="$(printf '%s' "${DB_ROOT_PASS}" | sed "s/\\\\/\\\\\\\\/g; s/'/''/g")"
