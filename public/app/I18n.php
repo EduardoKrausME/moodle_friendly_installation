@@ -6,7 +6,7 @@ namespace app;
  * Class I18n
  */
 class I18n {
-    private const string DEFAULT_LANGUAGE = "pt_br";
+    private const string DEFAULT_LANGUAGE = "en";
     private const string COOKIE_NAME = "moodle_friendly_installation_admin_lang";
 
     /** @var array<string, array<string, mixed>> */
