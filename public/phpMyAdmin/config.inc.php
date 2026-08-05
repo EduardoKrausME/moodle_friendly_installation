@@ -49,7 +49,7 @@ $cfg["Servers"][$i]["SignonSession"] = "PMA_SIGNON";
 
 $cfg["Servers"][$i]["SignonCookieParams"] = [
     "lifetime" => 0,
-    "path" => "/",
+    "path" => "/phpMyAdmin/",
     "domain" => "",
     "secure" => false,
     "httponly" => true,

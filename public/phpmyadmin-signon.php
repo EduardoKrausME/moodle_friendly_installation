@@ -1,5 +1,8 @@
 <?php
 
+error_reporting(E_ALL);
+ini_set("display_errors", "On");
+
 use app\Auth;
 
 require_once __DIR__ . "/app/bootstrap.php";
@@ -18,14 +21,16 @@ validate_csrf();
  */
 session_write_close();
 
-/*
- * Abre uma sessão exclusiva para o phpMyAdmin.
- */
 session_name("PMA_SIGNON");
+
+/*
+ * Impede o reaproveitamento do ID da sessão do painel.
+ */
+session_id("");
 
 session_set_cookie_params([
     "lifetime" => 0,
-    "path" => "/",
+    "path" => "/phpMyAdmin/",
     "domain" => "",
     "secure" => false,
     "httponly" => true,
