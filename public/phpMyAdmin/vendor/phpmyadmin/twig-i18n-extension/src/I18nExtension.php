@@ -23,17 +23,13 @@ use function gettext;
 
 class I18nExtension extends AbstractExtension
 {
-    /**
-     * {@inheritdoc}
-     */
+    /** {@inheritDoc} */
     public function getTokenParsers()
     {
         return [new TransTokenParser()];
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    /** {@inheritDoc} */
     public function getFilters()
     {
         return [
@@ -42,7 +38,7 @@ class I18nExtension extends AbstractExtension
     }
 
     /**
-     * {@inheritdoc}
+     * {@inheritDoc}
      *
      * @return string
      */

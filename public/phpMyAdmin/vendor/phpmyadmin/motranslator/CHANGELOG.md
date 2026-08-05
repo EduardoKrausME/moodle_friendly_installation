@@ -1,5 +1,14 @@
 # Change Log
 
+## [5.4.0] - 2025-03-16
+
+* Bump PHP minimum version to 7.2
+* Add support for Symfony 7
+
+## [5.3.1] - 2023-08-23
+
+* Add function guards to the global functions (#44)
+
 ## [5.3.0] - 2022-04-26
 
 * Add support for Symfony 6
@@ -98,3 +107,6 @@
 ## [0.1] -  2016-02-23
 
 * Initial release.
+
+[5.4.0]: https://github.com/phpmyadmin/motranslator/compare/5.3.1...5.4.0
+[5.3.1]: https://github.com/phpmyadmin/motranslator/compare/5.3.0...5.3.1

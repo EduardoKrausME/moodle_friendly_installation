@@ -13,20 +13,15 @@ declare(strict_types=1);
 
 namespace League\Uri;
 
+use League\Uri\Exceptions\IdnaConversionFailed;
 use League\Uri\Exceptions\IdnSupportMissing;
 use League\Uri\Exceptions\SyntaxError;
+use League\Uri\Idna\Idna;
+use Stringable;
 use function array_merge;
-use function defined;
 use function explode;
 use function filter_var;
-use function function_exists;
-use function gettype;
-use function idn_to_ascii;
-use function implode;
 use function inet_pton;
-use function is_object;
-use function is_scalar;
-use function method_exists;
 use function preg_match;
 use function rawurldecode;
 use function sprintf;
@@ -34,20 +29,6 @@ use function strpos;
 use function substr;
 use const FILTER_FLAG_IPV6;
 use const FILTER_VALIDATE_IP;
-use const IDNA_ERROR_BIDI;
-use const IDNA_ERROR_CONTEXTJ;
-use const IDNA_ERROR_DISALLOWED;
-use const IDNA_ERROR_DOMAIN_NAME_TOO_LONG;
-use const IDNA_ERROR_EMPTY_LABEL;
-use const IDNA_ERROR_HYPHEN_3_4;
-use const IDNA_ERROR_INVALID_ACE_LABEL;
-use const IDNA_ERROR_LABEL_HAS_DOT;
-use const IDNA_ERROR_LABEL_TOO_LONG;
-use const IDNA_ERROR_LEADING_COMBINING_MARK;
-use const IDNA_ERROR_LEADING_HYPHEN;
-use const IDNA_ERROR_PUNYCODE;
-use const IDNA_ERROR_TRAILING_HYPHEN;
-use const INTL_IDNA_VARIANT_UTS46;
 
 /**
  * A class to parse a URI string according to RFC3986.
@@ -102,7 +83,7 @@ final class UriString
      *
      * @link https://tools.ietf.org/html/rfc3986#section-3.1
      */
-    private const REGEXP_URI_SCHEME = '/^([a-z][a-z\d\+\.\-]*)?$/i';
+    private const REGEXP_URI_SCHEME = '/^([a-z][a-z\d+.-]*)?$/i';
 
     /**
      * IPvFuture regular expression.
@@ -164,7 +145,7 @@ final class UriString
 
     /**
      * Generate an URI string representation from its parsed representation
-     * returned by League\Uri\parse() or PHP's parse_url.
+     * returned by League\UriString::parse() or PHP's parse_url.
      *
      * If you supply your own array, you are responsible for providing
      * valid components without their URI delimiters.
@@ -172,16 +153,7 @@ final class UriString
      * @link https://tools.ietf.org/html/rfc3986#section-5.3
      * @link https://tools.ietf.org/html/rfc3986#section-7.5
      *
-     * @param array{
-     *  scheme:?string,
-     *  user:?string,
-     *  pass:?string,
-     *  host:?string,
-     *  port:?int,
-     *  path:string,
-     *  query:?string,
-     *  fragment:?string
-     * } $components
+     * @param array{scheme:?string, user:?string, pass:?string, host:?string, port:?int, path:?string, query:?string, fragment:?string} $components
      */
     public static function build(array $components): string
     {
@@ -257,35 +229,17 @@ final class UriString
      *
      * @link https://tools.ietf.org/html/rfc3986
      *
-     * @param mixed $uri any scalar or stringable object
+     * @param Stringable|string|int|float $uri any scalar or stringable object
      *
      * @throws SyntaxError if the URI contains invalid characters
      * @throws SyntaxError if the URI contains an invalid scheme
      * @throws SyntaxError if the URI contains an invalid path
      *
-     * @return array{
-     *                scheme:?string,
-     *                user:?string,
-     *                pass:?string,
-     *                host:?string,
-     *                port:?int,
-     *                path:string,
-     *                query:?string,
-     *                fragment:?string
-     *                }
+     * @return array{scheme:?string, user:?string, pass:?string, host:?string, port:?int, path:string, query:?string, fragment:?string}
      */
-    public static function parse($uri): array
+    public static function parse(Stringable|string|int|float $uri): array
     {
-        if (is_object($uri) && method_exists($uri, '__toString')) {
-            $uri = (string) $uri;
-        }
-
-        if (!is_scalar($uri)) {
-            throw new \TypeError(sprintf('The uri must be a scalar or a stringable object `%s` given', gettype($uri)));
-        }
-
         $uri = (string) $uri;
-
         if (isset(self::URI_SCHORTCUTS[$uri])) {
             /** @var array{scheme:?string, user:?string, pass:?string, host:?string, port:?int, path:string, query:?string, fragment:?string} $components */
             $components = array_merge(self::URI_COMPONENTS, self::URI_SCHORTCUTS[$uri]);
@@ -410,7 +364,7 @@ final class UriString
             return $host;
         }
 
-        if ('[' !== $host[0] || ']' !== substr($host, -1)) {
+        if ('[' !== $host[0] || !str_ends_with($host, ']')) {
             return self::filterRegisteredName($host);
         }
 
@@ -431,36 +385,8 @@ final class UriString
      */
     private static function filterRegisteredName(string $host): string
     {
-        // @codeCoverageIgnoreStart
-        // added because it is not possible in travis to disabled the ext/intl extension
-        // see travis issue https://github.com/travis-ci/travis-ci/issues/4701
-        static $idn_support = null;
-        $idn_support = $idn_support ?? function_exists('idn_to_ascii') && defined('INTL_IDNA_VARIANT_UTS46');
-        // @codeCoverageIgnoreEnd
-
         $formatted_host = rawurldecode($host);
         if (1 === preg_match(self::REGEXP_REGISTERED_NAME, $formatted_host)) {
-            if (false === strpos($formatted_host, 'xn--')) {
-                return $host;
-            }
-
-            // @codeCoverageIgnoreStart
-            if (!$idn_support) {
-                throw new IdnSupportMissing(sprintf('the host `%s` could not be processed for IDN. Verify that ext/intl is installed for IDN support and that ICU is at least version 4.6.', $host));
-            }
-            // @codeCoverageIgnoreEnd
-
-            $unicode = idn_to_utf8($host, 0, INTL_IDNA_VARIANT_UTS46, $arr);
-            if (0 !== $arr['errors']) {
-                throw new SyntaxError(sprintf('The host `%s` is invalid : %s', $host, self::getIDNAErrors($arr['errors'])));
-            }
-
-            // @codeCoverageIgnoreStart
-            if (false === $unicode) {
-                throw new IdnSupportMissing(sprintf('The Intl extension is misconfigured for %s, please correct this issue before proceeding.', PHP_OS));
-            }
-            // @codeCoverageIgnoreEnd
-
             return $host;
         }
 
@@ -469,69 +395,12 @@ final class UriString
             throw new SyntaxError(sprintf('Host `%s` is invalid : the host is not a valid registered name', $host));
         }
 
-        // @codeCoverageIgnoreStart
-        if (!$idn_support) {
-            throw new IdnSupportMissing(sprintf('the host `%s` could not be processed for IDN. Verify that ext/intl is installed for IDN support and that ICU is at least version 4.6.', $host));
-        }
-        // @codeCoverageIgnoreEnd
-
-        $retval = idn_to_ascii($formatted_host, 0, INTL_IDNA_VARIANT_UTS46, $arr);
-
-        if ([] === $arr) {
-            throw new SyntaxError(sprintf('Host `%s` is not a valid IDN host', $host));
-        }
-
-        if (0 !== $arr['errors']) {
-            throw new SyntaxError(sprintf('Host `%s` is not a valid IDN host : %s', $host, self::getIDNAErrors($arr['errors'])));
-        }
-
-        // @codeCoverageIgnoreStart
-        if (false === $retval) {
-            throw new IdnSupportMissing(sprintf('The Intl extension is misconfigured for %s, please correct this issue before proceeding.', PHP_OS));
-        }
-        // @codeCoverageIgnoreEnd
-
-        if (false !== strpos($retval, '%')) {
-            throw new SyntaxError(sprintf('Host `%s` is invalid : the host is not a valid registered name', $host));
+        $info = Idna::toAscii($host, Idna::IDNA2008_ASCII);
+        if (0 !== $info->errors()) {
+            throw IdnaConversionFailed::dueToIDNAError($host, $info);
         }
 
         return $host;
-    }
-
-    /**
-     * Retrieves and format IDNA conversion error message.
-     *
-     * @link http://icu-project.org/apiref/icu4j/com/ibm/icu/text/IDNA.Error.html
-     */
-    private static function getIDNAErrors(int $error_byte): string
-    {
-        /**
-         * IDNA errors.
-         */
-        static $idn_errors = [
-            IDNA_ERROR_EMPTY_LABEL => 'a non-final domain name label (or the whole domain name) is empty',
-            IDNA_ERROR_LABEL_TOO_LONG => 'a domain name label is longer than 63 bytes',
-            IDNA_ERROR_DOMAIN_NAME_TOO_LONG => 'a domain name is longer than 255 bytes in its storage form',
-            IDNA_ERROR_LEADING_HYPHEN => 'a label starts with a hyphen-minus ("-")',
-            IDNA_ERROR_TRAILING_HYPHEN => 'a label ends with a hyphen-minus ("-")',
-            IDNA_ERROR_HYPHEN_3_4 => 'a label contains hyphen-minus ("-") in the third and fourth positions',
-            IDNA_ERROR_LEADING_COMBINING_MARK => 'a label starts with a combining mark',
-            IDNA_ERROR_DISALLOWED => 'a label or domain name contains disallowed characters',
-            IDNA_ERROR_PUNYCODE => 'a label starts with "xn--" but does not contain valid Punycode',
-            IDNA_ERROR_LABEL_HAS_DOT => 'a label contains a dot=full stop',
-            IDNA_ERROR_INVALID_ACE_LABEL => 'An ACE label does not contain a valid label string',
-            IDNA_ERROR_BIDI => 'a label does not meet the IDNA BiDi requirements (for right-to-left characters)',
-            IDNA_ERROR_CONTEXTJ => 'a label does not meet the IDNA CONTEXTJ requirements',
-        ];
-
-        $res = [];
-        foreach ($idn_errors as $error => $reason) {
-            if ($error === ($error_byte & $error)) {
-                $res[] = $reason;
-            }
-        }
-
-        return [] === $res ? 'Unknown IDNA conversion error.' : implode(', ', $res).'.';
     }
 
     /**
@@ -562,6 +431,6 @@ final class UriString
         $ip_host = substr($ip_host, 0, $pos);
 
         return false !== filter_var($ip_host, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6)
-            && 0 === strpos((string) inet_pton($ip_host), self::ZONE_ID_ADDRESS_BLOCK);
+            && str_starts_with((string)inet_pton($ip_host), self::ZONE_ID_ADDRESS_BLOCK);
     }
 }

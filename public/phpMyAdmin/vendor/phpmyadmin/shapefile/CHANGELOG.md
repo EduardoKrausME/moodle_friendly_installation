@@ -3,9 +3,25 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [3.1.0] - 2025-10-29
+
+### Added
+
+- [#41](https://github.com/phpmyadmin/shapefile/pull/41): Adds a toggle to allow shape files with no dbf
+- [#44](https://github.com/phpmyadmin/shapefile/pull/44): Support for PHP 8.4 and PHP 8.5
+
+### Removed
+
+- [#39](https://github.com/phpmyadmin/shapefile/pull/39): Drop support for PHP 7.1
+
+## [3.0.2] - 2023-09-11
+### Added
+- Support for PHP 8.3
+- Support for PHPUnit 10
+
 ## [3.0.1] - 2021-02-05
 ### Fixed
-- Fix method signature of ShapeFile::getDBFHeader()
+- Fix method signature of `ShapeFile::getDBFHeader()`
 
 ## [3.0.0] - 2021-02-05
 ### Added
@@ -14,10 +30,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Changed
 - Enable strict mode on PHP files
-- Rename ShapeFile::$FileName property to ShapeFile::$fileName
-- Rename ShapeRecord::$SHPData property to ShapeRecord::$shpData
-- Rename ShapeRecord::$DBFData property to ShapeRecord::$dbfData
-- ShapeRecord::getContentLength returns `null` when the shape type is not supported instead of `false`.
+- Rename `ShapeFile::$FileName` property to `ShapeFile::$fileName`
+- Rename `ShapeRecord::$SHPData` property to `ShapeRecord::$shpData`
+- Rename `ShapeRecord::$DBFData` property to `ShapeRecord::$dbfData`
+- `ShapeRecord::getContentLength` returns `null` when the shape type is not supported instead of `false`.
 
 ### Removed
 - Drop support for PHP 5.4, PHP 5.5, PHP 5.6, PHP 7.0 and HHVM
@@ -66,7 +82,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Fixed
 - Fixed behavior without configured DBF header
 - Fixed saving Polygon/Polyline creation with multiple parts
-- Fixed saving Multipont records
+- Fixed saving Multipoint records
 
 ## [0.10] - 2016-09-05
 ### Changed
@@ -109,9 +125,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## 0.1 - 2016-06-14
 ### Added
-- Inital release based on bfShapeFiles
+- Initial release based on bfShapeFiles
 
-[Unreleased]: https://github.com/phpmyadmin/shapefile/compare/2.1...HEAD
+[3.1.0]: https://github.com/phpmyadmin/shapefile/compare/3.0.2...3.1.0
+[3.0.2]: https://github.com/phpmyadmin/shapefile/compare/3.0.1...3.0.2
+[3.0.1]: https://github.com/phpmyadmin/shapefile/compare/3.0.0...3.0.1
+[3.0.0]: https://github.com/phpmyadmin/shapefile/compare/2.1...3.0.0
 [2.1]: https://github.com/phpmyadmin/shapefile/compare/2.0...2.1
 [2.0]: https://github.com/phpmyadmin/shapefile/compare/1.2...2.0
 [1.2]: https://github.com/phpmyadmin/shapefile/compare/1.1...1.2

@@ -22,21 +22,21 @@ class IndexHint extends Component
     /**
      * The type of hint (USE/FORCE/IGNORE)
      *
-     * @var string
+     * @var string|null
      */
     public $type;
 
     /**
      * What the hint is for (INDEX/KEY)
      *
-     * @var string
+     * @var string|null
      */
     public $indexOrKey;
 
     /**
      * The clause for which this hint is (JOIN/ORDER BY/GROUP BY)
      *
-     * @var string
+     * @var string|null
      */
     public $for;
 
@@ -70,7 +70,7 @@ class IndexHint extends Component
      * @param TokensList           $list    the list of tokens that are being parsed
      * @param array<string, mixed> $options parameters for parsing
      *
-     * @return IndexHint|Component[]
+     * @return IndexHint[]
      */
     public static function parse(Parser $parser, TokensList $list, array $options = [])
     {
