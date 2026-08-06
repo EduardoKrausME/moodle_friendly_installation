@@ -5,6 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{{page_title}}</title>
     <link rel="stylesheet" href="/assets/style.css">
+    {{#has_datatables}}
+        <link rel="stylesheet" href="/assets/vendor/datatables/dataTables.dataTables.css">
+        <script src="/assets/vendor/jquery/jquery-3.7.1.min.js" defer></script>
+        <script src="/assets/vendor/datatables/dataTables.min.js" defer></script>
+    {{/has_datatables}}
 </head>
 <body class="{{body_class}}">
 <svg class="icon-sprite" aria-hidden="true">

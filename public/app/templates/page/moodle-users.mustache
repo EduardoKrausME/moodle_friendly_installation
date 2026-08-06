@@ -1,0 +1,312 @@
+<section class="page-title management-title">
+    <div>
+        <span class="eyebrow">{{domain}}</span>
+        <h1>{{i18n.moodle_users.heading}}</h1>
+        <p>{{i18n.moodle_users.intro}}</p>
+    </div>
+    <div class="title-actions">
+        <a class="button secondary" href="{{back_url}}">{{i18n.actions.back_to_details}}</a>
+        <a class="button" href="{{create_url}}" target="_blank" rel="noopener">{{i18n.moodle_users.create_in_moodle}}</a>
+    </div>
+</section>
+
+{{#has_error}}
+    <div class="alert danger">{{error}}</div>
+{{/has_error}}
+
+<div id="moodle-feedback" class="management-feedback" role="status" aria-live="polite"></div>
+
+<div class="management-stats">
+    <div class="management-stat"><span>{{i18n.moodle_users.total}}</span><strong>{{stats.total}}</strong></div>
+    <div class="management-stat is-ok"><span>{{i18n.moodle_users.active}}</span><strong>{{stats.active}}</strong></div>
+    <div class="management-stat is-warning"><span>{{i18n.moodle_users.suspended}}</span><strong>{{stats.suspended}}</strong></div>
+    <div class="management-stat is-danger"><span>{{i18n.moodle_users.deleted}}</span><strong>{{stats.deleted}}</strong></div>
+</div>
+
+<div class="management-layout detail-closed" id="moodle-users-app"
+     data-domain="{{domain}}"
+     data-endpoint="/moodle_ajax.php"
+     data-loading="{{i18n.moodle_manager.loading}}"
+     data-error="{{i18n.moodle_manager.request_failed}}"
+     data-table-info="{{i18n.moodle_manager.table_info}}"
+     data-table-info-empty="{{i18n.moodle_manager.table_info_empty}}"
+     data-empty="{{i18n.moodle_users.empty}}"
+     data-previous="{{i18n.actions.previous}}"
+     data-next="{{i18n.actions.next}}">
+    <section class="card management-main">
+        <div class="management-toolbar">
+            <label class="search-field">
+                <span>{{i18n.moodle_users.search}}</span>
+                <input type="search" id="user-search" placeholder="{{i18n.moodle_users.search_placeholder}}" autocomplete="off">
+            </label>
+            <label>
+                <span>{{i18n.moodle_users.filter_status}}</span>
+                <select id="user-status">
+                    <option value="all">{{i18n.moodle_users.filter_all}}</option>
+                    <option value="active">{{i18n.moodle_users.status_active}}</option>
+                    <option value="suspended">{{i18n.moodle_users.status_suspended}}</option>
+                    <option value="deleted">{{i18n.moodle_users.status_deleted}}</option>
+                </select>
+            </label>
+            <label>
+                <span style="white-space:nowrap;">{{i18n.moodle_manager.per_page}}</span>
+                <select id="user-page-length">
+                    <option value="10">10</option>
+                    <option value="25" selected>25</option>
+                    <option value="50">50</option>
+                    <option value="100">100</option>
+                </select>
+            </label>
+        </div>
+        <div id="moodle-users-list">{{{user_list_html}}}</div>
+    </section>
+
+    <aside class="management-detail card" id="moodle-user-detail" hidden>
+        <div class="detail-placeholder">
+            <strong>{{i18n.moodle_users.select_user}}</strong>
+            <p>{{i18n.moodle_users.select_user_help}}</p>
+        </div>
+    </aside>
+</div>
+
+<section class="card reports-section">
+    <div class="section-heading-actions">
+        <div>
+            <span class="eyebrow">Kopere BI</span>
+            <h2>{{i18n.moodle_reports.students_heading}}</h2>
+            <p class="card-subtitle">{{i18n.moodle_reports.students_intro}}</p>
+        </div>
+    </div>
+    {{#has_reports}}
+        <div class="report-grid">
+            {{#reports}}
+                <a class="report-card" href="{{url}}" target="_blank" rel="noopener">
+                    <small>{{group}}</small>
+                    <strong>{{title}}</strong>
+                    <span>{{description}}</span>
+                    <b>{{i18n.moodle_reports.open_report}} →</b>
+                </a>
+            {{/reports}}
+        </div>
+    {{/has_reports}}
+    {{^has_reports}}
+        <div class="empty-state compact-empty">{{i18n.moodle_reports.not_available}}</div>
+    {{/has_reports}}
+</section>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const app = document.getElementById("moodle-users-app");
+    if (!app) return;
+    const list = document.getElementById("moodle-users-list");
+    const detail = document.getElementById("moodle-user-detail");
+    const search = document.getElementById("user-search");
+    const status = document.getElementById("user-status");
+    const pageLength = document.getElementById("user-page-length");
+    const feedback = document.getElementById("moodle-feedback");
+    let currentUser = 0;
+    let timer = null;
+
+    async function request(params, method = "GET") {
+        const data = new URLSearchParams(params);
+        let url = app.dataset.endpoint;
+        const options = {method, headers: {"X-Requested-With": "XMLHttpRequest"}};
+        if (method === "GET") {
+            url += "?" + data.toString();
+        } else {
+            options.body = data;
+            options.headers["Content-Type"] = "application/x-www-form-urlencoded;charset=UTF-8";
+        }
+        const response = await fetch(url, options);
+        const result = await response.json();
+        if (!response.ok || !result.ok) throw new Error(result.message || app.dataset.error);
+        return result;
+    }
+
+    function message(text, type = "ok") {
+        feedback.className = "management-feedback is-visible " + type;
+        feedback.textContent = text;
+        window.setTimeout(() => feedback.classList.remove("is-visible"), 4500);
+    }
+
+    function escapeHtml(value) {
+        const element = document.createElement("span");
+        element.textContent = value == null ? "" : String(value);
+        return element.innerHTML;
+    }
+
+    if (typeof window.DataTable !== "function") {
+        message(app.dataset.error, "danger");
+        return;
+    }
+
+    DataTable.ext.errMode = "none";
+    const table = new DataTable("#moodle-users-table", {
+        serverSide: true,
+        processing: true,
+        searching: true,
+        ordering: true,
+        order: [[0, "asc"]],
+        pageLength: Number(pageLength.value),
+        lengthChange: false,
+        pagingType: "simple_numbers",
+        autoWidth: false,
+        layout: {
+            topStart: null,
+            topEnd: null,
+            bottomStart: "info",
+            bottomEnd: "paging"
+        },
+        language: {
+            processing: app.dataset.loading,
+            emptyTable: app.dataset.empty,
+            zeroRecords: app.dataset.empty,
+            info: app.dataset.tableInfo,
+            infoEmpty: app.dataset.tableInfoEmpty,
+            paginate: {previous: app.dataset.previous, next: app.dataset.next}
+        },
+        ajax: async function (data, callback) {
+            const order = data.order && data.order.length ? data.order[0] : {column: 0, dir: "asc"};
+            const column = data.columns && data.columns[order.column] ? data.columns[order.column] : null;
+            try {
+                const result = await request({
+                    action: "datatable_users",
+                    domain: app.dataset.domain,
+                    draw: String(data.draw || 0),
+                    start: String(data.start || 0),
+                    length: String(data.length || 25),
+                    search: data.search && data.search.value ? data.search.value : "",
+                    status: status.value,
+                    sort: column && column.name ? column.name : "name",
+                    direction: order.dir === "desc" ? "desc" : "asc"
+                });
+                callback(result);
+            } catch (error) {
+                message(error.message, "danger");
+                callback({draw: Number(data.draw) || 0, recordsTotal: 0, recordsFiltered: 0, data: []});
+            }
+        },
+        columns: [
+            {
+                data: "fullname",
+                name: "name",
+                render: function (data, type, row) {
+                    if (type !== "display") return data;
+                    return '<div class="identity-cell"><span class="initial-avatar">' + escapeHtml(row.initials) +
+                        '</span><span><strong>' + escapeHtml(row.fullname) + '</strong><small>' +
+                        escapeHtml(row.email) + ' · @' + escapeHtml(row.username) + '</small></span></div>';
+                }
+            },
+            {
+                data: "status_label",
+                name: "status",
+                render: function (data, type, row) {
+                    return type === "display"
+                        ? '<span class="status-badge ' + escapeHtml(row.status_class) + '">' + escapeHtml(data) + '</span>'
+                        : data;
+                }
+            },
+            {
+                data: "auth",
+                name: "auth",
+                render: function (data, type) {
+                    return type === "display" ? "<code>" + escapeHtml(data) + "</code>" : data;
+                }
+            },
+            {
+                data: "coursecount",
+                name: "courses",
+                render: function (data, type) {
+                    return type === "display" ? "<strong>" + Number(data || 0) + "</strong>" : data;
+                }
+            },
+            {data: "lastaccess_formatted", name: "lastaccess"}
+        ],
+        createdRow: function (row, data) {
+            row.classList.add("user-row");
+            row.dataset.userId = data.id;
+            row.tabIndex = 0;
+        }
+    });
+
+    table.on("draw", function () {
+        if (!currentUser) return;
+        const selected = list.querySelector('[data-user-id="' + currentUser + '"]');
+        if (selected) selected.classList.add("is-selected");
+        else closeDetail();
+    });
+
+    function reloadTable(resetPaging = false) {
+        return new Promise(resolve => table.ajax.reload(resolve, resetPaging));
+    }
+
+    async function loadUser(userid) {
+        currentUser = Number(userid);
+        app.classList.remove("detail-closed");
+        detail.hidden = false;
+        detail.innerHTML = '<div class="detail-loading">' + app.dataset.loading + '</div>';
+        try {
+            const result = await request({action: "user_details", domain: app.dataset.domain, userid: String(userid)});
+            detail.innerHTML = result.html;
+            document.querySelectorAll(".user-row.is-selected").forEach(row => row.classList.remove("is-selected"));
+            const selected = list.querySelector('[data-user-id="' + userid + '"]');
+            if (selected) selected.classList.add("is-selected");
+        } catch (error) {
+            detail.innerHTML = '<div class="alert danger"></div>';
+            detail.firstElementChild.textContent = error.message;
+        }
+    }
+
+    function closeDetail() {
+        detail.hidden = true;
+        app.classList.add("detail-closed");
+        currentUser = 0;
+        list.querySelectorAll("[data-user-id].is-selected").forEach(row => row.classList.remove("is-selected"));
+    }
+
+    list.addEventListener("click", function (event) {
+        const row = event.target.closest("[data-user-id]");
+        if (row) loadUser(row.dataset.userId);
+    });
+
+    list.addEventListener("keydown", function (event) {
+        if (event.key !== "Enter" && event.key !== " ") return;
+        const row = event.target.closest("[data-user-id]");
+        if (!row) return;
+        event.preventDefault();
+        loadUser(row.dataset.userId);
+    });
+
+    detail.addEventListener("click", function (event) {
+        if (event.target.closest("[data-close-detail]")) {
+            closeDetail();
+        }
+    });
+
+    detail.addEventListener("submit", async function (event) {
+        const form = event.target.closest("form[data-ajax-user]");
+        if (!form) return;
+        event.preventDefault();
+        if (form.dataset.confirm && !window.confirm(form.dataset.confirm)) return;
+        const button = form.querySelector("button[type=submit]");
+        if (button) button.disabled = true;
+        try {
+            const result = await request(Object.fromEntries(new FormData(form)), "POST");
+            message(result.message);
+            await reloadTable(false);
+            if (currentUser) await loadUser(currentUser);
+        } catch (error) {
+            message(error.message, "danger");
+        } finally {
+            if (button) button.disabled = false;
+        }
+    });
+
+    search.addEventListener("input", function () {
+        window.clearTimeout(timer);
+        timer = window.setTimeout(() => table.search(search.value).draw(), 280);
+    });
+    status.addEventListener("change", () => table.ajax.reload(null, true));
+    pageLength.addEventListener("change", () => table.page.len(Number(pageLength.value)).draw());
+});
+</script>

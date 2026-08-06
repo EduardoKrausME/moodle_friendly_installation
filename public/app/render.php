@@ -18,6 +18,11 @@ function render_header(string $title): void {
     $hasuser = (bool) $user;
     $currentlanguage = I18n::currentMeta();
     $hasupdate = $hasuser && AppUpdater::hasCachedUpdate();
+    $hasdatatables = in_array(
+        basename($_SERVER["SCRIPT_NAME"] ?? ""),
+        ["moodle_users.php", "moodle_courses.php"],
+        true
+    );
     $bodyclasses = [$hasuser ? "has-sidebar" : "auth-page"];
     if (basename($_SERVER["SCRIPT_NAME"]) === "onboarding.php") {
         $bodyclasses[] = "onboarding-page";
@@ -32,6 +37,7 @@ function render_header(string $title): void {
         "app_name" => $appname,
         "body_class" => implode(" ", $bodyclasses),
         "has_user" => $hasuser,
+        "has_datatables" => $hasdatatables,
         "user_name" => $user["name"] ?? $user["username"] ?? "Administrador",
         "navigation" => render_navigation_items(),
         "current_language_name" => $currentlanguage["native_name"] ?? $currentlanguage["name"] ?? I18n::current(),
@@ -59,7 +65,7 @@ function render_navigation_items(): array {
         "url" => "/moodle.php",
         "label" => t("moodle.navigation"),
         "icon" => "database",
-        "active_on" => ["moodle.php", "details.php"],
+        "active_on" => ["moodle.php", "details.php", "moodle_users.php", "moodle_courses.php"],
     ];
     if ($current == "install.php") {
         $items[] = [

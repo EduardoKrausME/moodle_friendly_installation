@@ -43,12 +43,12 @@
                     <a class="button secondary" href="{{sso_url}}" target="_blank"
                        rel="noopener">{{i18n.actions.access_admin}}</a>
                 {{/sso_url}}
-                <form action="/phpmyadmin-signon.php" method="post" target="_blank">
+                <form action="/phpmyadmin-signon.php" method="post" target="_blank"
+                      style="margin-left:auto;">
                     <input type="hidden" name="csrf_token" value="{{csrf_token}}">
                     <button class="button" type="submit">{{i18n.dashboard.open_phpmyadmin}}</button>
                 </form>
-                <button type="button" class="button danger" id="open-disable-moodle-dialog"
-                        style="margin-left: auto;">
+                <button type="button" class="button danger" id="open-disable-moodle-dialog">
                     {{i18n.actions.disable_moodle}}
                 </button>
             {{/moodle_is_enabled}}
@@ -125,6 +125,25 @@
         {{#stats_warning}}
             <div class="alert warning compact-alert">{{i18n.details.mysql_error}} {{stats_error}}</div>
         {{/stats_warning}}
+
+        <div class="management-shortcuts">
+            <a class="management-shortcut" href="{{moodle_users_url}}" style="width: 100%">
+                <span class="management-shortcut-icon" >
+                    <svg aria-hidden="true"><use href="#icon-users"></use></svg>
+                </span>
+                <span style="width: 100%">
+                    <strong>{{i18n.moodle_users.heading}}</strong><b>{{i18n.details.open_management}} →</b>
+                </span>
+            </a>
+            <a class="management-shortcut" href="{{moodle_courses_url}}" style="width: 100%">
+                <span class="management-shortcut-icon" >
+                    <svg aria-hidden="true"><use href="#icon-layers"></use></svg>
+                </span>
+                <span style="width: 100%">
+                    <strong>{{i18n.moodle_courses.heading}}</strong><b>{{i18n.details.open_management}} →</b>
+                </span>
+            </a>
+        </div>
     </div>
 
     <div class="card resource-card">

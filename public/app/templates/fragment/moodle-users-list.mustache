@@ -1,0 +1,29 @@
+<div class="management-table-wrap">
+        <table class="management-table users-table" id="moodle-users-table">
+            <thead>
+            <tr>
+                <th>{{i18n.moodle_users.user}}</th>
+                <th>{{i18n.moodle_users.status}}</th>
+                <th>{{i18n.moodle_users.auth}}</th>
+                <th>{{i18n.moodle_users.courses}}</th>
+                <th>{{i18n.moodle_users.last_access}}</th>
+            </tr>
+            </thead>
+            <tbody>
+            {{#users}}
+                <tr class="user-row" data-user-id="{{id}}" tabindex="0">
+                    <td>
+                        <div class="identity-cell">
+                            <span class="initial-avatar">{{initials}}</span>
+                            <span><strong>{{fullname}}</strong><small>{{email}} · @{{username}}</small></span>
+                        </div>
+                    </td>
+                    <td><span class="status-badge {{status_class}}">{{status_label}}</span></td>
+                    <td><code>{{auth}}</code></td>
+                    <td><strong>{{coursecount}}</strong></td>
+                    <td>{{lastaccess_formatted}}</td>
+                </tr>
+            {{/users}}
+            </tbody>
+        </table>
+</div>

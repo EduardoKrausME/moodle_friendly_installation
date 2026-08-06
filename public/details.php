@@ -78,7 +78,7 @@ $servercontrols = ServerControlManager::status($site);
 $site["course_identity"] = SiteManager::courseIdentity($site);
 $flash = flash_message();
 
-render_header($domain);
+render_header($site["course_identity"]["fullname"]);
 echo render_app_template(
     "page/details",
     details_page_context($site, $config, $diagnostics, $stats, $featureflags, $resources, $resourcejob, $servercontrols, $flash)
@@ -132,6 +132,8 @@ function details_page_context(
         "moodle_status_csrf_token" => csrf_token(),
         "url" => $site["url"] ?? "",
         "sso_url" => $site["sso_url"] ?? "",
+        "moodle_users_url" => "/moodle_users.php?domain=" . rawurlencode($domain),
+        "moodle_courses_url" => "/moodle_courses.php?domain=" . rawurlencode($domain),
         "app_exist" => file_exists("../app-MoodleMobile-V2/config.xml"),
         "app_manage_url" => "/app_manager.php?domain=" . urlencode($domain),
         "app_preview_url" => "/app-preview/preview.php?package_name=" . urlencode($appsettings["package_name"]) .

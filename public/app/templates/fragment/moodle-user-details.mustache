@@ -1,0 +1,121 @@
+{{#user}}
+    <div class="detail-header">
+        <div class="identity-cell detail-identity">
+            <span class="initial-avatar large">{{initials}}</span>
+            <span>
+                <small>#{{id}} · @{{username}}</small>
+                <h2>{{fullname}}</h2>
+                <a href="mailto:{{email}}">{{email}}</a>
+            </span>
+        </div>
+        <button type="button" class="detail-close" data-close-detail aria-label="{{i18n.actions.close}}">×</button>
+    </div>
+
+    <div class="detail-status-row">
+        <span class="status-badge {{status_class}}">{{status_label}}</span>
+        <span>{{auth}}</span>
+        <span>{{coursecount}} {{i18n.moodle_users.courses_lower}}</span>
+    </div>
+
+    <div class="detail-actions">
+        <a class="button" href="{{edit_url}}" target="_blank" rel="noopener">{{i18n.moodle_users.edit_in_moodle}}</a>
+        <a class="button secondary" href="{{profile_url}}" target="_blank" rel="noopener">{{i18n.moodle_users.open_profile}}</a>
+        {{#can_manage}}
+            {{#is_active}}
+                <form data-ajax-user data-confirm="{{i18n.moodle_users.confirm_suspend}}">
+                    <input type="hidden" name="csrf_token" value="{{csrf_token}}">
+                    <input type="hidden" name="action" value="user_state">
+                    <input type="hidden" name="domain" value="{{domain}}">
+                    <input type="hidden" name="userid" value="{{id}}">
+                    <input type="hidden" name="state" value="suspend">
+                    <button class="button warning" type="submit">{{i18n.moodle_users.suspend_action}}</button>
+                </form>
+                <form data-ajax-user data-confirm="{{i18n.moodle_users.confirm_delete}}">
+                    <input type="hidden" name="csrf_token" value="{{csrf_token}}">
+                    <input type="hidden" name="action" value="user_state">
+                    <input type="hidden" name="domain" value="{{domain}}">
+                    <input type="hidden" name="userid" value="{{id}}">
+                    <input type="hidden" name="state" value="delete">
+                    <button class="button danger" type="submit">{{i18n.moodle_users.delete_action}}</button>
+                </form>
+            {{/is_active}}
+            {{#is_suspended}}
+                <form data-ajax-user>
+                    <input type="hidden" name="csrf_token" value="{{csrf_token}}">
+                    <input type="hidden" name="action" value="user_state">
+                    <input type="hidden" name="domain" value="{{domain}}">
+                    <input type="hidden" name="userid" value="{{id}}">
+                    <input type="hidden" name="state" value="activate">
+                    <button class="button" type="submit">{{i18n.moodle_users.activate_action}}</button>
+                </form>
+                <form data-ajax-user data-confirm="{{i18n.moodle_users.confirm_delete}}">
+                    <input type="hidden" name="csrf_token" value="{{csrf_token}}">
+                    <input type="hidden" name="action" value="user_state">
+                    <input type="hidden" name="domain" value="{{domain}}">
+                    <input type="hidden" name="userid" value="{{id}}">
+                    <input type="hidden" name="state" value="delete">
+                    <button class="button danger" type="submit">{{i18n.moodle_users.delete_action}}</button>
+                </form>
+            {{/is_suspended}}
+            {{#is_deleted}}
+                <form data-ajax-user>
+                    <input type="hidden" name="csrf_token" value="{{csrf_token}}">
+                    <input type="hidden" name="action" value="user_state">
+                    <input type="hidden" name="domain" value="{{domain}}">
+                    <input type="hidden" name="userid" value="{{id}}">
+                    <input type="hidden" name="state" value="restore">
+                    <button class="button" type="submit">{{i18n.moodle_users.restore_action}}</button>
+                </form>
+            {{/is_deleted}}
+        {{/can_manage}}
+    </div>
+
+    <div class="detail-grid-info">
+        <div><small>{{i18n.moodle_users.created_at}}</small><strong>{{created_formatted}}</strong></div>
+        <div><small>{{i18n.moodle_users.first_access}}</small><strong>{{firstaccess_formatted}}</strong></div>
+        <div><small>{{i18n.moodle_users.last_login}}</small><strong>{{lastlogin_formatted}}</strong></div>
+        <div><small>{{i18n.moodle_users.last_access}}</small><strong>{{lastaccess_formatted}}</strong></div>
+    </div>
+
+    {{#description}}<p class="detail-description">{{description}}</p>{{/description}}
+
+    <details class="detail-disclosure" open>
+        <summary>{{i18n.moodle_users.extra_fields}} <span>{{custom_fields_count}}</span></summary>
+        {{#has_custom_fields}}
+            <dl class="detail-definition-list">
+                {{#custom_fields}}<div><dt>{{name}} <code>{{shortname}}</code></dt><dd>{{value}}</dd></div>{{/custom_fields}}
+            </dl>
+        {{/has_custom_fields}}
+        {{^has_custom_fields}}<p class="muted-copy">{{i18n.moodle_users.no_extra_fields}}</p>{{/has_custom_fields}}
+    </details>
+
+    <details class="detail-disclosure">
+        <summary>{{i18n.moodle_users.preferences}} <span>{{preferences_count}}</span></summary>
+        {{#has_preferences}}
+            <dl class="detail-definition-list preference-list">
+                {{#preferences}}<div><dt><code>{{name}}</code></dt><dd>{{value}}</dd></div>{{/preferences}}
+            </dl>
+        {{/has_preferences}}
+        {{^has_preferences}}<p class="muted-copy">{{i18n.moodle_users.no_preferences}}</p>{{/has_preferences}}
+    </details>
+
+    <details class="detail-disclosure">
+        <summary>{{i18n.moodle_users.enrolled_courses}} <span>{{coursecount}}</span></summary>
+        {{#has_courses}}
+            <div class="detail-link-list">
+                {{#courses}}<a href="{{url}}" target="_blank" rel="noopener"><strong>{{fullname}}</strong><small>{{shortname}}</small></a>{{/courses}}
+            </div>
+        {{/has_courses}}
+        {{^has_courses}}<p class="muted-copy">{{i18n.moodle_users.no_courses}}</p>{{/has_courses}}
+    </details>
+
+    <div class="detail-report-section">
+        <h3>{{i18n.moodle_reports.user_heading}}</h3>
+        {{#has_reports}}
+            <div class="detail-link-list report-links">
+                {{#reports}}<a href="{{url}}" target="_blank" rel="noopener"><strong>{{title}}</strong><small>{{description}}</small></a>{{/reports}}
+            </div>
+        {{/has_reports}}
+        {{^has_reports}}<p class="muted-copy">{{i18n.moodle_reports.not_available}}</p>{{/has_reports}}
+    </div>
+{{/user}}

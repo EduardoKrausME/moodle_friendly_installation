@@ -8,7 +8,7 @@ error_reporting(E_ALL);
 ini_set("display_errors", "1");
 ini_set("display_startup_errors", "1");
 
-require_once "vendor/autoload.php";
+require_once __DIR__ . "/vendor/autoload.php";
 
 require_once __DIR__ . "/JsonStorage.php";
 require_once __DIR__ . "/PanelConfigManager.php";
@@ -21,6 +21,7 @@ require_once __DIR__ . "/Auth.php";
 require_once __DIR__ . "/Validator.php";
 require_once __DIR__ . "/JobManager.php";
 require_once __DIR__ . "/SiteManager.php";
+require_once __DIR__ . "/MoodleManager.php";
 require_once __DIR__ . "/ResourceUsageManager.php";
 require_once __DIR__ . "/DashboardManager.php";
 require_once __DIR__ . "/ServerControlManager.php";
