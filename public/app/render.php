@@ -207,20 +207,18 @@ function flash_message(): ?string {
  */
 function render_app_template(string $template, array $context = []): string {
     $language = I18n::currentMeta();
-    $basecontext = [
-        "i18n" => I18n::strings(),
-        "language" => [
-            "label" => t("language.label"),
-            "change" => t("language.change"),
-            "current_code" => I18n::current(),
-            "current_name" => $language["name"] ?? I18n::current(),
-            "current_native_name" => $language["native_name"] ?? $language["name"] ?? I18n::current(),
-            "current_flag" => $language["flag"] ?? "",
-            "items" => I18n::languagesForSelector(),
-        ],
+    $context["i18n"] = I18n::strings();
+    $context["language"] = [
+        "label" => t("language.label"),
+        "change" => t("language.change"),
+        "current_code" => I18n::current(),
+        "current_name" => $language["name"] ?? I18n::current(),
+        "current_native_name" => $language["native_name"] ?? $language["name"] ?? I18n::current(),
+        "current_flag" => $language["flag"] ?? "",
+        "items" => I18n::languagesForSelector(),
     ];
 
-    return render_mustache_engine()->render($template, array_replace_recursive($basecontext, $context));
+    return render_mustache_engine()->render($template, $context);
 }
 
 /**
