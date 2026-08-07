@@ -4,15 +4,17 @@
 error_reporting(E_ALL);
 ini_set("display_errors", "On");
 
-// Root cron runner. It executes requested app updates, one pending job per run, and checks app updates once a day.
+// Root cron runner. It executes requested app updates, one pending job per run, and checks app/plugin updates.
 
 use app\AppUpdater;
 use app\JobManager;
 use app\JsonStorage;
+use app\MoodlePluginManager;
 use app\PanelConfigManager;
 use app\ResourceUsageManager;
 
 require_once __DIR__ . "/../public/app/bootstrap.php";
+require_once __DIR__ . "/../public/app/MoodlePluginManager.php";
 
 if (function_exists("posix_geteuid") && posix_geteuid() !== 0) {
     fwrite(STDERR, "This runner must be executed as root.\n");
@@ -63,6 +65,7 @@ try {
     } else {
         echo "No pending jobs.\n";
         runDailySelfUpdateCheck();
+        runWeeklyPluginUpdateCheck();
     }
 } catch (Throwable $e) {
     if (!empty($job["id"])) {
@@ -163,6 +166,22 @@ function runDailySelfUpdateCheck(): void {
     }
 
     runSelfUpdatepermissons($statefile);
+}
+
+/**
+ * Checks every Git-cloned Moodle plugin at most once every seven days.
+ *
+ * @return void
+ */
+function runWeeklyPluginUpdateCheck(): void {
+    try {
+        $state = MoodlePluginManager::checkAllSitesForUpdates(false);
+        if (($state["last_weekly_status"] ?? "") !== "running") {
+            echo "Plugin update check: " . ($state["last_weekly_message"] ?? "OK") . "\n";
+        }
+    } catch (Throwable $e) {
+        fwrite(STDERR, "Plugin update check failed: {$e->getMessage()}\n");
+    }
 }
 
 function runSelfUpdatepermissons($statefile) {

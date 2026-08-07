@@ -10,7 +10,7 @@
         {{/has_site_identity}}
     </div>
     <div style="display:grid;gap:12px;">
-        <a class="button secondary" href="/moodle.php">{{i18n.actions.back_to_sites}}</a>
+        <a class="button secondary" href="/moodle.php">{{{i18n.actions.back_to_sites}}}</a>
     </div>
 </section>
 
@@ -25,31 +25,31 @@
     <div class="card hero-card inverse">
         <div>
             <div class="flag-header">
-                <h2>{{i18n.details.shortcuts_heading}}</h2>
+                <h2>{{{i18n.details.shortcuts_heading}}}</h2>
                 {{{moodle_status_badge}}}
             </div>
-            <p>{{i18n.details.shortcuts_intro}}</p>
+            <p>{{{i18n.details.shortcuts_intro}}}</p>
             {{#moodle_is_disabled}}
                 <div class="alert warning compact-alert">
-                    <strong>{{i18n.details.moodle_disabled_message_label}}</strong>
+                    <strong>{{{i18n.details.moodle_disabled_message_label}}}</strong>
                     {{moodle_disabled_message}}
                 </div>
             {{/moodle_is_disabled}}
         </div>
         <div class="hero-actions">
             {{#moodle_is_enabled}}
-                <a class="button" href="{{url}}" target="_blank" rel="noopener">{{i18n.actions.open_moodle}}</a>
+                <a class="button" href="{{url}}" target="_blank" rel="noopener">{{{i18n.actions.open_moodle}}}</a>
                 {{#sso_url}}
                     <a class="button secondary" href="{{sso_url}}" target="_blank"
-                       rel="noopener">{{i18n.actions.access_admin}}</a>
+                       rel="noopener">{{{i18n.actions.access_admin}}}</a>
                 {{/sso_url}}
                 <form action="/phpmyadmin-signon.php" method="post" target="_blank"
                       style="margin-left:auto;">
                     <input type="hidden" name="csrf_token" value="{{csrf_token}}">
-                    <button class="button" type="submit">{{i18n.dashboard.open_phpmyadmin}}</button>
+                    <button class="button" type="submit">{{{i18n.dashboard.open_phpmyadmin}}}</button>
                 </form>
                 <button type="button" class="button danger" id="open-disable-moodle-dialog">
-                    {{i18n.actions.disable_moodle}}
+                    {{{i18n.actions.disable_moodle}}}
                 </button>
             {{/moodle_is_enabled}}
             {{#moodle_is_disabled}}
@@ -57,7 +57,7 @@
                     <input type="hidden" name="csrf_token" value="{{moodle_status_csrf_token}}">
                     <input type="hidden" name="action" value="toggle_moodle">
                     <input type="hidden" name="enabled" value="1">
-                    <button type="submit" class="button">{{i18n.actions.enable_moodle}}</button>
+                    <button type="submit" class="button">{{{i18n.actions.enable_moodle}}}</button>
                 </form>
             {{/moodle_is_disabled}}
         </div>
@@ -70,19 +70,19 @@
                 <input type="hidden" name="action" value="toggle_moodle">
                 <input type="hidden" name="enabled" value="0">
                 <div>
-                    <h2>{{i18n.details.moodle_disable_heading}}</h2>
-                    <p>{{i18n.details.moodle_disable_intro}}</p>
+                    <h2>{{{i18n.details.moodle_disable_heading}}}</h2>
+                    <p>{{{i18n.details.moodle_disable_intro}}}</p>
                 </div>
                 <label>
-                    {{i18n.details.moodle_disable_message_label}}
+                    {{{i18n.details.moodle_disable_message_label}}}
                     <textarea name="message" rows="5" maxlength="2000"
-                              placeholder="{{i18n.details.moodle_disable_message_placeholder}}" required></textarea>
+                              placeholder="{{{i18n.details.moodle_disable_message_placeholder}}}" required></textarea>
                 </label>
                 <div class="dialog-actions">
                     <button type="button" class="button secondary" id="close-disable-moodle-dialog">
-                        {{i18n.actions.cancel}}
+                        {{{i18n.actions.cancel}}}
                     </button>
-                    <button type="submit" class="button danger">{{i18n.actions.disable_moodle}}</button>
+                    <button type="submit" class="button danger">{{{i18n.actions.disable_moodle}}}</button>
                 </div>
             </form>
         </dialog>
@@ -91,15 +91,15 @@
 {{#app_exist}}
         <div class="card hero-card">
             <div>
-                <h2>{{i18n.details.app_heading}}</h2>
-                <p>{{i18n.details.app_intro}}</p>
+                <h2>{{{i18n.details.app_heading}}}</h2>
+                <p>{{{i18n.details.app_intro}}}</p>
             </div>
             <div class="hero-actions">
-                <a class="button" href="{{app_manage_url}}">{{i18n.actions.manage_app}}</a>
-                <a class="button" href="{{app_preview_url}}" target="_blank">{{i18n.actions.preview_app}}</a>
+                <a class="button" href="{{app_manage_url}}">{{{i18n.actions.manage_app}}}</a>
+                <a class="button" href="{{app_preview_url}}" target="_blank">{{{i18n.actions.preview_app}}}</a>
                 {{#app_has_files}}
                     {{#app_files}}
-                        <a class="button secondary" href="{{download_url}}">{{i18n.actions.download}} {{label}}</a>
+                        <a class="button secondary" href="{{download_url}}">{{{i18n.actions.download}}} {{label}}</a>
                     {{/app_files}}
                 {{/app_has_files}}
             </div>
@@ -110,7 +110,7 @@
 
 <div class="details-grid">
     <div class="card">
-        <h2>{{i18n.details.data_heading}}</h2>
+        <h2>{{{i18n.details.data_heading}}}</h2>
         {{^stats_warning}}
             <div class="stat-grid">
                 {{#stat_boxes}}
@@ -123,7 +123,7 @@
             </div>
         {{/stats_warning}}
         {{#stats_warning}}
-            <div class="alert warning compact-alert">{{i18n.details.mysql_error}} {{stats_error}}</div>
+            <div class="alert warning compact-alert">{{{i18n.details.mysql_error}}} {{stats_error}}</div>
         {{/stats_warning}}
 
         <div class="management-shortcuts">
@@ -132,7 +132,7 @@
                     <svg aria-hidden="true"><use href="#icon-users"></use></svg>
                 </span>
                 <span style="width: 100%">
-                    <strong>{{i18n.moodle_users.heading}}</strong><b>{{i18n.details.open_management}} →</b>
+                    <strong>{{{i18n.moodle_users.heading}}}</strong><b>{{{i18n.details.open_management}}} →</b>
                 </span>
             </a>
             <a class="management-shortcut" href="{{moodle_courses_url}}" style="width: 100%">
@@ -140,24 +140,33 @@
                     <svg aria-hidden="true"><use href="#icon-layers"></use></svg>
                 </span>
                 <span style="width: 100%">
-                    <strong>{{i18n.moodle_courses.heading}}</strong><b>{{i18n.details.open_management}} →</b>
+                    <strong>{{{i18n.moodle_courses.heading}}}</strong><b>{{{i18n.details.open_management}}} →</b>
                 </span>
             </a>
+            <a class="management-shortcut" href="/moodle_plugins.php?domain={{domain}}" style="width: 100%">
+                <span class="management-shortcut-icon">
+                    <svg aria-hidden="true"><use href="#icon-settings"></use></svg>
+                </span>
+                <span style="width: 100%">
+                    <strong>Gerenciamento de plugins</strong><b>{{{i18n.details.open_management}}} →</b>
+                </span>
+            </a>
+            <div class="alert warning compact-alert" id="plugin-update-alert" hidden></div>
         </div>
     </div>
 
     <div class="card resource-card">
         <div class="section-heading-actions">
             <div>
-                <h2>{{i18n.resources.heading}}</h2>
-                <p class="card-subtitle">{{i18n.resources.intro}}</p>
+                <h2>{{{i18n.resources.heading}}}</h2>
+                <p class="card-subtitle">{{{i18n.resources.intro}}}</p>
             </div>
             {{#resources}}
                 <form method="post" class="inline-form">
                     <input type="hidden" name="csrf_token" value="{{csrf_token}}">
                     <input type="hidden" name="action" value="refresh_resources">
                     <button type="submit" class="button secondary" {{#has_active_job}}disabled{{/has_active_job}}>
-                        {{i18n.resources.refresh}}
+                        {{{i18n.resources.refresh}}}
                     </button>
                 </form>
             {{/resources}}
@@ -166,16 +175,16 @@
         {{#resources}}
             {{#has_active_job}}
                 <div class="alert warning compact-alert">
-                    {{i18n.resources.collecting}}
+                    {{{i18n.resources.collecting}}}
                     <a href="{{active_job_url}}">{{active_job_id}}</a>
                 </div>
             {{/has_active_job}}
             {{^has_snapshot}}
-                <div class="alert warning compact-alert">{{i18n.resources.no_snapshot}}</div>
+                <div class="alert warning compact-alert">{{{i18n.resources.no_snapshot}}}</div>
             {{/has_snapshot}}
             {{#has_snapshot}}
                 {{#is_stale}}
-                    <div class="alert warning compact-alert">{{i18n.resources.stale}}</div>
+                    <div class="alert warning compact-alert">{{{i18n.resources.stale}}}</div>
                 {{/is_stale}}
                 <div class="resource-grid">
                     {{#items}}
@@ -185,25 +194,25 @@
                         </div>
                     {{/items}}
                 </div>
-                <div class="disk-progress" aria-label="{{i18n.resources.server_disk}} {{server_percent}}%">
+                <div class="disk-progress" aria-label="{{{i18n.resources.server_disk}}} {{server_percent}}%">
                     <div class="disk-progress-bar" style="{{server_percent_style}}"></div>
                 </div>
                 <div class="resource-meta">
-                    <span>{{i18n.resources.server_disk}}: <strong>{{server_percent}}%</strong></span>
-                    <span>{{i18n.resources.database_tables}}: <strong>{{database_tables}}</strong></span>
-                    <span>{{i18n.resources.collected_at}}: <strong>{{collected_at}}</strong></span>
-                    <span>{{i18n.resources.duration}}: <strong>{{duration}}s</strong></span>
+                    <span>{{{i18n.resources.server_disk}}}: <strong>{{server_percent}}%</strong></span>
+                    <span>{{{i18n.resources.database_tables}}}: <strong>{{database_tables}}</strong></span>
+                    <span>{{{i18n.resources.collected_at}}}: <strong>{{collected_at}}</strong></span>
+                    <span>{{{i18n.resources.duration}}}: <strong>{{duration}}s</strong></span>
                 </div>
                 {{#has_database_error}}
-                    <div class="alert warning compact-alert">{{i18n.resources.database_error}} {{database_error}}</div>
+                    <div class="alert warning compact-alert">{{{i18n.resources.database_error}}} {{database_error}}</div>
                 {{/has_database_error}}
             {{/has_snapshot}}
         {{/resources}}
     </div>
 
     <div class="card">
-        <h2>{{i18n.server_controls.heading}}</h2>
-        <p class="card-subtitle">{{i18n.server_controls.intro}}</p>
+        <h2>{{{i18n.server_controls.heading}}}</h2>
+        <p class="card-subtitle">{{{i18n.server_controls.intro}}}</p>
         <div class="server-control-grid">
             {{#server_controls}}
                 <div class="server-control-item">
@@ -214,7 +223,7 @@
                     <p>{{message}}</p>
                     {{#has_path}}<small><code>{{path}}</code></small>{{/has_path}}
                     {{#has_active_job}}
-                        <a href="{{active_job_url}}">{{i18n.server_controls.view_job}}</a>
+                        <a href="{{active_job_url}}">{{{i18n.server_controls.view_job}}}</a>
                     {{/has_active_job}}
                     {{#supported}}
                         <form method="post" class="inline-form flag-actions">
@@ -234,7 +243,7 @@
     </div>
 
     <div class="card">
-        <h2>{{i18n.details.diagnostics_heading}}</h2>
+        <h2>{{{i18n.details.diagnostics_heading}}}</h2>
         <div class="details-table">
             {{#diagnostic_rows}}
                 <h2 style="display: flex;justify-content: space-between;">{{label}} {{{badge_html}}}</h2>
@@ -244,16 +253,16 @@
                         <small><code>{{path}}</code></small>
                     {{/has_path}}
                     {{#has_resolved_ips}}
-                        <small>{{i18n.details.dns}}: {{resolved_ips}}</small>
+                        <small>{{{i18n.details.dns}}}: {{resolved_ips}}</small>
                     {{/has_resolved_ips}}
                     {{#has_server_ips}}
-                        <small>{{i18n.details.server}}: {{server_ips}}</small>
+                        <small>{{{i18n.details.server}}}: {{server_ips}}</small>
                     {{/has_server_ips}}
                     {{#has_valid_to}}
-                        <small>{{i18n.details.valid_to}}: {{valid_to}}</small>
+                        <small>{{{i18n.details.valid_to}}}: {{valid_to}}</small>
                     {{/has_valid_to}}
                     {{#has_issuer}}
-                        <small>{{i18n.details.issuer}}: {{issuer}}</small>
+                        <small>{{{i18n.details.issuer}}}: {{issuer}}</small>
                     {{/has_issuer}}
                 </div>
             {{/diagnostic_rows}}
@@ -262,9 +271,9 @@
 
     {{^stats_warning}}
         <div class="card full-card">
-            <h2>{{i18n.details.flags_heading}}</h2>
-            <p class="card-subtitle">{{i18n.details.flags_intro}}
-                <code>/home/[DOMINIO]</code>. {{i18n.details.flags_intro_after}}</p>
+            <h2>{{{i18n.details.flags_heading}}}</h2>
+            <p class="card-subtitle">{{{i18n.details.flags_intro}}}
+                <code>/home/[DOMINIO]</code>. {{{i18n.details.flags_intro_after}}}</p>
             <div class="flag-grid">
                 {{#feature_flags}}
                     <div class="{{control_class}}">
@@ -294,7 +303,7 @@
                                         <input type="hidden" name="action" value="toggle_flag">
                                         <input type="hidden" name="flag" value="{{flag}}">
                                         <input type="hidden" name="enabled" value="0">
-                                        <button type="submit" class="button danger">{{i18n.actions.disable}}</button>
+                                        <button type="submit" class="button danger">{{{i18n.actions.disable}}}</button>
                                     </form>
                                 {{/show_disable_when_value_enabled}}
                             </div>
@@ -315,7 +324,7 @@
         </div>
 
         <div class="card">
-            <h2>{{i18n.details.files_heading}}</h2>
+            <h2>{{{i18n.details.files_heading}}}</h2>
             <table class="details-table">
                 <tbody>
                 {{#file_rows}}
@@ -332,7 +341,7 @@
         </div>
 
         <div class="card">
-            <h2>{{i18n.details.config_heading}}</h2>
+            <h2>{{{i18n.details.config_heading}}}</h2>
             <table class="details-table">
                 <tbody>
                 {{#config_rows}}
@@ -377,3 +386,24 @@
         });
     </script>
 {{/moodle_is_enabled}}
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const alert = document.getElementById("plugin-update-alert");
+        if (!alert) {
+            return;
+        }
+        fetch("/plugin_update_status.php?domain={{domain}}", {credentials: "same-origin"})
+            .then(function (response) { return response.ok ? response.json() : null; })
+            .then(function (data) {
+                if (!data || !data.updates) {
+                    return;
+                }
+                alert.textContent = data.updates === 1
+                    ? "Há 1 plugin com atualização disponível no Git."
+                    : "Há " + data.updates + " plugins com atualização disponível no Git.";
+                alert.hidden = false;
+            })
+            .catch(function () {});
+    });
+</script>

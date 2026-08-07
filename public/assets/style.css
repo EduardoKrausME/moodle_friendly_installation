@@ -1363,6 +1363,7 @@ button,
   cursor: pointer;
   box-shadow: 0 12px 24px rgba(37, 99, 235, 0.22);
   transition: 160ms ease;
+  white-space: nowrap;
 }
 
 button:hover,
@@ -1600,6 +1601,10 @@ code {
 }
 .alert a {
   text-decoration: underline;
+}
+
+.white-space-break-spaces {
+  white-space: break-spaces;
 }
 
 .error,

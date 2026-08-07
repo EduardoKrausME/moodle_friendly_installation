@@ -1,0 +1,150 @@
+<section class="page-title">
+    <div>
+        <h1>{{{i18n.moodle_plugins.heading}}}</h1>
+        <p>{{domain}}</p>
+    </div>
+    <div class="hero-actions">
+        <a class="button secondary" href="{{details_url}}">{{{i18n.moodle_plugins.back_to_details}}}</a>
+        <a class="button secondary" href="/moodle_plugins.php?domain={{domain}}">{{{i18n.moodle_plugins.check_again}}}</a>
+    </div>
+</section>
+
+{{#has_flash}}
+    <div class="alert {{flash_class}}">{{flash}}</div>
+{{/has_flash}}
+
+{{#show_finish_install}}
+    <div class="card hero-card">
+        <div>
+            <h2>{{{i18n.moodle_plugins.finish_heading}}}</h2>
+            <p>{{{i18n.moodle_plugins.finish_intro_before}}} <strong>{{installed_component}}</strong> {{{i18n.moodle_plugins.finish_intro_after}}}</p>
+        </div>
+        <div class="hero-actions">
+            <a class="button" href="{{admin_url}}" target="_blank" rel="noopener">{{{i18n.moodle_plugins.open_site_admin}}}</a>
+        </div>
+    </div>
+{{/show_finish_install}}
+
+{{#has_updates}}
+    <div class="alert warning">
+        {{{i18n.moodle_plugins.updates_available_before}}} <strong>{{update_count}}</strong> {{{i18n.moodle_plugins.updates_available_after}}}
+    </div>
+{{/has_updates}}
+
+<div class="details-grid">
+    <div class="card full-card">
+        <div class="section-heading-actions">
+            <div>
+                <h2>{{{i18n.moodle_plugins.installed_heading}}}</h2>
+                <p class="card-subtitle">{{{i18n.moodle_plugins.installed_intro}}}</p>
+            </div>
+        </div>
+
+        {{^has_plugins}}
+            <div class="alert warning compact-alert">{{{i18n.moodle_plugins.empty}}}</div>
+        {{/has_plugins}}
+
+        {{#has_plugins}}
+            <div style="overflow-x:auto;">
+                <table class="details-table" style="width:100%;">
+                    <thead>
+                    <tr>
+                        <th>{{{i18n.moodle_plugins.column_plugin}}}</th>
+                        <th>{{{i18n.moodle_plugins.column_local_version}}}<br>{{{i18n.moodle_plugins.column_remote_version}}}</th>
+                        <th>{{{i18n.moodle_plugins.column_status}}}</th>
+                        <th>{{{i18n.moodle_plugins.column_action}}}</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {{#plugins}}
+                        <tr class="plugin-summary-row" data-details-id="{{row_id}}" tabindex="0"
+                            aria-controls="{{row_id}}" aria-expanded="false" style="cursor:pointer;">
+                            <td><strong>{{component}}</strong><br><small><code>{{relative_path}}</code></small></td>
+                            <td><code>{{local_version}}</code><br><code>{{remote_version_display}}</code></td>
+                            <td>{{{status_badge_html}}}</td>
+                            <td>
+                                <form method="post" class="inline-form plugin-update-form">
+                                    <input type="hidden" name="csrf_token" value="{{csrf_token}}">
+                                    <input type="hidden" name="action" value="update_plugin">
+                                    <input type="hidden" name="component" value="{{component}}">
+                                    <button type="submit" class="button" {{^can_update}}disabled{{/can_update}}>{{update_button_label}}</button>
+                                </form>
+                            </td>
+                        </tr>
+                        <tr id="{{row_id}}" class="plugin-details-row" hidden>
+                            <td colspan="4">
+                                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;padding:12px 0;">
+                                    <div class="server-control-item">
+                                        <div class="flag-header"><strong>{{{i18n.moodle_plugins.local_details}}}</strong></div>
+                                        <p><strong>{{{i18n.moodle_plugins.version}}}</strong><br><code>{{local_version}}</code></p>
+                                        <p><strong>{{{i18n.moodle_plugins.release}}}</strong><br>{{local_release}}</p>
+                                        <p><strong>{{{i18n.moodle_plugins.commit}}}</strong><br><code>{{local_commit}}</code></p>
+                                        <p><strong>{{{i18n.moodle_plugins.path}}}</strong><br><code>{{path}}</code></p>
+                                    </div>
+                                    <div class="server-control-item">
+                                        <div class="flag-header"><strong>{{{i18n.moodle_plugins.remote_details}}}</strong></div>
+                                        <p><strong>{{{i18n.moodle_plugins.version}}}</strong><br><code>{{remote_version_display}}</code></p>
+                                        <p><strong>{{{i18n.moodle_plugins.release}}}</strong><br>{{remote_release_display}}</p>
+                                        <p><strong>{{{i18n.moodle_plugins.commit}}}</strong><br><code>{{remote_commit}}</code></p>
+                                        <p><strong>{{{i18n.moodle_plugins.branch}}}</strong><br><code>{{branch}}</code></p>
+                                        <p><strong>{{{i18n.moodle_plugins.origin}}}</strong><br><code>{{remote}}</code></p>
+                                    </div>
+                                </div>
+                                {{#has_check_error}}
+                                    <div class="alert warning compact-alert">{{check_error}}</div>
+                                {{/has_check_error}}
+                            </td>
+                        </tr>
+                    {{/plugins}}
+                    </tbody>
+                </table>
+            </div>
+        {{/has_plugins}}
+    </div>
+
+    <div class="card full-card">
+        <h2>{{{i18n.moodle_plugins.install_heading}}}</h2>
+        <p class="card-subtitle">{{{i18n.moodle_plugins.install_intro}}}</p>
+        <form method="post" class="form">
+            <input type="hidden" name="csrf_token" value="{{csrf_token}}">
+            <input type="hidden" name="action" value="install_plugin">
+            <label>
+                {{{i18n.moodle_plugins.repository_label}}}
+                <input type="url" name="git_url" placeholder="{{{i18n.moodle_plugins.repository_placeholder}}}" required>
+            </label>
+            <div class="hero-actions">
+                <button type="submit" class="button">{{{i18n.moodle_plugins.install_button}}}</button>
+            </div>
+        </form>
+        <p class="card-subtitle">{{{i18n.moodle_plugins.install_permissions}}}</p>
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        document.querySelectorAll(".plugin-summary-row").forEach(function (row) {
+            const toggle = function () {
+                const details = document.getElementById(row.dataset.detailsId);
+                if (!details) {
+                    return;
+                }
+                const opening = details.hidden;
+                details.hidden = !opening;
+                row.setAttribute("aria-expanded", opening ? "true" : "false");
+            };
+
+            row.addEventListener("click", function (event) {
+                if (event.target.closest("form, button, a, input")) {
+                    return;
+                }
+                toggle();
+            });
+            row.addEventListener("keydown", function (event) {
+                if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    toggle();
+                }
+            });
+        });
+    });
+</script>
