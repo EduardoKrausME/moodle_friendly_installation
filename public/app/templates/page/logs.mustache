@@ -1,22 +1,22 @@
 <section class="page-title">
     <div>
-        <h1>{{i18n.logs.heading}}</h1>
+        <h1>{{{i18n.logs.heading}}}</h1>
         <p>{{domain}}</p>
     </div>
-    <a class="button secondary" href="{{details_url}}">{{i18n.actions.back_to_details}}</a>
+    <a class="button secondary" href="{{details_url}}">{{{i18n.actions.back_to_details}}}</a>
 </section>
 
 {{^has_sources}}
     <div class="card empty-state">
-        <h2>{{i18n.logs.empty_heading}}</h2>
-        <p>{{i18n.logs.empty_intro}}</p>
+        <h2>{{{i18n.logs.empty_heading}}}</h2>
+        <p>{{{i18n.logs.empty_intro}}}</p>
     </div>
 {{/has_sources}}
 
 {{#has_sources}}
     <div class="log-layout">
         <aside class="card log-sources">
-            <h2>{{i18n.logs.sources}}</h2>
+            <h2>{{{i18n.logs.sources}}}</h2>
             {{#sources}}
                 <a class="log-source {{#selected}}is-active{{/selected}}"
                    href="{{url}}">
@@ -42,23 +42,23 @@
                     <input type="hidden" name="domain" value="{{domain}}">
                     <input type="hidden" name="source" value="{{source_id}}">
                     <label>
-                        {{i18n.logs.filter}}
-                        <input type="text" name="q" value="{{query}}" placeholder="{{i18n.logs.filter_placeholder}}">
+                        {{{i18n.logs.filter}}}
+                        <input type="text" name="q" value="{{query}}" placeholder="{{{i18n.logs.filter_placeholder}}}">
                     </label>
                     <label class="checkbox">
                         <input type="checkbox" name="follow" value="1" {{#follow}}checked{{/follow}}>
-                        <span>{{i18n.logs.auto_refresh}}</span>
+                        <span>{{{i18n.logs.auto_refresh}}}</span>
                     </label>
-                    <button type="submit">{{i18n.logs.apply}}</button>
+                    <button type="submit">{{{i18n.logs.apply}}}</button>
                 </form>
 
                 {{#has_error}}
                     <div class="alert danger">{{error}}</div>
                 {{/has_error}}
                 {{#truncated}}
-                    <div class="alert warning compact-alert">{{i18n.logs.truncated}}</div>
+                    <div class="alert warning compact-alert">{{{i18n.logs.truncated}}}</div>
                 {{/truncated}}
-                <small class="log-line-count">{{line_count}} {{i18n.logs.lines}}</small>
+                <small class="log-line-count">{{line_count}} {{{i18n.logs.lines}}}</small>
                 <pre class="server-log">{{content}}</pre>
             {{/has_selected_source}}
         </section>

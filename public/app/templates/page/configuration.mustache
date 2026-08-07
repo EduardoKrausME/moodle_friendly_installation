@@ -1,7 +1,7 @@
 <section class="page-title">
     <div>
-        <h1>{{i18n.configuration.heading}}</h1>
-        <p>{{i18n.configuration.intro}}</p>
+        <h1>{{{i18n.configuration.heading}}}</h1>
+        <p>{{{i18n.configuration.intro}}}</p>
     </div>
 </section>
 
@@ -11,7 +11,7 @@
 
 {{#has_errors}}
     <div class="alert danger">
-        <strong>{{i18n.configuration.check_fields}}</strong>
+        <strong>{{{i18n.configuration.check_fields}}}</strong>
         <ul>
             {{#errors}}
                 <li>{{message}}</li>
@@ -49,6 +49,6 @@
     {{/fields}}
 
     <div class="form-actions">
-        <button type="submit">{{i18n.actions.save}}</button>
+        <button type="submit">{{{i18n.actions.save}}}</button>
     </div>
 </form>

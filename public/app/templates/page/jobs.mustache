@@ -1,7 +1,7 @@
 <section class="page-title">
     <div>
-        <h1>{{i18n.jobs.heading}}</h1>
-        <p>{{i18n.jobs.intro}}</p>
+        <h1>{{{i18n.jobs.heading}}}</h1>
+        <p>{{{i18n.jobs.intro}}}</p>
     </div>
 </section>
 
@@ -10,25 +10,25 @@
 {{/has_flash}}
 
 {{#selected_job_not_found}}
-    <div class="alert error">{{i18n.jobs.not_found}}</div>
+    <div class="alert error">{{{i18n.jobs.not_found}}}</div>
 {{/selected_job_not_found}}
 
 {{#has_selected_job}}
     {{#selected_job}}
-        <p><a href="/jobs.php">&larr; {{i18n.jobs.back_to_queue}}</a></p>
+        <p><a href="/jobs.php">&larr; {{{i18n.jobs.back_to_queue}}}</a></p>
 
         <div class="card" style="margin-bottom: 10px">
-            <h2><strong>{{i18n.jobs.job}}</strong>: <code>{{id}}</code></h2>
-            <div><strong>{{i18n.jobs.domain}}</strong>: {{domain}}</div>
-            <div class="status-{{status_class}}"><strong>{{i18n.jobs.status}}</strong>: {{{status_badge}}}</div>
-            <div class="nowrap"><strong>{{i18n.jobs.created}}</strong>: {{created_at}}</div>
+            <h2><strong>{{{i18n.jobs.job}}}</strong>: <code>{{id}}</code></h2>
+            <div><strong>{{{i18n.jobs.domain}}}</strong>: {{domain}}</div>
+            <div class="status-{{status_class}}"><strong>{{{i18n.jobs.status}}}</strong>: {{{status_badge}}}</div>
+            <div class="nowrap"><strong>{{{i18n.jobs.created}}}</strong>: {{created_at}}</div>
             {{#can_cancel}}
                 <form method="post" action="/jobs.php?job={{id}}" class="job-cancel-form"
-                      onsubmit="return confirm('{{i18n.jobs.cancel_confirm}}');">
+                      onsubmit="return confirm('{{{i18n.jobs.cancel_confirm}}}');">
                     <input type="hidden" name="csrf_token" value="{{csrf_token}}">
                     <input type="hidden" name="action" value="cancel_job">
                     <input type="hidden" name="job_id" value="{{id}}">
-                    <button type="submit" class="button danger small">{{i18n.jobs.cancel}}</button>
+                    <button type="submit" class="button danger small">{{{i18n.jobs.cancel}}}</button>
                 </form>
             {{/can_cancel}}
             {{#can_delete_files}}
@@ -37,16 +37,16 @@
                     <input type="hidden" name="csrf_token" value="{{csrf_token}}">
                     <input type="hidden" name="action" value="delete_failed_installation_files">
                     <input type="hidden" name="job_id" value="{{id}}">
-                    <button type="submit" class="button danger small">{{i18n.jobs.delete_files}}</button>
+                    <button type="submit" class="button danger small">{{{i18n.jobs.delete_files}}}</button>
                 </form>
             {{/can_delete_files}}
             {{#cleanup_active}}
                 <div class="alert warning compact-alert">
-                    {{i18n.jobs.delete_files_processing}} <a href="{{cleanup_url}}">{{i18n.jobs.open_job}}</a>
+                    {{{i18n.jobs.delete_files_processing}}} <a href="{{cleanup_url}}">{{{i18n.jobs.open_job}}}</a>
                 </div>
             {{/cleanup_active}}
             {{#files_deleted}}
-                <div class="alert ok compact-alert">{{i18n.jobs.files_deleted}}</div>
+                <div class="alert ok compact-alert">{{{i18n.jobs.files_deleted}}}</div>
             {{/files_deleted}}
             <div>
                 {{#has_error}}
@@ -58,7 +58,7 @@
                 {{/has_log}}
 
                 {{^has_log}}
-                    <p class="muted">{{i18n.jobs.no_log}}</p>
+                    <p class="muted">{{{i18n.jobs.no_log}}}</p>
                 {{/has_log}}
             </div>
         </div>
@@ -67,29 +67,29 @@
 
 {{^has_selected_job}}
     {{^has_jobs}}
-        <p>{{i18n.jobs.empty}}</p>
+        <p>{{{i18n.jobs.empty}}}</p>
     {{/has_jobs}}
 
     {{#has_jobs}}
         {{#jobs}}
             <div class="card" style="margin-bottom: 10px">
-                <h2><strong>{{i18n.jobs.job}}</strong>: <code>{{id}}</code></h2>
-                <div><strong>{{i18n.jobs.domain}}</strong>: {{domain}}</div>
-                <div class="status-{{status_class}}"><strong>{{i18n.jobs.status}}</strong>: {{{status_badge}}}</div>
-                <div class="nowrap"><strong>{{i18n.jobs.created}}</strong>: {{created_at}}</div>
+                <h2><strong>{{{i18n.jobs.job}}}</strong>: <code>{{id}}</code></h2>
+                <div><strong>{{{i18n.jobs.domain}}}</strong>: {{domain}}</div>
+                <div class="status-{{status_class}}"><strong>{{{i18n.jobs.status}}}</strong>: {{{status_badge}}}</div>
+                <div class="nowrap"><strong>{{{i18n.jobs.created}}}</strong>: {{created_at}}</div>
                 <div class="job-card-actions">
                     {{#has_error}}
                         <span class="error">{{error}}</span><br>
                     {{/has_error}}
 
-                    <a href="{{url}}">{{i18n.jobs.open_job}}</a>
+                    <a href="{{url}}">{{{i18n.jobs.open_job}}}</a>
                     {{#can_cancel}}
                         <form method="post" action="{{url}}" class="job-cancel-form"
-                              onsubmit="return confirm('{{i18n.jobs.cancel_confirm}}');">
+                              onsubmit="return confirm('{{{i18n.jobs.cancel_confirm}}}');">
                             <input type="hidden" name="csrf_token" value="{{csrf_token}}">
                             <input type="hidden" name="action" value="cancel_job">
                             <input type="hidden" name="job_id" value="{{id}}">
-                            <button type="submit" class="button danger small">{{i18n.jobs.cancel}}</button>
+                            <button type="submit" class="button danger small">{{{i18n.jobs.cancel}}}</button>
                         </form>
                     {{/can_cancel}}
                     {{#can_delete_files}}
@@ -98,16 +98,16 @@
                             <input type="hidden" name="csrf_token" value="{{csrf_token}}">
                             <input type="hidden" name="action" value="delete_failed_installation_files">
                             <input type="hidden" name="job_id" value="{{id}}">
-                            <button type="submit" class="button danger small">{{i18n.jobs.delete_files}}</button>
+                            <button type="submit" class="button danger small">{{{i18n.jobs.delete_files}}}</button>
                         </form>
                     {{/can_delete_files}}
                     {{#cleanup_active}}
                         <span class="muted">
-                            {{i18n.jobs.delete_files_processing}} <a href="{{cleanup_url}}">{{i18n.jobs.open_job}}</a>
+                            {{{i18n.jobs.delete_files_processing}}} <a href="{{cleanup_url}}">{{{i18n.jobs.open_job}}}</a>
                         </span>
                     {{/cleanup_active}}
                     {{#files_deleted}}
-                        <span class="status-ok">{{i18n.jobs.files_deleted}}</span>
+                        <span class="status-ok">{{{i18n.jobs.files_deleted}}}</span>
                     {{/files_deleted}}
                 </div>
             </div>

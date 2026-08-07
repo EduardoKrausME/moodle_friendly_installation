@@ -1,9 +1,9 @@
 <section class="page-title">
     <div>
-        <h1>{{i18n.app_manager.list_heading}}</h1>
-        <p>{{i18n.app_manager.list_intro}}</p>
+        <h1>{{{i18n.app_manager.list_heading}}}</h1>
+        <p>{{{i18n.app_manager.list_intro}}}</p>
     </div>
-    <a class="button" href="/install.php">{{i18n.actions.install_moodle}}</a>
+    <a class="button" href="/install.php">{{{i18n.actions.install_moodle}}}</a>
 </section>
 
 {{#has_flash}}
@@ -13,9 +13,9 @@
 {{^has_apps}}
     <div class="card empty-state">
         <div class="empty-icon">A</div>
-        <h2>{{i18n.app_manager.list_empty_heading}}</h2>
-        <p>{{i18n.app_manager.list_empty_intro}}</p>
-        <a class="button" href="/install.php">{{i18n.actions.install_first_moodle}}</a>
+        <h2>{{{i18n.app_manager.list_empty_heading}}}</h2>
+        <p>{{{i18n.app_manager.list_empty_intro}}}</p>
+        <a class="button" href="/install.php">{{{i18n.actions.install_first_moodle}}}</a>
     </div>
 {{/has_apps}}
 
@@ -36,12 +36,12 @@
                     </div>
                     {{#has_latest_job}}
                         <div>
-                            <dt>{{i18n.app_manager.latest_job}}</dt>
+                            <dt>{{{i18n.app_manager.latest_job}}}</dt>
                             <dd>{{{latest_job_status_badge}}}</dd>
                         </div>
                     {{/has_latest_job}}
                 </dl>
-                <a class="button secondary" href="{{manage_url}}">{{i18n.actions.manage_app}}</a>
+                <a class="button secondary" href="{{manage_url}}">{{{i18n.actions.manage_app}}}</a>
             </article>
         {{/apps}}
     </section>

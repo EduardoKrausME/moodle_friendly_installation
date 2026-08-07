@@ -1,49 +1,49 @@
 {{#course}}
     <div class="detail-header">
         <div><span class="eyebrow">{{categoryname}} · #{{id}}</span><h2>{{fullname}}</h2><p>{{shortname}}</p></div>
-        <button type="button" class="detail-close" data-close-detail aria-label="{{i18n.actions.close}}">×</button>
+        <button type="button" class="detail-close" data-close-detail aria-label="{{{i18n.actions.close}}}">×</button>
     </div>
     <div class="detail-status-row">
         <span class="status-badge {{visibility_class}}">{{visibility_label}}</span>
-        <span>{{format}}</span><span>{{participantcount}} {{i18n.moodle_courses.participants_lower}}</span>
-        <span>{{activitycount}} {{i18n.moodle_courses.activities_lower}}</span>
+        <span>{{format}}</span><span>{{participantcount}} {{{i18n.moodle_courses.participants_lower}}}</span>
+        <span>{{activitycount}} {{{i18n.moodle_courses.activities_lower}}}</span>
     </div>
     <div class="detail-actions">
-        <a class="button" href="{{edit_url}}" target="_blank" rel="noopener">{{i18n.moodle_courses.edit_in_moodle}}</a>
-        <a class="button secondary" href="{{view_url}}" target="_blank" rel="noopener">{{i18n.moodle_courses.open_course}}</a>
-        <a class="button secondary" href="{{native_participants_url}}" target="_blank" rel="noopener">{{i18n.moodle_courses.native_participants}}</a>
+        <a class="button" href="{{edit_url}}" target="_blank" rel="noopener">{{{i18n.moodle_courses.edit_in_moodle}}}</a>
+        <a class="button secondary" href="{{view_url}}" target="_blank" rel="noopener">{{{i18n.moodle_courses.open_course}}}</a>
+        <a class="button secondary" href="{{native_participants_url}}" target="_blank" rel="noopener">{{{i18n.moodle_courses.native_participants}}}</a>
     </div>
     <div class="detail-grid-info course-info-grid">
-        <div><small>{{i18n.moodle_courses.start_date}}</small><strong>{{startdate_formatted}}</strong></div>
-        <div><small>{{i18n.moodle_courses.end_date}}</small><strong>{{enddate_formatted}}</strong></div>
-        <div><small>{{i18n.moodle_courses.modified}}</small><strong>{{modified_formatted}}</strong></div>
-        <div><small>{{i18n.moodle_courses.language}}</small><strong>{{lang}}</strong></div>
+        <div><small>{{{i18n.moodle_courses.start_date}}}</small><strong>{{startdate_formatted}}</strong></div>
+        <div><small>{{{i18n.moodle_courses.end_date}}}</small><strong>{{enddate_formatted}}</strong></div>
+        <div><small>{{{i18n.moodle_courses.modified}}}</small><strong>{{modified_formatted}}</strong></div>
+        <div><small>{{{i18n.moodle_courses.language}}}</small><strong>{{lang}}</strong></div>
     </div>
     {{#summary}}<p class="detail-description">{{summary}}</p>{{/summary}}
 
     <details class="detail-disclosure">
-        <summary>{{i18n.moodle_courses.extra_fields}}</summary>
+        <summary>{{{i18n.moodle_courses.extra_fields}}}</summary>
         {{#has_custom_fields}}<dl class="detail-definition-list">{{#custom_fields}}<div><dt>{{name}} <code>{{shortname}}</code></dt><dd>{{value}}</dd></div>{{/custom_fields}}</dl>{{/has_custom_fields}}
-        {{^has_custom_fields}}<p class="muted-copy">{{i18n.moodle_courses.no_extra_fields}}</p>{{/has_custom_fields}}
+        {{^has_custom_fields}}<p class="muted-copy">{{{i18n.moodle_courses.no_extra_fields}}}</p>{{/has_custom_fields}}
     </details>
 
     <section class="participant-section">
-        <div class="participant-heading"><div><h3>{{i18n.moodle_courses.participants}}</h3><p>{{i18n.moodle_courses.participants_intro}}</p></div><strong>{{participantcount}}</strong></div>
+        <div class="participant-heading"><div><h3>{{{i18n.moodle_courses.participants}}}</h3><p>{{{i18n.moodle_courses.participants_intro}}}</p></div><strong>{{participantcount}}</strong></div>
         <form class="participant-search" data-participant-search>
-            <input type="search" name="search" placeholder="{{i18n.moodle_courses.search_participant}}">
-            <button class="button secondary small" type="submit">{{i18n.actions.search}}</button>
+            <input type="search" name="search" placeholder="{{{i18n.moodle_courses.search_participant}}}">
+            <button class="button secondary small" type="submit">{{{i18n.actions.search}}}</button>
         </form>
         <details class="add-participant-box">
-            <summary>{{i18n.moodle_courses.add_participant}}</summary>
+            <summary>{{{i18n.moodle_courses.add_participant}}}</summary>
             <form class="add-participant-form" data-ajax-course>
                 <input type="hidden" name="csrf_token" value="{{csrf_token}}">
                 <input type="hidden" name="action" value="participant_add">
                 <input type="hidden" name="domain" value="{{domain}}">
                 <input type="hidden" name="courseid" value="{{id}}">
-                <label><span>{{i18n.moodle_courses.find_user}}</span><input type="search" data-find-user placeholder="{{i18n.moodle_courses.find_user_placeholder}}" autocomplete="off"></label>
-                <label><span>{{i18n.moodle_courses.user_result}}</span><select name="userid" data-user-results required><option value="">{{i18n.moodle_courses.find_user_help}}</option></select></label>
-                <label><span>{{i18n.moodle_courses.role}}</span><select name="roleid" required>{{#roles}}<option value="{{id}}">{{name}}</option>{{/roles}}</select></label>
-                <button class="button" type="submit">{{i18n.moodle_courses.add_action}}</button>
+                <label><span>{{{i18n.moodle_courses.find_user}}}</span><input type="search" data-find-user placeholder="{{{i18n.moodle_courses.find_user_placeholder}}}" autocomplete="off"></label>
+                <label><span>{{{i18n.moodle_courses.user_result}}}</span><select name="userid" data-user-results required><option value="">{{{i18n.moodle_courses.find_user_help}}}</option></select></label>
+                <label><span>{{{i18n.moodle_courses.role}}}</span><select name="roleid" required>{{#roles}}<option value="{{id}}">{{name}}</option>{{/roles}}</select></label>
+                <button class="button" type="submit">{{{i18n.moodle_courses.add_action}}}</button>
             </form>
         </details>
 
@@ -59,28 +59,28 @@
                             <input type="hidden" name="domain" value="{{domain}}">
                             <input type="hidden" name="courseid" value="{{courseid}}">
                             <input type="hidden" name="userid" value="{{id}}">
-                            <label><span>{{i18n.moodle_courses.role}}</span><select name="roleid">{{#role_options}}<option value="{{id}}" {{#selected}}selected{{/selected}}>{{name}}</option>{{/role_options}}</select></label>
-                            <label><span>{{i18n.moodle_courses.enrolment_status}}</span><select name="active"><option value="1" {{#is_active}}selected{{/is_active}}>{{i18n.moodle_courses.active_enrolment}}</option><option value="0" {{^is_active}}selected{{/is_active}}>{{i18n.moodle_courses.suspended_enrolment}}</option></select></label>
-                            <div class="participant-actions"><button class="button secondary small" type="submit">{{i18n.actions.save}}</button><a href="{{profile_url}}" target="_blank" rel="noopener">{{i18n.moodle_courses.profile}}</a></div>
+                            <label><span>{{{i18n.moodle_courses.role}}}</span><select name="roleid">{{#role_options}}<option value="{{id}}" {{#selected}}selected{{/selected}}>{{name}}</option>{{/role_options}}</select></label>
+                            <label><span>{{{i18n.moodle_courses.enrolment_status}}}</span><select name="active"><option value="1" {{#is_active}}selected{{/is_active}}>{{{i18n.moodle_courses.active_enrolment}}}</option><option value="0" {{^is_active}}selected{{/is_active}}>{{{i18n.moodle_courses.suspended_enrolment}}}</option></select></label>
+                            <div class="participant-actions"><button class="button secondary small" type="submit">{{{i18n.actions.save}}}</button><a href="{{profile_url}}" target="_blank" rel="noopener">{{{i18n.moodle_courses.profile}}}</a></div>
                         </form>
-                        <form data-ajax-course data-confirm="{{i18n.moodle_courses.confirm_remove}}">
+                        <form data-ajax-course data-confirm="{{{i18n.moodle_courses.confirm_remove}}}">
                             <input type="hidden" name="csrf_token" value="{{csrf_token}}">
                             <input type="hidden" name="action" value="participant_remove">
                             <input type="hidden" name="domain" value="{{domain}}">
                             <input type="hidden" name="courseid" value="{{courseid}}">
                             <input type="hidden" name="userid" value="{{id}}">
-                            <button class="text-danger-button" type="submit">{{i18n.moodle_courses.remove_everything}}</button>
+                            <button class="text-danger-button" type="submit">{{{i18n.moodle_courses.remove_everything}}}</button>
                         </form>
                     </article>
                 {{/participants}}
             </div>
         {{/has_participants}}
-        {{^has_participants}}<div class="empty-state compact-empty">{{i18n.moodle_courses.no_participants}}</div>{{/has_participants}}
+        {{^has_participants}}<div class="empty-state compact-empty">{{{i18n.moodle_courses.no_participants}}}</div>{{/has_participants}}
     </section>
 
     <div class="detail-report-section">
-        <h3>{{i18n.moodle_reports.course_heading}}</h3>
+        <h3>{{{i18n.moodle_reports.course_heading}}}</h3>
         {{#has_reports}}<div class="detail-link-list report-links">{{#reports}}<a href="{{url}}" target="_blank" rel="noopener"><strong>{{title}}</strong><small>{{description}}</small></a>{{/reports}}</div>{{/has_reports}}
-        {{^has_reports}}<p class="muted-copy">{{i18n.moodle_reports.not_available}}</p>{{/has_reports}}
+        {{^has_reports}}<p class="muted-copy">{{{i18n.moodle_reports.not_available}}}</p>{{/has_reports}}
     </div>
 {{/course}}

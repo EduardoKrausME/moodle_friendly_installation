@@ -1,12 +1,12 @@
 <section class="dashboard-heading">
     <div>
-        <h1>{{i18n.dashboard.heading}}</h1>
-        <p>{{i18n.dashboard.intro}} <span
-                class="live-status"><i></i>{{i18n.dashboard.updated_at}} {{dashboard.updated_at}}</span></p>
+        <h1>{{{i18n.dashboard.heading}}}</h1>
+        <p>{{{i18n.dashboard.intro}}} <span
+                class="live-status"><i></i>{{{i18n.dashboard.updated_at}}} {{dashboard.updated_at}}</span></p>
     </div>
     <div class="dashboard-heading-actions">
-        <a class="icon-button" href="/?refresh=1" title="{{i18n.dashboard.refresh}}"
-           aria-label="{{i18n.dashboard.refresh}}">
+        <a class="icon-button" href="/?refresh=1" title="{{{i18n.dashboard.refresh}}}"
+           aria-label="{{{i18n.dashboard.refresh}}}">
             <svg>
                 <use href="#icon-refresh"></use>
             </svg>
@@ -15,7 +15,7 @@
             <svg class="button-icon">
                 <use href="#icon-install"></use>
             </svg>
-            {{i18n.actions.install_moodle}}
+            {{{i18n.actions.install_moodle}}}
         </a>
         <form action="/phpmyadmin-signon.php" method="post" target="_blank">
             <input type="hidden" name="csrf_token" value="{{csrf_token}}">
@@ -23,7 +23,7 @@
                 <svg class="button-icon">
                     <use href="#icon-database"></use>
                 </svg>
-                {{i18n.dashboard.open_phpmyadmin}}
+                {{{i18n.dashboard.open_phpmyadmin}}}
             </button>
         </form>
     </div>
@@ -42,19 +42,19 @@
                         <path d="M4 6.5A2.5 2.5 0 0 1 6.5 4h11A2.5 2.5 0 0 1 20 6.5v11a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 4 17.5v-11Zm3 8.5h10M8 9h8"/>
                     </svg>
                 </span>
-                <span>{{i18n.server.disk}}</span>
+                <span>{{{i18n.server.disk}}}</span>
             </div>
             <strong class="server-stat-value">{{server.disk.used}}</strong>
-            <span class="server-stat-caption">{{i18n.server.used_of}} {{server.disk.total}}</span>
+            <span class="server-stat-caption">{{{i18n.server.used_of}}} {{server.disk.total}}</span>
             {{#server.disk.has_data}}
-                <div class="server-stat-progress" role="progressbar" aria-label="{{i18n.server.disk_usage}}"
+                <div class="server-stat-progress" role="progressbar" aria-label="{{{i18n.server.disk_usage}}}"
                      aria-valuenow="{{server.disk.percent_raw}}" aria-valuemin="0" aria-valuemax="100">
                     <span style="width: {{server.disk.percent_raw}}%"></span>
                 </div>
             {{/server.disk.has_data}}
             <div class="server-stat-meta">
-                <span><b>{{i18n.server.free}}</b>{{server.disk.free}}</span>
-                <span><b>{{i18n.server.usage}}</b>{{server.disk.percent}}</span>
+                <span><b>{{{i18n.server.free}}}</b>{{server.disk.free}}</span>
+                <span><b>{{{i18n.server.usage}}}</b>{{server.disk.percent}}</span>
             </div>
         </article>
 
@@ -66,19 +66,19 @@
                         <path d="M9 2v3m3-3v3m3-3v3M9 19v3m3-3v3m3-3v3M2 9h3m-3 3h3m-3 3h3m14-6h3m-3 3h3m-3 3h3"/>
                     </svg>
                 </span>
-                <span>{{i18n.server.memory}}</span>
+                <span>{{{i18n.server.memory}}}</span>
             </div>
             <strong class="server-stat-value">{{server.memory.used}}</strong>
-            <span class="server-stat-caption">{{i18n.server.used_of}} {{server.memory.total}}</span>
+            <span class="server-stat-caption">{{{i18n.server.used_of}}} {{server.memory.total}}</span>
             {{#server.memory.has_data}}
-                <div class="server-stat-progress" role="progressbar" aria-label="{{i18n.server.memory_usage}}"
+                <div class="server-stat-progress" role="progressbar" aria-label="{{{i18n.server.memory_usage}}}"
                      aria-valuenow="{{server.memory.percent_raw}}" aria-valuemin="0" aria-valuemax="100">
                     <span style="width: {{server.memory.percent_raw}}%"></span>
                 </div>
             {{/server.memory.has_data}}
             <div class="server-stat-meta">
-                <span><b>{{i18n.server.available}}</b>{{server.memory.available}}</span>
-                <span><b>{{i18n.server.usage}}</b>{{server.memory.percent}}</span>
+                <span><b>{{{i18n.server.available}}}</b>{{server.memory.available}}</span>
+                <span><b>{{{i18n.server.usage}}}</b>{{server.memory.percent}}</span>
             </div>
         </article>
 
@@ -89,14 +89,14 @@
                         <path d="M4 19V9m5 10V5m5 14v-7m5 7V3"/>
                     </svg>
                 </span>
-                <span>{{i18n.server.load}}</span>
+                <span>{{{i18n.server.load}}}</span>
             </div>
             <strong class="server-stat-value">{{server.load.one}}</strong>
-            <span class="server-stat-caption">{{i18n.server.last_minute}}</span>
+            <span class="server-stat-caption">{{{i18n.server.last_minute}}}</span>
             <div class="server-stat-meta has-three-items">
                 <span><b>5 min</b>{{server.load.five}}</span>
                 <span><b>15 min</b>{{server.load.fifteen}}</span>
-                <span><b>{{i18n.server.cpu_cores}}</b>{{server.load.cpu_cores}}</span>
+                <span><b>{{{i18n.server.cpu_cores}}}</b>{{server.load.cpu_cores}}</span>
             </div>
         </article>
 
@@ -108,19 +108,19 @@
                         <path d="m7 9 3 3-3 3m5 0h5"/>
                     </svg>
                 </span>
-                <span>{{i18n.server.environment}}</span>
+                <span>{{{i18n.server.environment}}}</span>
             </div>
             <strong class="server-stat-value">PHP {{server.environment.php_version}}</strong>
             <span class="server-stat-caption">{{server.environment.php_sapi}}</span>
             <div class="server-stat-meta is-stacked">
-                <span><b>{{i18n.server.operating_system}}</b>{{server.environment.operating_system}}</span>
-                <span><b>{{i18n.server.uptime}}</b>{{server.environment.uptime}}</span>
+                <span><b>{{{i18n.server.operating_system}}}</b>{{server.environment.operating_system}}</span>
+                <span><b>{{{i18n.server.uptime}}}</b>{{server.environment.uptime}}</span>
             </div>
         </article>
     </div>
 </section>
 
-<section class="server-overview" aria-label="{{i18n.dashboard.summary}}">
+<section class="server-overview" aria-label="{{{i18n.dashboard.summary}}}">
     <div class="server-overview-grid">
         <article class="server-stat-card is-sites">
             <div class="server-stat-heading">
@@ -129,7 +129,7 @@
                         <use href="#icon-layers"></use>
                     </svg>
                 </span>
-                <span>{{i18n.dashboard.managed_moodles}}</span>
+                <span>{{{i18n.dashboard.managed_moodles}}}</span>
             </div>
 
             <strong class="server-stat-value">
@@ -137,7 +137,7 @@
             </strong>
 
             <span class="server-stat-caption">
-                {{i18n.dashboard.all_environments}}
+                {{{i18n.dashboard.all_environments}}}
             </span>
         </article>
 
@@ -148,7 +148,7 @@
                         <use href="#icon-users"></use>
                     </svg>
                 </span>
-                <span>{{i18n.dashboard.registered_users}}</span>
+                <span>{{{i18n.dashboard.registered_users}}}</span>
             </div>
 
             <strong class="server-stat-value">
@@ -156,7 +156,7 @@
             </strong>
 
             <span class="server-stat-caption">
-                {{i18n.dashboard.all_environments}}
+                {{{i18n.dashboard.all_environments}}}
             </span>
         </article>
 
@@ -167,7 +167,7 @@
                         <use href="#icon-activity"></use>
                     </svg>
                 </span>
-                <span>{{i18n.dashboard.active_last_30_days}}</span>
+                <span>{{{i18n.dashboard.active_last_30_days}}}</span>
             </div>
 
             <strong class="server-stat-value">
@@ -175,7 +175,7 @@
             </strong>
 
             <span class="server-stat-caption">
-                {{i18n.dashboard.all_environments}}
+                {{{i18n.dashboard.all_environments}}}
             </span>
         </article>
 
@@ -188,7 +188,7 @@
                 </span>
 
                 <span>
-                    {{i18n.dashboard.online_now}}
+                    {{{i18n.dashboard.online_now}}}
                     <i class="online-dot" aria-hidden="true"></i>
                 </span>
             </div>
@@ -198,7 +198,7 @@
             </strong>
 
             <span class="server-stat-caption">
-                {{i18n.dashboard.all_environments}}
+                {{{i18n.dashboard.all_environments}}}
             </span>
         </article>
     </div>
@@ -207,14 +207,14 @@
 <section class="dashboard-analytics-grid">
     <article class="dashboard-panel activity-panel">
         <header class="panel-heading">
-            <div><h2>{{i18n.dashboard.user_activity}}</h2>
-                <p>{{i18n.dashboard.last_30_days}}</p></div>
-            <span class="panel-filter">{{i18n.dashboard.all_moodles}}</span>
+            <div><h2>{{{i18n.dashboard.user_activity}}}</h2>
+                <p>{{{i18n.dashboard.last_30_days}}}</p></div>
+            <span class="panel-filter">{{{i18n.dashboard.all_moodles}}}</span>
         </header>
-        <div class="chart-legend"><span class="is-blue">{{i18n.dashboard.active_users}}</span><span
-                class="is-violet">{{i18n.dashboard.accesses}}</span></div>
+        <div class="chart-legend"><span class="is-blue">{{{i18n.dashboard.active_users}}}</span><span
+                class="is-violet">{{{i18n.dashboard.accesses}}}</span></div>
         <div class="line-chart">
-            <svg viewBox="0 0 750 260" role="img" aria-label="{{i18n.dashboard.user_activity}}">
+            <svg viewBox="0 0 750 260" role="img" aria-label="{{{i18n.dashboard.user_activity}}}">
                 <g class="chart-grid">
                     <line x1="38" y1="34" x2="712" y2="34"/>
                     <line x1="38" y1="80" x2="712" y2="80"/>
@@ -232,18 +232,18 @@
                           text-anchor="middle">{{label}}</text>{{/dashboard.activity.labels}}
             </svg>
             {{^dashboard.activity.has_data}}
-                <div class="chart-empty">{{i18n.dashboard.no_history}}</div>{{/dashboard.activity.has_data}}
+                <div class="chart-empty">{{{i18n.dashboard.no_history}}}</div>{{/dashboard.activity.has_data}}
         </div>
     </article>
 
     <article class="dashboard-panel location-panel">
         <header class="panel-heading">
-            <div><h2>{{i18n.dashboard.online_by_location}}</h2>
-                <p>{{i18n.dashboard.last_five_minutes}}</p></div>
+            <div><h2>{{{i18n.dashboard.online_by_location}}}</h2>
+                <p>{{{i18n.dashboard.last_five_minutes}}}</p></div>
         </header>
         <div class="location-content">
             <div class="brazil-map">
-                <svg viewBox="0 0 260 300" role="img" aria-label="{{i18n.dashboard.online_map}}">
+                <svg viewBox="0 0 260 300" role="img" aria-label="{{{i18n.dashboard.online_map}}}">
                     <path class="brazil-shape"
                           d="M72 18 101 11l25 12 24-1 19 18 27 6 18 20 21 7 5 24-11 21 10 24-15 23-4 29-17 22-10 27-20 15-13 27-18 11-14-23-19-15-20-4-8-24-19-16-8-27-17-20 8-23-11-22 14-18 2-24 21-14Z"/>
                     <g class="map-lines">
@@ -255,39 +255,39 @@
                         </circle>{{/dashboard.locations.points}}
                 </svg>
                 {{^dashboard.locations.has_map_points}}
-                    <span class="map-empty">{{i18n.dashboard.no_geolocation}}</span>{{/dashboard.locations.has_map_points}}
+                    <span class="map-empty">{{{i18n.dashboard.no_geolocation}}}</span>{{/dashboard.locations.has_map_points}}
             </div>
             <div class="location-list">
                 {{#dashboard.locations.items}}
                     <div><span><i></i>{{label}}</span><strong>{{percentage}}</strong><small>{{count}}</small>
                     </div>{{/dashboard.locations.items}}
                 {{^dashboard.locations.has_data}}
-                    <p class="empty-inline">{{i18n.dashboard.no_online_users}}</p>{{/dashboard.locations.has_data}}
+                    <p class="empty-inline">{{{i18n.dashboard.no_online_users}}}</p>{{/dashboard.locations.has_data}}
             </div>
         </div>
         <footer class="location-total">
-            <strong>{{dashboard.locations.online}}</strong> {{i18n.dashboard.users_online_now}}</footer>
+            <strong>{{dashboard.locations.online}}</strong> {{{i18n.dashboard.users_online_now}}}</footer>
     </article>
 </section>
 
 <article class="dashboard-panel environments-panel">
     <header class="panel-heading">
-        <div><h2>{{i18n.dashboard.environment_health}}</h2>
-            <p>{{i18n.dashboard.environment_health_intro}}</p></div>
-        <a href="/moodle.php">{{i18n.dashboard.view_all_moodles}} →</a></header>
+        <div><h2>{{{i18n.dashboard.environment_health}}}</h2>
+            <p>{{{i18n.dashboard.environment_health_intro}}}</p></div>
+        <a href="/moodle.php">{{{i18n.dashboard.view_all_moodles}}} →</a></header>
     {{#dashboard.has_sites}}
         <div class="dashboard-table-wrap">
             <table class="dashboard-table">
                 <thead>
                 <tr>
-                    <th>{{i18n.dashboard.environment}}</th>
-                    <th>{{i18n.dashboard.version}}</th>
-                    <th>{{i18n.dashboard.online}}</th>
-                    <th>{{i18n.dashboard.users}}</th>
-                    <th>{{i18n.dashboard.active_30d}}</th>
-                    <th>{{i18n.dashboard.courses}}</th>
-                    <th>{{i18n.dashboard.storage}}</th>
-                    <th>{{i18n.dashboard.health}}</th>
+                    <th>{{{i18n.dashboard.environment}}}</th>
+                    <th>{{{i18n.dashboard.version}}}</th>
+                    <th>{{{i18n.dashboard.online}}}</th>
+                    <th>{{{i18n.dashboard.users}}}</th>
+                    <th>{{{i18n.dashboard.active_30d}}}</th>
+                    <th>{{{i18n.dashboard.courses}}}</th>
+                    <th>{{{i18n.dashboard.storage}}}</th>
+                    <th>{{{i18n.dashboard.health}}}</th>
                 </tr>
                 </thead>
                 <tbody>{{#dashboard.sites}}
@@ -307,8 +307,8 @@
         </div>
     {{/dashboard.has_sites}}
     {{^dashboard.has_sites}}
-        <div class="dashboard-empty"><h3>{{i18n.moodle.empty_heading}}</h3>
-            <p>{{i18n.moodle.empty_intro}}</p><a class="button small"
-                                                 href="/install.php">{{i18n.actions.install_first_moodle}}</a>
+        <div class="dashboard-empty"><h3>{{{i18n.moodle.empty_heading}}}</h3>
+            <p>{{{i18n.moodle.empty_intro}}}</p><a class="button small"
+                                                 href="/install.php">{{{i18n.actions.install_first_moodle}}}</a>
         </div>{{/dashboard.has_sites}}
 </article>

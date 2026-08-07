@@ -1,7 +1,7 @@
 <section class="page-title">
     <div>
-        <h1>{{i18n.profile.heading}}</h1>
-        <p>{{i18n.profile.intro}}</p>
+        <h1>{{{i18n.profile.heading}}}</h1>
+        <p>{{{i18n.profile.intro}}}</p>
     </div>
 </section>
 
@@ -11,7 +11,7 @@
 
 {{#has_errors}}
     <div class="alert danger">
-        <strong>{{i18n.profile.check_fields}}</strong>
+        <strong>{{{i18n.profile.check_fields}}}</strong>
         <ul>
             {{#errors}}
                 <li>{{{message}}}</li>
@@ -24,26 +24,26 @@
     <input type="hidden" name="csrf_token" value="{{csrf_token}}">
 
     <label>
-        {{i18n.profile.username}}
+        {{{i18n.profile.username}}}
         <input type="text" name="username" value="{{username}}" autocomplete="username" required>
     </label>
 
     <label>
-        {{i18n.profile.name}}
+        {{{i18n.profile.name}}}
         <input type="text" name="name" value="{{name}}" autocomplete="name" required>
     </label>
 
     <label {{#force_password_change}} class="alert danger compact-alert" {{/force_password_change}}>
-        {{i18n.profile.new_password}}
+        {{{i18n.profile.new_password}}}
         <input type="password" name="password" autocomplete="new-password"
                {{#force_password_change}}required{{/force_password_change}}>
         {{#force_password_change}}
-            <div>{{{i18n.profile.password_help_required}}}</div>
+            <div>{{{{i18n.profile.password_help_required}}}}</div>
         {{/force_password_change}}
         {{^force_password_change}}
-            <small>{{{i18n.profile.password_help_optional}}}</small>
+            <small>{{{{i18n.profile.password_help_optional}}}}</small>
         {{/force_password_change}}
     </label>
 
-    <button type="submit">{{i18n.actions.save}}</button>
+    <button type="submit">{{{i18n.actions.save}}}</button>
 </form>

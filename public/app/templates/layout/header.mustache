@@ -35,15 +35,15 @@
 {{#has_user}}
 <div class="app-shell">
     <aside class="sidebar">
-        <a class="brand" href="/" aria-label="{{i18n.navigation.home_aria}}">
+        <a class="brand" href="/" aria-label="{{{i18n.navigation.home_aria}}}">
             <span class="brand-mark"><svg><use href="#icon-layers"></use></svg></span>
             <span class="brand-copy">
                 <strong>{{app_name}}</strong>
-                <small>{{i18n.navigation.control_center}}</small>
+                <small>{{{i18n.navigation.control_center}}}</small>
             </span>
         </a>
 
-        <nav class="side-nav" aria-label="{{i18n.navigation.main_menu}}">
+        <nav class="side-nav" aria-label="{{{i18n.navigation.main_menu}}}">
             {{#navigation}}
                 <a class="{{class}}" href="{{url}}">
                     <svg class="nav-icon" aria-hidden="true"><use href="#icon-{{icon}}"></use></svg>
@@ -53,11 +53,11 @@
         </nav>
 
         <div class="sidebar-footer">
-            <a class="connected-user-link" href="/profile.php" title="{{i18n.profile.edit_title}}">
+            <a class="connected-user-link" href="/profile.php" title="{{{i18n.profile.edit_title}}}">
                 <span class="user-avatar"><svg aria-hidden="true"><use href="#icon-users"></use></svg></span>
                 <span class="user-copy">
                     <strong>{{user_name}}</strong>
-                    <small>{{i18n.navigation.connected_user}}</small>
+                    <small>{{{i18n.navigation.connected_user}}}</small>
                 </span>
             </a>
 
@@ -74,7 +74,7 @@
             </div>
             <a class="sidebar-logout" href="/logout.php">
                 <svg aria-hidden="true"><use href="#icon-logout"></use></svg>
-                <span>{{i18n.navigation.logout}}</span>
+                <span>{{{i18n.navigation.logout}}}</span>
             </a>
         </div>
     </aside>

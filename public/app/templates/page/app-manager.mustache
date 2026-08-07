@@ -1,18 +1,18 @@
 <section class="page-title">
     <div>
-        <h1>{{i18n.app_manager.heading_prefix}} {{domain}}</h1>
-        <h3 style="margin-top:0;">{{i18n.app_manager.version}}: <strong>{{app_version}}</strong></h3>
-        <p>{{i18n.app_manager.intro}}</p>
+        <h1>{{{i18n.app_manager.heading_prefix}}} {{domain}}</h1>
+        <h3 style="margin-top:0;">{{{i18n.app_manager.version}}}: <strong>{{app_version}}</strong></h3>
+        <p>{{{i18n.app_manager.intro}}}</p>
     </div>
-    <a class="button secondary" href="{{back_url}}">{{i18n.actions.back_to_details}}</a>
+    <a class="button secondary" href="{{back_url}}">{{{i18n.actions.back_to_details}}}</a>
 </section>
 
 <div class="card full-card">
-    <h2>{{i18n.app_manager.moodle_config_heading}}</h2>
+    <h2>{{{i18n.app_manager.moodle_config_heading}}}</h2>
 
     {{#moodle_config_test_valid}}
-        <div class="alert ok compact-alert">{{i18n.app_manager.moodle_config_ok}}</div>
-        <a class="button" href="{{app_preview_url}}" target="_blank">{{i18n.actions.preview_app}}</a>
+        <div class="alert ok compact-alert">{{{i18n.app_manager.moodle_config_ok}}}</div>
+        <a class="button" href="{{app_preview_url}}" target="_blank">{{{i18n.actions.preview_app}}}</a>
     {{/moodle_config_test_valid}}
 
     {{#has_moodle_config_test_error}}
@@ -20,22 +20,22 @@
             {{moodle_config_test.error}}
             {{#moodle_config_test.has_install_url}}
                 <a href="{{moodle_config_test.install_url}}" target="_blank"
-                   rel="noopener">{{i18n.app_manager.moodle_config_install_plugin}}</a>
+                   rel="noopener">{{{i18n.app_manager.moodle_config_install_plugin}}}</a>
             {{/moodle_config_test.has_install_url}}
         </div>
     {{/has_moodle_config_test_error}}
 
     {{#has_moodle_config_test_warnings}}
         <div class="alert warning compact-alert">
-            <strong>{{i18n.app_manager.moodle_config_warning}}</strong>
+            <strong>{{{i18n.app_manager.moodle_config_warning}}}</strong>
             <ul>
                 {{#moodle_config_test.warnings}}
                     <li>
                         <div><code>{{key}}</code> {{description}}</div>
-                        <div style="color: #d04646;"><strong>{{i18n.status.error}}:</strong> {{message}}</div>
+                        <div style="color: #d04646;"><strong>{{{i18n.status.error}}}:</strong> {{message}}</div>
                         {{#has_edit_url}}
                             <a href="{{edit_url}}" target="_blank"
-                               rel="noopener">{{i18n.app_manager.moodle_config_edit_link}}</a>
+                               rel="noopener">{{{i18n.app_manager.moodle_config_edit_link}}}</a>
                         {{/has_edit_url}}
                     </li>
                 {{/moodle_config_test.warnings}}
@@ -48,14 +48,14 @@
     <form method="post" enctype="multipart/form-data" class="card form full-card">
         <input type="hidden" name="csrf_token" value="{{csrf_token}}">
 
-        <h2>{{i18n.app_manager.config_heading}}</h2>
+        <h2>{{{i18n.app_manager.config_heading}}}</h2>
 
         {{#has_flash}}
             <div class="alert ok">{{flash}}</div>
         {{/has_flash}}
 
         {{#has_errors}}
-            <div class="alert danger">{{i18n.app_manager.check_fields}}</div>
+            <div class="alert danger">{{{i18n.app_manager.check_fields}}}</div>
         {{/has_errors}}
 
         {{#errors.general}}
@@ -86,9 +86,9 @@
 
         {{#show_keystore_password}}
             <label class="alert danger">
-                {{i18n.app_manager.keystore_password}}
+                {{{i18n.app_manager.keystore_password}}}
                 <input type="text" name="keystore_password" autocomplete="new-password" minlength="6" required>
-                <small>{{i18n.app_manager.keystore_help}}</small>
+                <small>{{{i18n.app_manager.keystore_help}}}</small>
                 {{#errors.keystore_password}}
                     <small class="alert alert-danger">{{.}}</small>{{/errors.keystore_password}}
             </label>
@@ -99,7 +99,7 @@
             {{#values.package_uid_locked}}
                 <span style="font-weight:400;">{{values.package_uid}}</span>
                 {{#values.package_uid_locked}}
-                    <small class="alert alert-danger">{{i18n.app_manager.package_uid_locked}}</small>
+                    <small class="alert alert-danger">{{{i18n.app_manager.package_uid_locked}}}</small>
                 {{/values.package_uid_locked}}
             {{/values.package_uid_locked}}
             {{^values.package_uid_locked}}
@@ -114,13 +114,13 @@
         </label>
 
         <label>
-            {{i18n.app_manager.package_name}}
+            {{{i18n.app_manager.package_name}}}
             <input type="text" name="package_name" value="{{values.package_name}}" required>
             {{#errors.package_name}}<small class="alert alert-danger">{{.}}</small>{{/errors.package_name}}
         </label>
 
         <label>
-            {{i18n.app_manager.color}}
+            {{{i18n.app_manager.color}}}
             <input type="text" name="statusbarbackgroundcolor" value="{{values.statusbarbackgroundcolor}}"
                    placeholder="#08422a" required>
             {{#errors.statusbarbackgroundcolor}}
@@ -128,14 +128,14 @@
         </label>
 
         <label>
-            {{i18n.app_manager.icon}}
+            {{{i18n.app_manager.icon}}}
             <input type="file" name="icon" accept="image/png" {{^values.has_icon}}required{{/values.has_icon}}>
             {{#values.has_icon}}
-                <small>{{i18n.app_manager.current_icon}}
-                    <code>{{values.icon_path}}</code>. {{i18n.app_manager.replace_icon_help}}</small>
+                <small>{{{i18n.app_manager.current_icon}}}
+                    <code>{{values.icon_path}}</code>. {{{i18n.app_manager.replace_icon_help}}}</small>
             {{/values.has_icon}}
             {{^values.has_icon}}
-                <small>{{i18n.app_manager.icon_required_help}}</small>
+                <small>{{{i18n.app_manager.icon_required_help}}}</small>
             {{/values.has_icon}}
             {{#errors.icon}}<small class="alert alert-danger">{{.}}</small>{{/errors.icon}}
         </label>
@@ -143,7 +143,7 @@
         {{^build_ready}}
             {{#has_build_missing}}
                 <div class="alert warning compact-alert">
-                    <strong>{{i18n.app_manager.missing_before_build}}</strong>
+                    <strong>{{{i18n.app_manager.missing_before_build}}}</strong>
                     <ul>
                         {{#build_missing}}
                             <li>{{message}}</li>
@@ -155,25 +155,25 @@
 
         <div class="form-actions split-actions">
             <button type="submit" name="action" value="save_app"
-                    class="button secondary">{{i18n.actions.save_configuration}}</button>
+                    class="button secondary">{{{i18n.actions.save_configuration}}}</button>
             {{#build_ready}}
-                <button type="submit" name="action" value="build_app" class="button">{{i18n.actions.build_app}}</button>
+                <button type="submit" name="action" value="build_app" class="button">{{{i18n.actions.build_app}}}</button>
             {{/build_ready}}
         </div>
     </form>
 
     <div class="card">
-        <h2>{{i18n.app_manager.generated_files}}</h2>
-        <p class="card-subtitle">{{i18n.app_manager.generated_files_intro}}</p>
+        <h2>{{{i18n.app_manager.generated_files}}}</h2>
+        <p class="card-subtitle">{{{i18n.app_manager.generated_files_intro}}}</p>
         {{^has_build_files}}
-            <div class="alert warning compact-alert">{{i18n.app_manager.no_build_files}}</div>
+            <div class="alert warning compact-alert">{{{i18n.app_manager.no_build_files}}}</div>
         {{/has_build_files}}
         {{#has_build_files}}
             <div class="details-table">
                 {{#build_files}}
                     <h3 style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0;">
                         <span>{{label}}</span>
-                        <a class="button secondary" href="{{download_url}}">{{i18n.actions.download}} {{label}}</a>
+                        <a class="button secondary" href="{{download_url}}">{{{i18n.actions.download}}} {{label}}</a>
                     </h3>
                     <small><code>{{filename}}</code> / {{size}} / {{created_at}}</small>
                 {{/build_files}}
@@ -182,18 +182,18 @@
     </div>
 
     <div class="card">
-        <h2>{{i18n.app_manager.latest_job}}</h2>
+        <h2>{{{i18n.app_manager.latest_job}}}</h2>
         {{^has_latest_job}}
-            <p>{{i18n.app_manager.no_latest_job}}</p>
+            <p>{{{i18n.app_manager.no_latest_job}}}</p>
         {{/has_latest_job}}
         {{#has_latest_job}}
-            <div><strong>{{i18n.jobs.job}}</strong>: <code>{{latest_job.id}}</code></div>
-            <div><strong>{{i18n.jobs.status}}</strong>: {{{latest_job.status_badge}}}</div>
-            <div><strong>{{i18n.jobs.created}}</strong>: {{latest_job.created_at}}</div>
+            <div><strong>{{{i18n.jobs.job}}}</strong>: <code>{{latest_job.id}}</code></div>
+            <div><strong>{{{i18n.jobs.status}}}</strong>: {{{latest_job.status_badge}}}</div>
+            <div><strong>{{{i18n.jobs.created}}}</strong>: {{latest_job.created_at}}</div>
             {{#latest_job.has_error}}
                 <div class="alert danger compact-alert">{{latest_job.error}}</div>
             {{/latest_job.has_error}}
-            <p><a href="/jobs.php" target="_blank">{{i18n.app_manager.view_full_log}}</a></p>
+            <p><a href="/jobs.php" target="_blank">{{{i18n.app_manager.view_full_log}}}</a></p>
         {{/has_latest_job}}
     </div>
 </div>

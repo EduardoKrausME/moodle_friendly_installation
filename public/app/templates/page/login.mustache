@@ -1,20 +1,20 @@
 <section class="login-card">
-    <h1>{{i18n.login.heading}}</h1>
-    <p>{{i18n.login.intro}}</p>
+    <h1>{{{i18n.login.heading}}}</h1>
+    <p>{{{i18n.login.intro}}}</p>
     {{#has_error}}
         <div class="alert danger">{{error}}</div>
     {{/has_error}}
 
     <form method="post" class="form">
         <label>
-            {{i18n.login.username}}
+            {{{i18n.login.username}}}
             <input type="text" name="username" value="{{username}}" autocomplete="username" required>
         </label>
         <label>
-            {{i18n.login.password}}
+            {{{i18n.login.password}}}
             <input type="password" name="password" autocomplete="current-password" required>
         </label>
-        <button type="submit">{{i18n.login.submit}}</button>
+        <button type="submit">{{{i18n.login.submit}}}</button>
     </form>
 
     <div class="language-selector login-language-selector" aria-label="{{language.change}}">

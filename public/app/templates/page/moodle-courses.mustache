@@ -1,13 +1,13 @@
 <section class="page-title management-title">
     <div>
         <span class="eyebrow">{{domain}}</span>
-        <h1>{{i18n.moodle_courses.heading}}</h1>
-        <p>{{i18n.moodle_courses.intro}}</p>
+        <h1>{{{i18n.moodle_courses.heading}}}</h1>
+        <p>{{{i18n.moodle_courses.intro}}}</p>
     </div>
     <div class="title-actions">
-        <a class="button secondary" href="{{back_url}}">{{i18n.actions.back_to_details}}</a>
+        <a class="button secondary" href="{{back_url}}">{{{i18n.actions.back_to_details}}}</a>
         <a class="button" href="{{create_url}}" target="_blank"
-           rel="noopener">{{i18n.moodle_courses.create_in_moodle}}</a>
+           rel="noopener">{{{i18n.moodle_courses.create_in_moodle}}}</a>
     </div>
 </section>
 
@@ -16,41 +16,41 @@
 <div id="moodle-feedback" class="management-feedback" role="status" aria-live="polite"></div>
 
 <div class="management-stats">
-    <div class="management-stat"><span>{{i18n.moodle_courses.total}}</span><strong>{{stats.total}}</strong></div>
-    <div class="management-stat is-ok"><span>{{i18n.moodle_courses.visible}}</span><strong>{{stats.visible}}</strong>
+    <div class="management-stat"><span>{{{i18n.moodle_courses.total}}}</span><strong>{{stats.total}}</strong></div>
+    <div class="management-stat is-ok"><span>{{{i18n.moodle_courses.visible}}}</span><strong>{{stats.visible}}</strong>
     </div>
-    <div class="management-stat is-warning"><span>{{i18n.moodle_courses.hidden}}</span><strong>{{stats.hidden}}</strong>
+    <div class="management-stat is-warning"><span>{{{i18n.moodle_courses.hidden}}}</span><strong>{{stats.hidden}}</strong>
     </div>
     <div class="management-stat is-info">
-        <span>{{i18n.moodle_courses.activities}}</span><strong>{{stats.activities}}</strong></div>
+        <span>{{{i18n.moodle_courses.activities}}}</span><strong>{{stats.activities}}</strong></div>
 </div>
 
 <div class="management-layout course-management-layout detail-closed" id="moodle-courses-app"
      data-domain="{{domain}}" data-endpoint="/moodle_ajax.php"
-     data-loading="{{i18n.moodle_manager.loading}}" data-error="{{i18n.moodle_manager.request_failed}}"
-     data-find-user-help="{{i18n.moodle_courses.find_user_help}}"
-     data-table-info="{{i18n.moodle_manager.table_info}}"
-     data-table-info-empty="{{i18n.moodle_manager.table_info_empty}}"
-     data-empty="{{i18n.moodle_courses.empty}}"
-     data-previous="{{i18n.actions.previous}}"
-     data-next="{{i18n.actions.next}}">
+     data-loading="{{{i18n.moodle_manager.loading}}}" data-error="{{{i18n.moodle_manager.request_failed}}}"
+     data-find-user-help="{{{i18n.moodle_courses.find_user_help}}}"
+     data-table-info="{{{i18n.moodle_manager.table_info}}}"
+     data-table-info-empty="{{{i18n.moodle_manager.table_info_empty}}}"
+     data-empty="{{{i18n.moodle_courses.empty}}}"
+     data-previous="{{{i18n.actions.previous}}}"
+     data-next="{{{i18n.actions.next}}}">
     <section class="card management-main">
         <div class="management-toolbar">
             <label class="search-field">
-                <span>{{i18n.moodle_courses.search}}</span>
-                <input type="search" id="course-search" placeholder="{{i18n.moodle_courses.search_placeholder}}"
+                <span>{{{i18n.moodle_courses.search}}}</span>
+                <input type="search" id="course-search" placeholder="{{{i18n.moodle_courses.search_placeholder}}}"
                        autocomplete="off">
             </label>
             <label>
-                <span>{{i18n.moodle_courses.filter_visibility}}</span>
+                <span>{{{i18n.moodle_courses.filter_visibility}}}</span>
                 <select id="course-visibility">
-                    <option value="all">{{i18n.moodle_courses.filter_all}}</option>
-                    <option value="visible">{{i18n.moodle_courses.visible}}</option>
-                    <option value="hidden">{{i18n.moodle_courses.hidden}}</option>
+                    <option value="all">{{{i18n.moodle_courses.filter_all}}}</option>
+                    <option value="visible">{{{i18n.moodle_courses.visible}}}</option>
+                    <option value="hidden">{{{i18n.moodle_courses.hidden}}}</option>
                 </select>
             </label>
             <label>
-                <span style="white-space:nowrap;">{{i18n.moodle_manager.per_page}}</span>
+                <span style="white-space:nowrap;">{{{i18n.moodle_manager.per_page}}}</span>
                 <select id="course-page-length">
                     <option value="10">10</option>
                     <option value="25" selected>25</option>
@@ -62,8 +62,8 @@
         <div id="moodle-courses-list">{{{course_list_html}}}</div>
     </section>
     <aside class="management-detail card course-detail" id="moodle-course-detail" hidden>
-        <div class="detail-placeholder"><strong>{{i18n.moodle_courses.select_course}}</strong>
-            <p>{{i18n.moodle_courses.select_course_help}}</p></div>
+        <div class="detail-placeholder"><strong>{{{i18n.moodle_courses.select_course}}}</strong>
+            <p>{{{i18n.moodle_courses.select_course_help}}}</p></div>
     </aside>
 </div>
 
@@ -71,8 +71,8 @@
     <div class="section-heading-actions">
         <div>
             <span class="eyebrow">Kopere BI</span>
-            <h2>{{i18n.moodle_reports.courses_heading}}</h2>
-            <p class="card-subtitle">{{i18n.moodle_reports.courses_intro}}</p>
+            <h2>{{{i18n.moodle_reports.courses_heading}}}</h2>
+            <p class="card-subtitle">{{{i18n.moodle_reports.courses_intro}}}</p>
         </div>
     </div>
     {{#has_reports}}
@@ -80,13 +80,13 @@
             {{#reports}}
                 <a class="report-card" href="{{url}}" target="_blank" rel="noopener">
                     <small>{{group}}</small><strong>{{title}}</strong><span>{{description}}</span>
-                    <b>{{i18n.moodle_reports.open_report}} →</b>
+                    <b>{{{i18n.moodle_reports.open_report}}} →</b>
                 </a>
             {{/reports}}
         </div>
     {{/has_reports}}
     {{^has_reports}}
-        <div class="empty-state compact-empty">{{i18n.moodle_reports.not_available}}</div>{{/has_reports}}
+        <div class="empty-state compact-empty">{{{i18n.moodle_reports.not_available}}}</div>{{/has_reports}}
 </section>
 
 <script>

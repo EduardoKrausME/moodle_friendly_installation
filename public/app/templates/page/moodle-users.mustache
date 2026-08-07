@@ -1,12 +1,12 @@
 <section class="page-title management-title">
     <div>
         <span class="eyebrow">{{domain}}</span>
-        <h1>{{i18n.moodle_users.heading}}</h1>
-        <p>{{i18n.moodle_users.intro}}</p>
+        <h1>{{{i18n.moodle_users.heading}}}</h1>
+        <p>{{{i18n.moodle_users.intro}}}</p>
     </div>
     <div class="title-actions">
-        <a class="button secondary" href="{{back_url}}">{{i18n.actions.back_to_details}}</a>
-        <a class="button" href="{{create_url}}" target="_blank" rel="noopener">{{i18n.moodle_users.create_in_moodle}}</a>
+        <a class="button secondary" href="{{back_url}}">{{{i18n.actions.back_to_details}}}</a>
+        <a class="button" href="{{create_url}}" target="_blank" rel="noopener">{{{i18n.moodle_users.create_in_moodle}}}</a>
     </div>
 </section>
 
@@ -17,39 +17,39 @@
 <div id="moodle-feedback" class="management-feedback" role="status" aria-live="polite"></div>
 
 <div class="management-stats">
-    <div class="management-stat"><span>{{i18n.moodle_users.total}}</span><strong>{{stats.total}}</strong></div>
-    <div class="management-stat is-ok"><span>{{i18n.moodle_users.active}}</span><strong>{{stats.active}}</strong></div>
-    <div class="management-stat is-warning"><span>{{i18n.moodle_users.suspended}}</span><strong>{{stats.suspended}}</strong></div>
-    <div class="management-stat is-danger"><span>{{i18n.moodle_users.deleted}}</span><strong>{{stats.deleted}}</strong></div>
+    <div class="management-stat"><span>{{{i18n.moodle_users.total}}}</span><strong>{{stats.total}}</strong></div>
+    <div class="management-stat is-ok"><span>{{{i18n.moodle_users.active}}}</span><strong>{{stats.active}}</strong></div>
+    <div class="management-stat is-warning"><span>{{{i18n.moodle_users.suspended}}}</span><strong>{{stats.suspended}}</strong></div>
+    <div class="management-stat is-danger"><span>{{{i18n.moodle_users.deleted}}}</span><strong>{{stats.deleted}}</strong></div>
 </div>
 
 <div class="management-layout detail-closed" id="moodle-users-app"
      data-domain="{{domain}}"
      data-endpoint="/moodle_ajax.php"
-     data-loading="{{i18n.moodle_manager.loading}}"
-     data-error="{{i18n.moodle_manager.request_failed}}"
-     data-table-info="{{i18n.moodle_manager.table_info}}"
-     data-table-info-empty="{{i18n.moodle_manager.table_info_empty}}"
-     data-empty="{{i18n.moodle_users.empty}}"
-     data-previous="{{i18n.actions.previous}}"
-     data-next="{{i18n.actions.next}}">
+     data-loading="{{{i18n.moodle_manager.loading}}}"
+     data-error="{{{i18n.moodle_manager.request_failed}}}"
+     data-table-info="{{{i18n.moodle_manager.table_info}}}"
+     data-table-info-empty="{{{i18n.moodle_manager.table_info_empty}}}"
+     data-empty="{{{i18n.moodle_users.empty}}}"
+     data-previous="{{{i18n.actions.previous}}}"
+     data-next="{{{i18n.actions.next}}}">
     <section class="card management-main">
         <div class="management-toolbar">
             <label class="search-field">
-                <span>{{i18n.moodle_users.search}}</span>
-                <input type="search" id="user-search" placeholder="{{i18n.moodle_users.search_placeholder}}" autocomplete="off">
+                <span>{{{i18n.moodle_users.search}}}</span>
+                <input type="search" id="user-search" placeholder="{{{i18n.moodle_users.search_placeholder}}}" autocomplete="off">
             </label>
             <label>
-                <span>{{i18n.moodle_users.filter_status}}</span>
+                <span>{{{i18n.moodle_users.filter_status}}}</span>
                 <select id="user-status">
-                    <option value="all">{{i18n.moodle_users.filter_all}}</option>
-                    <option value="active">{{i18n.moodle_users.status_active}}</option>
-                    <option value="suspended">{{i18n.moodle_users.status_suspended}}</option>
-                    <option value="deleted">{{i18n.moodle_users.status_deleted}}</option>
+                    <option value="all">{{{i18n.moodle_users.filter_all}}}</option>
+                    <option value="active">{{{i18n.moodle_users.status_active}}}</option>
+                    <option value="suspended">{{{i18n.moodle_users.status_suspended}}}</option>
+                    <option value="deleted">{{{i18n.moodle_users.status_deleted}}}</option>
                 </select>
             </label>
             <label>
-                <span style="white-space:nowrap;">{{i18n.moodle_manager.per_page}}</span>
+                <span style="white-space:nowrap;">{{{i18n.moodle_manager.per_page}}}</span>
                 <select id="user-page-length">
                     <option value="10">10</option>
                     <option value="25" selected>25</option>
@@ -63,8 +63,8 @@
 
     <aside class="management-detail card" id="moodle-user-detail" hidden>
         <div class="detail-placeholder">
-            <strong>{{i18n.moodle_users.select_user}}</strong>
-            <p>{{i18n.moodle_users.select_user_help}}</p>
+            <strong>{{{i18n.moodle_users.select_user}}}</strong>
+            <p>{{{i18n.moodle_users.select_user_help}}}</p>
         </div>
     </aside>
 </div>
@@ -73,8 +73,8 @@
     <div class="section-heading-actions">
         <div>
             <span class="eyebrow">Kopere BI</span>
-            <h2>{{i18n.moodle_reports.students_heading}}</h2>
-            <p class="card-subtitle">{{i18n.moodle_reports.students_intro}}</p>
+            <h2>{{{i18n.moodle_reports.students_heading}}}</h2>
+            <p class="card-subtitle">{{{i18n.moodle_reports.students_intro}}}</p>
         </div>
     </div>
     {{#has_reports}}
@@ -84,13 +84,13 @@
                     <small>{{group}}</small>
                     <strong>{{title}}</strong>
                     <span>{{description}}</span>
-                    <b>{{i18n.moodle_reports.open_report}} →</b>
+                    <b>{{{i18n.moodle_reports.open_report}}} →</b>
                 </a>
             {{/reports}}
         </div>
     {{/has_reports}}
     {{^has_reports}}
-        <div class="empty-state compact-empty">{{i18n.moodle_reports.not_available}}</div>
+        <div class="empty-state compact-empty">{{{i18n.moodle_reports.not_available}}}</div>
     {{/has_reports}}
 </section>
 
