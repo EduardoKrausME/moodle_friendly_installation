@@ -23,7 +23,7 @@
 {{#has_update_button}}
     <div class="alert warning has-update">
         <strong>{{{i18n.updater.update_available}}}</strong><br>
-        {{{{i18n.updater.preserve_warning}}}}
+        {{{i18n.updater.preserve_warning}}}
 
         <form method="post" class=" form">
             <input type="hidden" name="csrf_token" value="{{csrf_token}}">

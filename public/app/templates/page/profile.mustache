@@ -38,10 +38,10 @@
         <input type="password" name="password" autocomplete="new-password"
                {{#force_password_change}}required{{/force_password_change}}>
         {{#force_password_change}}
-            <div>{{{{i18n.profile.password_help_required}}}}</div>
+            <div>{{{i18n.profile.password_help_required}}}</div>
         {{/force_password_change}}
         {{^force_password_change}}
-            <small>{{{{i18n.profile.password_help_optional}}}}</small>
+            <small>{{{i18n.profile.password_help_optional}}}</small>
         {{/force_password_change}}
     </label>
 
