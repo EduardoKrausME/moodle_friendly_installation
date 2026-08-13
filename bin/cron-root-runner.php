@@ -4,13 +4,15 @@
 error_reporting(E_ALL);
 ini_set("display_errors", "On");
 
-// Root cron runner. It executes requested app updates, one pending job per run, and checks app/plugin updates.
+// Root cron runner. It executes requested app updates, panel-domain provisioning,
+// one pending job per run, and checks app/plugin updates.
 
 use app\AppUpdater;
 use app\JobManager;
 use app\JsonStorage;
 use app\MoodlePluginManager;
 use app\PanelConfigManager;
+use app\PanelDomainManager;
 use app\PostUpdateManager;
 use app\ResourceUsageManager;
 
@@ -42,6 +44,18 @@ try {
     if (AppUpdater::isInstallRequested()) {
         runRequestedSelfUpdate();
         exit(0);
+    }
+
+    try {
+        $paneldomainjob = PanelDomainManager::runPendingAsRoot();
+        if (is_array($paneldomainjob)) {
+            echo "Panel domain: " . ($paneldomainjob["status"] ?? "unknown")
+                . " - " . ($paneldomainjob["message"] ?? "") . "\n";
+        }
+    } catch (Throwable $e) {
+        // Domain provisioning has its own state and must never prevent Moodle jobs
+        // from running in the same minute.
+        fwrite(STDERR, "Panel domain processing failed: {$e->getMessage()}\n");
     }
 
     try {

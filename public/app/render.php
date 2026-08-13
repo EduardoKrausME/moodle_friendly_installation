@@ -53,23 +53,25 @@ function render_header(string $title): void {
 function render_navigation_items(): array {
     $current = basename(($_SERVER["SCRIPT_NAME"] ?? ""));
 
+    $base_url = app_config("base_url");
+
     $items = [];
 
     $items[] = [
-        "url" => "/",
+        "url" => "{$base_url}/",
         "label" => t("dashboard.navigation"),
         "icon" => "dashboard",
         "active_on" => ["index.php"],
     ];
     $items[] = [
-        "url" => "/moodle.php",
+        "url" => "{$base_url}/moodle.php",
         "label" => t("moodle.navigation"),
         "icon" => "database",
         "active_on" => ["moodle.php", "details.php", "moodle_users.php", "moodle_courses.php"],
     ];
     if ($current == "install.php") {
         $items[] = [
-            "url" => "/install.php",
+            "url" => "{$base_url}/install.php",
             "label" => t("navigation.install_moodle"),
             "icon" => "install",
             "active_on" => ["install.php"],
@@ -77,33 +79,33 @@ function render_navigation_items(): array {
     }
     if (file_exists("../app-MoodleMobile-V2/config.xml")) {
         $items[] = [
-            "url" => "/app_manager.php",
+            "url" => "{$base_url}/app_manager.php",
             "label" => t("app_manager.list_heading"),
             "icon" => "mobile",
             "active_on" => ["app_manager.php"],
         ];
     }
     $items[] = [
-        "url" => "/jobs.php",
+        "url" => "{$base_url}/jobs.php",
         "label" => t("jobs.title"),
         "icon" => "jobs",
         "active_on" => ["jobs.php"],
     ];
     $items[] = [
-        "url" => "/users.php",
+        "url" => "{$base_url}/users.php",
         "label" => t("users.title"),
         "icon" => "users",
         "active_on" => ["users.php"],
     ];
     $items[] = [
-        "url" => "/configuration.php",
+        "url" => "{$base_url}/configuration.php",
         "label" => t("configuration.title"),
         "icon" => "settings",
         "active_on" => ["configuration.php"],
     ];
     if (AppUpdater::hasCachedUpdate() || $current == "update.php") {
         $items[] = [
-            "url" => "/update.php",
+            "url" => "{$base_url}/update.php",
             "label" => t("updater.title"),
             "icon" => "update",
             "active_on" => ["update.php"],

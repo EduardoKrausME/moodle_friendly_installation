@@ -18,6 +18,7 @@ $config = PanelConfigManager::effectiveConfig();
 require_once __DIR__ . "/I18n.php";
 require_once __DIR__ . "/UserManager.php";
 require_once __DIR__ . "/Auth.php";
+require_once __DIR__ . "/PanelDomainManager.php";
 require_once __DIR__ . "/Validator.php";
 require_once __DIR__ . "/JobManager.php";
 require_once __DIR__ . "/SiteManager.php";
@@ -128,8 +129,9 @@ if (PHP_SAPI != "cli") {
     $scriptname = basename($_SERVER["SCRIPT_NAME"]);
     $requiresinitialsetup = PanelConfigManager::requiresInitialSetup()
         && Auth::hasInitialAdminCredentials();
+    $initialsetupallowed = ["onboarding.php", "panel-domain.php"];
 
-    if ($requiresinitialsetup && $scriptname != "onboarding.php") {
+    if ($requiresinitialsetup && !in_array($scriptname, $initialsetupallowed, true)) {
         redirect_to("/onboarding.php");
     }
 

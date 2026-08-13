@@ -3,6 +3,7 @@
 use app\AppUpdater;
 use app\Auth;
 use app\PanelConfigManager;
+use app\PanelDomainManager;
 
 require_once __DIR__ . "/app/bootstrap.php";
 
@@ -43,9 +44,22 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $action = $_POST["action"];
     if ($action === "save_url") {
         $step = 1;
-        $baseurl = trim($_POST["base_url"]);
+        $baseurl = trim((string) ($_POST["base_url"] ?? ""));
         try {
             $baseurl = PanelConfigManager::normalizeBaseUrl($baseurl);
+            if (PanelConfigManager::isIpBaseUrl($baseurl)) {
+                $host = PanelConfigManager::baseUrlHost($baseurl);
+                $ipauthority = str_contains($host, ":") ? "[{$host}]" : $host;
+                $baseurl = "http://{$ipauthority}";
+            } else {
+                $jobid = trim((string) ($_POST["panel_domain_job_id"] ?? ""));
+                if (!PanelDomainManager::isCompletedFor($jobid, $baseurl)) {
+                    throw new RuntimeException(PanelDomainManager::message("not_ready"));
+                }
+                $baseurl = PanelDomainManager::canonicalDomainUrl($baseurl);
+                $_SESSION["onboarding"]["panel_domain_job_id"] = $jobid;
+            }
+
             $_SESSION["onboarding"]["base_url"] = $baseurl;
             unset($_SESSION["onboarding"]["update_check_complete"]);
             redirect_to("/onboarding.php?step=2");
@@ -121,9 +135,6 @@ if (!$setupcompleted && $step === 2) {
         $updatechecked = true;
         $updateavailable = !empty($updatecheck["update_available"]);
 
-        // Onboarding must persist the update request exactly like update.php does.
-        // This avoids finishing the initial setup with a pending update that still
-        // requires the administrator to open update.php and click Update manually.
         $updaterequested = !empty($updatestate["update_requested"]);
         $installing = ($updatestate["update_status"] ?? "") === "installing";
         if ($updateavailable && !$updaterequested && !$installing) {
@@ -141,7 +152,6 @@ $latesthtmlurl = trim((string) ($updatestate["latest_html_url"] ?? ""));
 
 $host = PanelConfigManager::baseUrlHost($baseurl);
 $isipurl = PanelConfigManager::isIpBaseUrl($baseurl);
-$ishttpsurl = PanelConfigManager::isHttpsBaseUrl($baseurl);
 $hasdomainurl = $host !== "" && !$isipurl;
 $dnsdomain = $hasdomainurl ? $host : "painel.seudominio.com.br";
 
@@ -168,11 +178,17 @@ echo render_app_template("page/onboarding", [
     }, $errors),
     "is_ip_url" => $isipurl,
     "has_domain_url" => $hasdomainurl,
-    "is_https_url" => $ishttpsurl,
-    "needs_https" => $hasdomainurl && !$ishttpsurl,
     "dns_domain" => $dnsdomain,
-    "certbot_command" => "sudo certbot --nginx -d {$dnsdomain} --redirect",
-    "dns_check_command" => "dig +short {$dnsdomain}",
+    "panel_domain_intro" => PanelDomainManager::message("automatic_intro"),
+    "panel_domain_ip_note" => PanelDomainManager::message("ip_access_note"),
+    "panel_domain_checklist_title" => PanelDomainManager::message("checklist_title"),
+    "panel_domain_check_request_received" => PanelDomainManager::message("check_request_received"),
+    "panel_domain_check_public_ip" => PanelDomainManager::message("check_public_ip"),
+    "panel_domain_check_dns" => PanelDomainManager::message("check_dns"),
+    "panel_domain_check_webserver_config" => PanelDomainManager::message("check_webserver_config"),
+    "panel_domain_check_webserver_test" => PanelDomainManager::message("check_webserver_test"),
+    "panel_domain_check_certificate" => PanelDomainManager::message("check_certificate"),
+    "panel_domain_check_activation" => PanelDomainManager::message("check_activation"),
     "update_available" => $updatechecked && $updateavailable,
     "update_is_current" => $updatechecked && !$updateavailable,
     "update_check_failed" => $updatecheckerror !== "",

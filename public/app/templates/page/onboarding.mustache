@@ -21,7 +21,7 @@
             <p>{{{i18n.onboarding.password_once_intro}}}</p>
         </div>
 
-        <a class="button" href="/login.php">{{{i18n.onboarding.go_to_login}}}</a>
+        <a class="button" href="{{{base_url}}}/login.php">{{{i18n.onboarding.go_to_login}}}</a>
     </section>
 {{/setup_completed}}
 
@@ -61,9 +61,10 @@
     {{/has_errors}}
 
     {{#show_step_one}}
-        <form method="post" class="form">
+        <form method="post" class="form" id="onboarding-domain-form">
             <input type="hidden" name="csrf_token" value="{{csrf_token}}">
             <input type="hidden" name="action" value="save_url">
+            <input type="hidden" name="panel_domain_job_id" id="panel-domain-job-id" value="">
 
             <div class="card onboarding-step">
                 <div class="setup-section-heading">
@@ -76,16 +77,49 @@
 
                 <label>
                     {{{i18n.onboarding.base_url}}}
-                    <input type="url" name="base_url" value="{{base_url}}"
-                           placeholder="https://painel.seudominio.com.br"
+                    <input type="text" name="base_url" value="{{base_url}}"
+                           placeholder="painel.seudominio.com.br"
                            autocomplete="url" required autofocus>
                     <small>{{{i18n.onboarding.base_url_help}}}</small>
                 </label>
 
+                <div id="panel-domain-status" class="panel-domain-checklist" hidden aria-live="polite">
+                    <strong class="panel-domain-checklist-title">{{panel_domain_checklist_title}}</strong>
+                    <ol class="panel-domain-checklist-items">
+                        <li data-panel-domain-step="request_received">
+                            <span class="panel-domain-check-icon" aria-hidden="true">○</span>
+                            <span class="panel-domain-check-content"><strong>{{panel_domain_check_request_received}}</strong><small></small></span>
+                        </li>
+                        <li data-panel-domain-step="public_ip_detected">
+                            <span class="panel-domain-check-icon" aria-hidden="true">○</span>
+                            <span class="panel-domain-check-content"><strong>{{panel_domain_check_public_ip}}</strong><small></small></span>
+                        </li>
+                        <li data-panel-domain-step="dns_validated">
+                            <span class="panel-domain-check-icon" aria-hidden="true">○</span>
+                            <span class="panel-domain-check-content"><strong>{{panel_domain_check_dns}}</strong><small></small></span>
+                        </li>
+                        <li data-panel-domain-step="configuring_webserver">
+                            <span class="panel-domain-check-icon" aria-hidden="true">○</span>
+                            <span class="panel-domain-check-content"><strong>{{panel_domain_check_webserver_config}}</strong><small></small></span>
+                        </li>
+                        <li data-panel-domain-step="testing_webserver">
+                            <span class="panel-domain-check-icon" aria-hidden="true">○</span>
+                            <span class="panel-domain-check-content"><strong>{{panel_domain_check_webserver_test}}</strong><small></small></span>
+                        </li>
+                        <li data-panel-domain-step="issuing_certificate">
+                            <span class="panel-domain-check-icon" aria-hidden="true">○</span>
+                            <span class="panel-domain-check-content"><strong>{{panel_domain_check_certificate}}</strong><small></small></span>
+                        </li>
+                        <li data-panel-domain-step="activating_domain">
+                            <span class="panel-domain-check-icon" aria-hidden="true">○</span>
+                            <span class="panel-domain-check-content"><strong>{{panel_domain_check_activation}}</strong><small></small></span>
+                        </li>
+                    </ol>
+                </div>
+
                 <div class="setup-step-actions is-next">
                     <button type="submit">{{{i18n.onboarding.next}}}</button>
                 </div>
-
             </div>
 
             <div class="card onboarding-step">
@@ -94,7 +128,7 @@
                         <span aria-hidden="true">🔒</span>
                         <div>
                             <h2>{{{i18n.onboarding.https_heading}}}</h2>
-                            <p>{{{i18n.onboarding.https_intro}}}</p>
+                            <p>{{panel_domain_intro}}</p>
                         </div>
                     </div>
 
@@ -104,21 +138,6 @@
                             <p>{{{i18n.onboarding.ip_detected_intro}}}</p>
                         </div>
                     {{/is_ip_url}}
-
-                    {{#has_domain_url}}
-                        {{#is_https_url}}
-                            <div class="alert ok setup-alert">
-                                <strong>{{{i18n.onboarding.https_detected_heading}}}</strong>
-                                <p>{{{i18n.onboarding.https_detected_intro}}}</p>
-                            </div>
-                        {{/is_https_url}}
-                        {{#needs_https}}
-                            <div class="alert warning setup-alert">
-                                <strong>{{{i18n.onboarding.domain_detected_heading}}}</strong>
-                                <p>{{{i18n.onboarding.domain_detected_intro}}}</p>
-                            </div>
-                        {{/needs_https}}
-                    {{/has_domain_url}}
 
                     <ol class="setup-steps">
                         <li>
@@ -143,21 +162,14 @@
                             </dl>
                         </li>
                         <li>
-                            <strong>{{{i18n.onboarding.dns_wait_heading}}}</strong>
-                            <p>{{{i18n.onboarding.dns_wait_intro}}}</p>
-                            <pre class="setup-command"><code>{{dns_check_command}}</code></pre>
+                            <strong>CRON root</strong>
+                            <p>{{panel_domain_intro}}</p>
                         </li>
                         <li>
-                            <strong>{{{i18n.onboarding.certbot_heading}}}</strong>
-                            <p>{{{i18n.onboarding.certbot_intro}}}</p>
-                            <pre class="setup-command"><code>{{certbot_command}}</code></pre>
+                            <strong>{{{i18n.onboarding.https_heading}}}</strong>
+                            <p>{{panel_domain_ip_note}}</p>
                         </li>
                     </ol>
-
-                    <div class="setup-note">
-                        <strong>{{{i18n.onboarding.after_https_heading}}}</strong>
-                        <p>{{{i18n.onboarding.after_https_intro}}}</p>
-                    </div>
                 </div>
             </div>
         </form>
@@ -260,3 +272,234 @@
         </form>
     {{/show_step_three}}
 {{/show_wizard}}
+
+<style>
+.panel-domain-checklist {
+    margin: .85rem 0 1rem;
+    padding: 1rem;
+    border: 1px solid #d9dee7;
+    border-radius: .65rem;
+    background: #fff;
+}
+.panel-domain-checklist-title {
+    display: block;
+    margin-bottom: .8rem;
+}
+.panel-domain-checklist-items {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+.panel-domain-checklist-items li {
+    display: flex;
+    align-items: flex-start;
+    gap: .65rem;
+    padding: .45rem 0;
+    opacity: .62;
+}
+.panel-domain-check-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 1.55rem;
+    width: 1.55rem;
+    height: 1.55rem;
+    border: 1px solid #aab2c0;
+    border-radius: 50%;
+    line-height: 1;
+    font-weight: 700;
+}
+.panel-domain-check-content {
+    display: flex;
+    flex-direction: column;
+    gap: .1rem;
+    min-width: 0;
+}
+.panel-domain-check-content small {
+    display: block;
+    line-height: 1.35;
+}
+.panel-domain-check-content small:empty {
+    display: none;
+}
+.panel-domain-checklist-items li.is-active,
+.panel-domain-checklist-items li.is-complete,
+.panel-domain-checklist-items li.is-failed {
+    opacity: 1;
+}
+.panel-domain-checklist-items li.is-active .panel-domain-check-icon {
+    border-color: #805ad5;
+}
+.panel-domain-checklist-items li.is-complete .panel-domain-check-icon {
+    border-color: #198754;
+    background: #198754;
+    color: #fff;
+}
+.panel-domain-checklist-items li.is-failed .panel-domain-check-icon {
+    border-color: #dc3545;
+    background: #dc3545;
+    color: #fff;
+}
+</style>
+
+<script>
+(function () {
+    "use strict";
+
+    const form = document.getElementById("onboarding-domain-form");
+    if (!form) {
+        return;
+    }
+
+    const input = form.querySelector('[name="base_url"]');
+    const jobInput = document.getElementById("panel-domain-job-id");
+    const statusBox = document.getElementById("panel-domain-status");
+    const statusItems = Array.from(statusBox.querySelectorAll("[data-panel-domain-step]"));
+    const submitButton = form.querySelector('button[type="submit"]');
+    let processing = false;
+    let lastJob = null;
+
+    const inputLabel = input ? input.closest("label") : null;
+    if (inputLabel && statusBox) {
+        inputLabel.insertAdjacentElement("afterend", statusBox);
+    }
+
+    function withScheme(value) {
+        value = String(value || "").trim();
+        if (/^[a-z][a-z0-9+.-]*:\/\//i.test(value)) {
+            return value;
+        }
+        return "https://" + value;
+    }
+
+    function parseUrl(value) {
+        try {
+            return new URL(withScheme(value));
+        } catch (e) {
+            return null;
+        }
+    }
+
+    function isIp(host) {
+        host = String(host || "").replace(/^\[|\]$/g, "");
+        if (host.indexOf(":") !== -1) {
+            return true;
+        }
+        const parts = host.split(".");
+        return parts.length === 4 && parts.every(function (part) {
+            return /^\d{1,3}$/.test(part) && Number(part) >= 0 && Number(part) <= 255;
+        });
+    }
+
+    function showStatus(job, fallbackMessage) {
+        job = job || {};
+        const status = job.status || "failed";
+        const completed = Array.isArray(job.completed_steps) ? job.completed_steps : [];
+        const messages = job.step_messages && typeof job.step_messages === "object" ? job.step_messages : {};
+        let currentStep = status === "failed" ? (job.failed_step || "") : (job.step || "");
+        if ((currentStep === "pending" || currentStep === "waiting_dns") && status !== "failed") {
+            currentStep = "dns_validated";
+        }
+        if (status === "failed" && !currentStep) {
+            currentStep = "request_received";
+        }
+
+        statusBox.hidden = false;
+        statusItems.forEach(function (item) {
+            const step = item.dataset.panelDomainStep;
+            const icon = item.querySelector(".panel-domain-check-icon");
+            const detail = item.querySelector("small");
+            const isComplete = completed.indexOf(step) !== -1 || status === "done";
+            const isFailed = status === "failed" && currentStep === step && !isComplete;
+            const isActive = !isComplete && !isFailed && currentStep === step;
+
+            item.classList.toggle("is-complete", isComplete);
+            item.classList.toggle("is-failed", isFailed);
+            item.classList.toggle("is-active", isActive);
+            icon.textContent = isComplete ? "✓" : (isFailed ? "✕" : (isActive ? "…" : "○"));
+
+            let text = messages[step] || "";
+            if ((isActive || isFailed) && job.message) {
+                text = job.message;
+            }
+            if (isFailed && fallbackMessage) {
+                text = fallbackMessage;
+            }
+            detail.textContent = text;
+        });
+    }
+    async function api(data) {
+        data.csrf_token = form.querySelector('[name="csrf_token"]').value;
+        const response = await fetch("/ajax/panel-domain.php", {
+            method: "POST",
+            headers: {"Content-Type": "application/x-www-form-urlencoded;charset=UTF-8"},
+            body: new URLSearchParams(data).toString(),
+            credentials: "same-origin"
+        });
+        const payload = await response.json();
+        if (!response.ok || !payload.success) {
+            throw new Error(payload.message || "Domain processing failed.");
+        }
+        return payload.job;
+    }
+
+    async function waitForJob(job) {
+        while (true) {
+            lastJob = job;
+            showStatus(job, "");
+            if (job.status === "done" || job.status === "failed") {
+                return job;
+            }
+            await new Promise(function (resolve) { window.setTimeout(resolve, 2000); });
+            job = await api({action: "status", id: job.id});
+        }
+    }
+
+    form.addEventListener("submit", async function (event) {
+        if (processing) {
+            event.preventDefault();
+            return;
+        }
+
+        const requested = parseUrl(input.value);
+        if (!requested || isIp(requested.hostname)) {
+            return;
+        }
+
+        event.preventDefault();
+        processing = true;
+        submitButton.disabled = true;
+        input.readOnly = true;
+
+        try {
+            let job = await api({
+                action: "request",
+                source: "onboarding",
+                base_url: input.value
+            });
+            lastJob = job;
+            job = await waitForJob(job);
+            if (job.status !== "done") {
+                throw new Error(job.message || job.error || "Domain processing failed.");
+            }
+
+            lastJob = job;
+            jobInput.value = job.id;
+            input.value = job.result_url || job.requested_url;
+            showStatus(job, "");
+            HTMLFormElement.prototype.submit.call(form);
+        } catch (error) {
+            processing = false;
+            submitButton.disabled = false;
+            input.readOnly = false;
+            if (lastJob) {
+                lastJob.status = "failed";
+                lastJob.message = error.message;
+                showStatus(lastJob, error.message);
+            } else {
+                showStatus({status: "failed", failed_step: "request_received", message: error.message}, error.message);
+            }
+        }
+    });
+})();
+</script>
