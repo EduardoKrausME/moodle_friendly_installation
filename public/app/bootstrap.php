@@ -27,6 +27,7 @@ require_once __DIR__ . "/DashboardManager.php";
 require_once __DIR__ . "/ServerControlManager.php";
 require_once __DIR__ . "/AppManager.php";
 require_once __DIR__ . "/AppUpdater.php";
+require_once __DIR__ . "/PostUpdateManager.php";
 require_once __DIR__ . "/render.php";
 require_once __DIR__ . "/MoodleBranchProvider.php";
 

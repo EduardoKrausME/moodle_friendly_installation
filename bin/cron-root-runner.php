@@ -11,6 +11,7 @@ use app\JobManager;
 use app\JsonStorage;
 use app\MoodlePluginManager;
 use app\PanelConfigManager;
+use app\PostUpdateManager;
 use app\ResourceUsageManager;
 
 require_once __DIR__ . "/../public/app/bootstrap.php";
@@ -36,6 +37,8 @@ if (!flock($lock, LOCK_EX | LOCK_NB)) {
 $job = null;
 
 try {
+    runPendingPostUpdates();
+
     if (AppUpdater::isInstallRequested()) {
         runRequestedSelfUpdate();
         exit(0);
@@ -79,6 +82,18 @@ try {
 }
 
 /**
+ * Runs versioned post-update scripts.
+ *
+ * @return void
+ */
+function runPendingPostUpdates(): void {
+    $result = PostUpdateManager::runPending();
+    foreach ($result["executed"] ?? [] as $version) {
+        echo "Post-update executed: {$version}\n";
+    }
+}
+
+/**
  * Installs an update requested through the web panel.
  *
  * @return void
@@ -99,6 +114,14 @@ function runRequestedSelfUpdate(): void {
 
     try {
         $result = AppUpdater::installRequested();
+
+        // The update may have installed new versioned post-update scripts.
+        runPendingPostUpdates();
+
+        // Always repair public permissions after an update, even when that
+        // version does not have a dedicated post-update migration.
+        PostUpdateManager::repairPublicPermissions();
+
         $state["last_finished_at"] = now_iso();
         $state["last_status"] = empty($result["updated"]) ? "checked" : "updated";
         $state["last_message"] = $result["message"] ?? "OK";
