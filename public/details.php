@@ -392,14 +392,8 @@ function details_feature_flags(array $featureflags): array {
         }
 
         $enabled = !empty($item["enabled"]);
-        $needsvalue = !empty($item["value_type"]);
         $buttonclass = $enabled ? "button secondary" : (!empty($item["dangerous"]) ? "button warning" : "button");
         $buttonlabel = $enabled ? t("actions.disable") : t("actions.enable");
-
-        if ($needsvalue && $enabled) {
-            $buttonclass = "button";
-            $buttonlabel = t("actions.save");
-        }
 
         $items[] = [
             "flag" => $flag,
@@ -409,11 +403,8 @@ function details_feature_flags(array $featureflags): array {
             "description" => $item["description"] ?? "",
             "has_path" => !empty($item["path"]),
             "path" => $item["path"] ?? "",
-            "needs_value" => $needsvalue,
-            "no_value" => !$needsvalue,
             "value" => $item["value"] ?? "",
             "enabled_value" => $enabled ? "0" : "1",
-            "show_disable_when_value_enabled" => $needsvalue && $enabled,
             "button_class" => $buttonclass,
             "button_label" => $buttonlabel,
             "csrf_token" => csrf_token(),

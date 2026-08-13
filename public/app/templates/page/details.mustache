@@ -19,90 +19,89 @@
 {{/has_flash}}
 
 
-{{#app_exist}}
+ <div class="card hero-card inverse">
     <div>
-{{/app_exist}}
-    <div class="card hero-card inverse">
-        <div>
-            <div class="flag-header">
-                <h2>{{{i18n.details.shortcuts_heading}}}</h2>
-                {{{moodle_status_badge}}}
+        <div class="flag-header">
+            <h2>{{{i18n.details.shortcuts_heading}}}</h2>
+            {{{moodle_status_badge}}}
+        </div>
+        <p>{{{i18n.details.shortcuts_intro}}}</p>
+        {{#moodle_is_disabled}}
+            <div class="alert warning compact-alert">
+                <strong>{{{i18n.details.moodle_disabled_message_label}}}</strong>
+                {{moodle_disabled_message}}
             </div>
-            <p>{{{i18n.details.shortcuts_intro}}}</p>
-            {{#moodle_is_disabled}}
-                <div class="alert warning compact-alert">
-                    <strong>{{{i18n.details.moodle_disabled_message_label}}}</strong>
-                    {{moodle_disabled_message}}
-                </div>
-            {{/moodle_is_disabled}}
-        </div>
-        <div class="hero-actions">
-            {{#moodle_is_enabled}}
-                <a class="button" href="{{url}}" target="_blank" rel="noopener">{{{i18n.actions.open_moodle}}}</a>
-                {{#sso_url}}
-                    <a class="button secondary" href="{{sso_url}}" target="_blank"
-                       rel="noopener">{{{i18n.actions.access_admin}}}</a>
-                {{/sso_url}}
-                <form action="/phpmyadmin-signon.php" method="post" target="_blank"
-                      style="margin-left:auto;">
-                    <input type="hidden" name="csrf_token" value="{{csrf_token}}">
-                    <button class="button" type="submit">{{{i18n.dashboard.open_phpmyadmin}}}</button>
-                </form>
-                <button type="button" class="button danger" id="open-disable-moodle-dialog">
-                    {{{i18n.actions.disable_moodle}}}
-                </button>
-            {{/moodle_is_enabled}}
-            {{#moodle_is_disabled}}
-                <form method="post" class="inline-form">
-                    <input type="hidden" name="csrf_token" value="{{moodle_status_csrf_token}}">
-                    <input type="hidden" name="action" value="toggle_moodle">
-                    <input type="hidden" name="enabled" value="1">
-                    <button type="submit" class="button">{{{i18n.actions.enable_moodle}}}</button>
-                </form>
-            {{/moodle_is_disabled}}
-        </div>
+        {{/moodle_is_disabled}}
     </div>
+    <div class="hero-actions">
+        {{#moodle_is_enabled}}
+            <a class="button" href="{{url}}" target="_blank" rel="noopener">{{{i18n.actions.open_moodle}}}</a>
 
-{{#moodle_is_enabled}}
-        <dialog class="moodle-disable-dialog" id="disable-moodle-dialog">
-            <form method="post" class="form">
+            {{#sso_url}}
+                <a class="button secondary" href="{{sso_url}}" target="_blank"
+                   rel="noopener">{{{i18n.actions.access_admin}}}</a>
+            {{/sso_url}}
+
+            <form action="/phpmyadmin-signon.php" method="post" target="_blank"
+                  style="margin-left:auto;">
+                <input type="hidden" name="csrf_token" value="{{csrf_token}}">
+                <button class="button" type="submit">{{{i18n.dashboard.open_phpmyadmin}}}</button>
+            </form>
+
+            <button type="button" class="button danger" id="open-disable-moodle-dialog">
+                {{{i18n.actions.disable_moodle}}}
+            </button>
+        {{/moodle_is_enabled}}
+        {{#moodle_is_disabled}}
+            <form method="post" class="inline-form">
                 <input type="hidden" name="csrf_token" value="{{moodle_status_csrf_token}}">
                 <input type="hidden" name="action" value="toggle_moodle">
-                <input type="hidden" name="enabled" value="0">
-                <div>
-                    <h2>{{{i18n.details.moodle_disable_heading}}}</h2>
-                    <p>{{{i18n.details.moodle_disable_intro}}}</p>
-                </div>
-                <label>
-                    {{{i18n.details.moodle_disable_message_label}}}
-                    <textarea name="message" rows="5" maxlength="2000"
-                              placeholder="{{{i18n.details.moodle_disable_message_placeholder}}}" required></textarea>
-                </label>
-                <div class="dialog-actions">
-                    <button type="button" class="button secondary" id="close-disable-moodle-dialog">
-                        {{{i18n.actions.cancel}}}
-                    </button>
-                    <button type="submit" class="button danger">{{{i18n.actions.disable_moodle}}}</button>
-                </div>
+                <input type="hidden" name="enabled" value="1">
+                <button type="submit" class="button">{{{i18n.actions.enable_moodle}}}</button>
             </form>
-        </dialog>
+        {{/moodle_is_disabled}}
+    </div>
+</div>
+
+{{#moodle_is_enabled}}
+    <dialog class="moodle-disable-dialog" id="disable-moodle-dialog">
+        <form method="post" class="form">
+            <input type="hidden" name="csrf_token" value="{{moodle_status_csrf_token}}">
+            <input type="hidden" name="action" value="toggle_moodle">
+            <input type="hidden" name="enabled" value="0">
+            <div>
+                <h2>{{{i18n.details.moodle_disable_heading}}}</h2>
+                <p>{{{i18n.details.moodle_disable_intro}}}</p>
+            </div>
+            <label>
+                {{{i18n.details.moodle_disable_message_label}}}
+                <textarea name="message" rows="5" maxlength="2000"
+                          placeholder="{{{i18n.details.moodle_disable_message_placeholder}}}" required></textarea>
+            </label>
+            <div class="dialog-actions">
+                <button type="button" class="button secondary" id="close-disable-moodle-dialog">
+                    {{{i18n.actions.cancel}}}
+                </button>
+                <button type="submit" class="button danger">{{{i18n.actions.disable_moodle}}}</button>
+            </div>
+        </form>
+    </dialog>
 {{/moodle_is_enabled}}
 
 {{#app_exist}}
-        <div class="card hero-card">
-            <div>
-                <h2>{{{i18n.details.app_heading}}}</h2>
-                <p>{{{i18n.details.app_intro}}}</p>
-            </div>
-            <div class="hero-actions">
-                <a class="button" href="{{app_manage_url}}">{{{i18n.actions.manage_app}}}</a>
-                <a class="button" href="{{app_preview_url}}" target="_blank">{{{i18n.actions.preview_app}}}</a>
-                {{#app_has_files}}
-                    {{#app_files}}
-                        <a class="button secondary" href="{{download_url}}">{{{i18n.actions.download}}} {{label}}</a>
-                    {{/app_files}}
-                {{/app_has_files}}
-            </div>
+    <div class="card hero-card">
+        <div>
+            <h2>{{{i18n.details.app_heading}}}</h2>
+            <p>{{{i18n.details.app_intro}}}</p>
+        </div>
+        <div class="hero-actions">
+            <a class="button" href="{{app_manage_url}}">{{{i18n.actions.manage_app}}}</a>
+            <a class="button" href="{{app_preview_url}}" target="_blank">{{{i18n.actions.preview_app}}}</a>
+            {{#app_has_files}}
+                {{#app_files}}
+                    <a class="button secondary" href="{{download_url}}">{{{i18n.actions.download}}} {{label}}</a>
+                {{/app_files}}
+            {{/app_has_files}}
         </div>
     </div>
 {{/app_exist}}
@@ -132,7 +131,8 @@
                     <svg aria-hidden="true"><use href="#icon-users"></use></svg>
                 </span>
                 <span style="width: 100%">
-                    <strong>{{{i18n.moodle_users.heading}}}</strong><b>{{{i18n.details.open_management}}} →</b>
+                    <strong>{{{i18n.moodle_users.heading}}}</strong>
+                    <b>{{{i18n.details.open_management}}} →</b>
                 </span>
             </a>
             <a class="management-shortcut" href="{{moodle_courses_url}}" style="width: 100%">
@@ -140,7 +140,8 @@
                     <svg aria-hidden="true"><use href="#icon-layers"></use></svg>
                 </span>
                 <span style="width: 100%">
-                    <strong>{{{i18n.moodle_courses.heading}}}</strong><b>{{{i18n.details.open_management}}} →</b>
+                    <strong>{{{i18n.moodle_courses.heading}}}</strong>
+                    <b>{{{i18n.details.open_management}}} →</b>
                 </span>
             </a>
             <a class="management-shortcut" href="/moodle_plugins.php?domain={{domain}}" style="width: 100%">
@@ -148,7 +149,8 @@
                     <svg aria-hidden="true"><use href="#icon-settings"></use></svg>
                 </span>
                 <span style="width: 100%">
-                    <strong>Gerenciamento de plugins</strong><b>{{{i18n.details.open_management}}} →</b>
+                    <strong>Gerenciamento de plugins</strong>
+                    <b>{{{i18n.details.open_management}}} →</b>
                 </span>
             </a>
             <div class="alert warning compact-alert" id="plugin-update-alert" hidden></div>
@@ -221,22 +223,26 @@
                         {{{badge_html}}}
                     </div>
                     <p>{{message}}</p>
-                    {{#has_path}}<small><code>{{path}}</code></small>{{/has_path}}
                     {{#has_active_job}}
                         <a href="{{active_job_url}}">{{{i18n.server_controls.view_job}}}</a>
                     {{/has_active_job}}
-                    {{#supported}}
-                        <form method="post" class="inline-form flag-actions">
-                            <input type="hidden" name="csrf_token" value="{{csrf_token}}">
-                            <input type="hidden" name="action" value="server_control">
-                            <input type="hidden" name="control" value="{{key}}">
-                            <input type="hidden" name="enabled" value="{{enabled_value}}">
-                            <button type="submit" class="{{button_class}}"
-                                    {{#has_active_job}}disabled{{/has_active_job}}>
-                                {{button_label}}
-                            </button>
-                        </form>
-                    {{/supported}}
+                    <div style="display: flex;justify-content: space-between;align-items: center;">
+                        {{#has_path}}
+                            <small><code>{{path}}</code></small>
+                        {{/has_path}}
+                        {{#supported}}
+                            <form method="post" class="inline-form flag-actions">
+                                <input type="hidden" name="csrf_token" value="{{csrf_token}}">
+                                <input type="hidden" name="action" value="server_control">
+                                <input type="hidden" name="control" value="{{key}}">
+                                <input type="hidden" name="enabled" value="{{enabled_value}}">
+                                <button type="submit" class="{{button_class}}"
+                                        {{#has_active_job}}disabled{{/has_active_job}}>
+                                    {{button_label}}
+                                </button>
+                            </form>
+                        {{/supported}}
+                    </div>
                 </div>
             {{/server_controls}}
         </div>
@@ -282,34 +288,12 @@
                             {{{status_badge_html}}}
                         </div>
                         <p>{{description}}</p>
-                        {{#has_path}}
-                            <small><code>{{path}}</code></small>
-                        {{/has_path}}
 
-                        {{#needs_value}}
-                            <div class="flag-actions split-actions">
-                                <form method="post" class="inline-form flag-value-form">
-                                    <input type="hidden" name="csrf_token" value="{{csrf_token}}">
-                                    <input type="hidden" name="action" value="toggle_flag">
-                                    <input type="hidden" name="flag" value="{{flag}}">
-                                    <input type="hidden" name="enabled" value="1">
-                                    <input type="email" name="value" value="{{value}}" placeholder="email@dominio.com"
-                                           required>
-                                    <button type="submit" class="{{button_class}}">{{button_label}}</button>
-                                </form>
-                                {{#show_disable_when_value_enabled}}
-                                    <form method="post" class="inline-form">
-                                        <input type="hidden" name="csrf_token" value="{{csrf_token}}">
-                                        <input type="hidden" name="action" value="toggle_flag">
-                                        <input type="hidden" name="flag" value="{{flag}}">
-                                        <input type="hidden" name="enabled" value="0">
-                                        <button type="submit" class="button danger">{{{i18n.actions.disable}}}</button>
-                                    </form>
-                                {{/show_disable_when_value_enabled}}
-                            </div>
-                        {{/needs_value}}
+                        <div style="display: flex;justify-content: space-between;align-items: center;">
+                            {{#has_path}}
+                                <small><code>{{path}}</code></small>
+                            {{/has_path}}
 
-                        {{#no_value}}
                             <form method="post" class="inline-form flag-actions">
                                 <input type="hidden" name="csrf_token" value="{{csrf_token}}">
                                 <input type="hidden" name="action" value="toggle_flag">
@@ -317,7 +301,7 @@
                                 <input type="hidden" name="enabled" value="{{enabled_value}}">
                                 <button type="submit" class="{{button_class}}">{{button_label}}</button>
                             </form>
-                        {{/no_value}}
+                        </div>
                     </div>
                 {{/feature_flags}}
             </div>

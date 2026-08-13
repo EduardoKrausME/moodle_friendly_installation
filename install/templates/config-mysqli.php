@@ -60,17 +60,6 @@ if (file_exists("{$domainroot}/email.disable")) {
     $CFG->noemailever = true;
 }
 
-if (file_exists("{$domainroot}/email.redirect")) {
-    $email = trim(file_get_contents("{$domainroot}/email.redirect"));
-    if (filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        $CFG->divertallemailsto = $email;
-    }
-}
-
-if (file_exists("{$domainroot}/theme-designer.enable")) {
-    $CFG->themedesignermode = true;
-}
-
 if (file_exists("{$domainroot}/cache-dev.enable")) {
     $CFG->cachejs = false;
     $CFG->cachetemplates = false;
