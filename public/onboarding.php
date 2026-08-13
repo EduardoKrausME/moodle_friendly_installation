@@ -120,6 +120,16 @@ if (!$setupcompleted && $step === 2) {
         $updatestate = $updatecheck["state"];
         $updatechecked = true;
         $updateavailable = !empty($updatecheck["update_available"]);
+
+        // Onboarding must persist the update request exactly like update.php does.
+        // This avoids finishing the initial setup with a pending update that still
+        // requires the administrator to open update.php and click Update manually.
+        $updaterequested = !empty($updatestate["update_requested"]);
+        $installing = ($updatestate["update_status"] ?? "") === "installing";
+        if ($updateavailable && !$updaterequested && !$installing) {
+            $updaterequest = AppUpdater::requestInstall();
+            $updatestate = $updaterequest["state"] ?? AppUpdater::state();
+        }
     } catch (Throwable $exception) {
         $updatecheckerror = $exception->getMessage();
     }
