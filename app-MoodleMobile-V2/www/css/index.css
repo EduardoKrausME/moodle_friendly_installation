@@ -1,276 +1,378 @@
+#page-login .page__background,
 #page-login .page__content {
-    background-image: linear-gradient(to bottom, var(--primary-color, #0088DF), var(--primary-color-2, #069CFC));
+  background: #073d45;
 }
 
-#page-login .page__content .icon-user {
-    margin-top: 37px;
-    margin-bottom: 37px;
-    color: #FFFFFF;
-    transition: all 0.25s linear;
+#page-login .page__content {
+  background-image: radial-gradient(circle at 86% 8%, rgba(31, 171, 178, 0.22), transparent 31%), linear-gradient(155deg, #06333b 0%, #074852 52%, #052e36 100%);
+  color: #ffffff;
 }
 
-@media (orientation: landscape) {
-    #page-login .page__content .icon-user {
-        margin-top: 17px;
-        margin-bottom: 7px;
-    }
+#page-login .login-shell {
+  width: min(100%, 480px);
+  min-height: 100%;
+  box-sizing: border-box;
+  margin: 0 auto;
+  padding: calc(env(safe-area-inset-top, 0px) + 42px) 28px calc(env(safe-area-inset-bottom, 0px) + 20px);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
-#page-login .page__content .icon-user img {
-    max-width: 70%;
-    max-height: 105px;
-    transition: all 0.25s linear;
+#page-login .login-brand {
+  text-align: center;
+  margin-bottom: 34px;
 }
 
-@media (orientation: landscape) {
-    #page-login .page__content .icon-user img {
-        max-height: 50px;
-    }
+#page-login .icon-user {
+  margin: 0 0 10px;
 }
 
-#page-login .page__content .icon-user .text {
-    font-size: 21px;
+#page-login .icon-user img {
+  display: block;
+  max-width: 78%;
+  max-height: 92px;
+  width: auto;
+  height: auto;
+  margin: 0 auto;
+  object-fit: contain;
 }
 
-#page-login .page__content ons-input {
-    width: 100%;
+#page-login .login-site-name {
+  min-height: 18px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.35;
+  letter-spacing: 0.02em;
+  color: rgba(255, 255, 255, 0.64);
 }
 
-#page-login .page__content ons-input input,
-#page-login .page__content ons-input .text-input__label {
-    padding: 9px;
-    border-radius: 17px;
-    font-size: 17px;
+#page-login .login-card {
+  width: 100%;
 }
 
-#page-login .page__content ons-input input {
-    background: #FFFFFF;
-    margin-bottom: 18px;
-    height: auto;
-    width: 80%;
-    font-size: 22px;
-    padding: 13px 13px;
+#page-login .login-card__intro {
+  text-align: center;
+  margin-bottom: 24px;
 }
 
-#page-login .page__content ons-input .text-input__label {
-    display: none;
+#page-login .login-card__intro h1 {
+  margin: 0 0 5px;
+  font-size: 25px;
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
 }
 
-#page-login .page__content ons-button {
-    min-width: 170px;
-    border-radius: 17px;
-    background: #081944;
-    color: #FFFFFF;
-    padding: 5px 13px;
+#page-login .login-card__intro p {
+  margin: 0;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.7);
 }
 
-#page-login .page__content .recuperar-senha {
-    color: #FFFFFF;
-    margin: 18px 0 14px;
-    background: transparent;
-    box-shadow: none;
-    text-decoration: underline;
+#page-login .login-field {
+  display: flex;
+  width: 100%;
+  min-height: 52px;
+  box-sizing: border-box;
+  align-items: center;
+  margin-bottom: 12px;
+  padding: 0 14px;
+  border: 1px solid rgba(255, 255, 255, 0.23);
+  border-radius: 12px;
+  background: rgba(4, 38, 45, 0.26);
 }
 
-#page-login .page__content .status-login-submit .erro-login {
-    background: #F44336;
-    font-size: 18px;
-    padding: 8px;
-    color: #FFFFFF;
-    margin: 0 13%;
-    border-radius: 8px;
+#page-login .login-field > ons-icon {
+  flex: 0 0 auto;
+  margin-right: 10px;
+  font-size: 18px;
+  color: rgba(255, 255, 255, 0.82);
 }
 
-#page-login .page__content .versao {
-    text-align: center;
-    width: 100%;
-    font-size: 12px;
-    color: #FFFFFF;
+#page-login .login-field ons-input {
+  width: 100%;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+#page-login .login-field ons-input input {
+  width: 100%;
+  height: 50px;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  outline: 0;
+  background: transparent;
+  color: #ffffff;
+  font-size: 14px;
+}
+
+#page-login .login-field ons-input input::placeholder {
+  color: rgba(255, 255, 255, 0.58);
+}
+
+#page-login .login-field .text-input__label {
+  display: none;
+}
+
+#page-login .login-password-toggle {
+  width: 34px;
+  height: 42px;
+  flex: 0 0 34px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 19px;
+}
+
+#page-login .button-login-submit {
+  display: flex;
+  width: 100%;
+  min-height: 50px;
+  box-sizing: border-box;
+  align-items: center;
+  justify-content: center;
+  margin-top: 18px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 11px;
+  background: #f39a7e;
+  color: #10262a;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.16);
+  font-size: 15px;
+  font-weight: 800;
+}
+
+#page-login .button-login-submit:active {
+  transform: translateY(1px);
+}
+
+#page-login .recuperar-senha {
+  display: block;
+  width: auto;
+  min-width: 0;
+  margin: 13px auto 4px;
+  padding: 6px 10px;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 12px;
+  text-decoration: none;
+}
+
+#page-login #htmllogin {
+  margin-top: 10px;
+}
+
+#page-login .status-login-submit .erro-login {
+  margin: 14px 0 0;
+  padding: 10px 12px;
+  border-radius: 9px;
+  background: rgba(205, 55, 55, 0.92);
+  color: #ffffff;
+  font-size: 13px;
+  line-height: 1.35;
+  text-align: center;
+}
+
+#page-login .versao {
+  width: 100%;
+  margin-top: 28px;
+  color: rgba(255, 255, 255, 0.42);
+  font-size: 10px;
+  text-align: center;
+}
+
+#page-login .login-wait-content {
+  text-align: center;
+}
+
+#page-login .login-wait-content ons-progress-circular {
+  width: 58px;
+  height: 58px;
+}
+
+@media (orientation: landscape) and (max-height: 520px) {
+  #page-login .login-shell {
+    justify-content: flex-start;
+    padding-top: calc(env(safe-area-inset-top, 0px) + 18px);
+  }
+  #page-login .login-brand {
+    margin-bottom: 15px;
+  }
+  #page-login .icon-user img {
+    max-height: 48px;
+  }
+  #page-login .login-card__intro {
+    margin-bottom: 12px;
+  }
+  #page-login .versao {
     margin-top: 10px;
+  }
 }
-
-.platform-ios #page-login .page__content .versao {
-    bottom: 16px;
-}
-
+/* Compact course header for the topics layout. */
 ons-toolbar.toolbar {
-    position: relative;
+  background: #FFF;
+  box-shadow: 0 1px 0 #E7EAEC;
+  position: relative;
 }
-
 ons-toolbar.toolbar * {
-    z-index: 2;
+  z-index: 2;
 }
-
 ons-toolbar.toolbar .background {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    z-index: 0;
-    opacity: 0;
-    box-shadow: 0 1px 5px rgba(0, 0, 0, 0.3);
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  opacity: 0;
+  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.3);
+}
+ons-toolbar.toolbar .toolbar__center,
+ons-toolbar.toolbar .toolbar__right {
+  opacity: 1;
+}
+ons-toolbar.toolbar .toolbar__title {
+  overflow: hidden;
+  color: #151A1E;
+  font-weight: 800;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+ons-toolbar.toolbar .back-button,
+ons-toolbar.toolbar .back-button__icon {
+  color: #1E293B;
 }
 
-.platform-android ons-toolbar.toolbar, .platform-android ons-toolbar.toolbar .background {
-    background: var(--primary-color, #0088DF);
-    background-image: linear-gradient(to bottom, var(--primary-color, #0088DF), var(--primary-color-2, #069CFC));
+.platform-android #page-format-topics .page__content {
+  top: 56px !important;
 }
 
-.platform-android ons-toolbar.toolbar .toolbar__title,
-.platform-android ons-toolbar.toolbar ons-back-button {
-    color: #FFFFFF;
-}
-
-.platform-android ons-toolbar.toolbar ons-back-button .back-button__icon {
-    fill: #FFFFFF;
-}
-
-.platform-ios ons-toolbar.toolbar, .platform-ios ons-toolbar.toolbar .background {
-    background: var(--toolbar-background-color);
-    background-image: linear-gradient(0deg, var(--toolbar-background-color), var(--toolbar-background-color) 100%);
-    box-shadow: var(--toolbar-box-shadow);
+.platform-ios #page-format-topics .page__content {
+  top: 44px !important;
 }
 
 .platform-ios ons-toolbar.toolbar .toolbar__title {
-    width: 100%;
+  width: 100%;
 }
-
 .platform-ios ons-toolbar.toolbar .toolbar__left .back-button__label {
-    margin-right: 10px;
+  margin-right: 10px;
 }
-
 .platform-ios ons-toolbar.toolbar .toolbar__left .back-button__label:empty {
-    display: none;
+  display: none;
 }
-
 .platform-ios ons-toolbar.toolbar .toolbar__right {
-    width: auto;
+  width: auto;
 }
 
 body.size-fixed {
-    width: 100% !important;
-    height: 100% !important;
+  width: 100% !important;
+  height: 100% !important;
 }
 
 ons-page .content .zmdi-spinner {
-    font-size: 45px;
-    margin: 80px auto 0;
-    text-align: center;
-    width: 100%;
+  font-size: 45px;
+  margin: 80px auto 0;
+  text-align: center;
+  width: 100%;
 }
 
 .alert {
-    padding: 7px 13px;
-    border-radius: 5px;
+  padding: 7px 13px;
+  border-radius: 5px;
 }
-
 .alert.alert-warning {
-    background: #FFD54F;
-    color: #3F3A3A;
+  background: #FFD54F;
+  color: #3F3A3A;
 }
-
 .alert.alert-error {
-    background: #CF5880;
-    color: #FFFFFF;
+  background: #CF5880;
+  color: #FFFFFF;
 }
-
 .alert.alert-margin {
-    margin: 20px;
+  margin: 20px;
 }
-
 .alert.alert-primary {
-    background-color: #cfe2ff;
-    color: #084298;
+  background-color: #cfe2ff;
+  color: #084298;
 }
-
 .alert.alert-primary a {
-    color: #06357a;
-    font-weight: 600;
-    text-decoration: underline;
+  color: #06357a;
+  font-weight: 600;
+  text-decoration: underline;
 }
-
 .alert.alert-primary a:hover {
-    color: #041f4a;
+  color: #041f4a;
 }
-
 .alert.alert-secondary {
-    background-color: #e2e3e5;
-    color: #41464b;
+  background-color: #e2e3e5;
+  color: #41464b;
 }
-
 .alert.alert-secondary a {
-    color: #2c3034;
-    font-weight: 600;
-    text-decoration: underline;
+  color: #2c3034;
+  font-weight: 600;
+  text-decoration: underline;
 }
-
 .alert.alert-secondary a:hover {
-    color: #1a1d20;
+  color: #1a1d20;
 }
-
 .alert.alert-success {
-    background-color: #d1e7dd;
-    color: #0f5132;
+  background-color: #d1e7dd;
+  color: #0f5132;
 }
-
 .alert.alert-success a {
-    color: #0c3e26;
-    font-weight: 600;
-    text-decoration: underline;
+  color: #0c3e26;
+  font-weight: 600;
+  text-decoration: underline;
 }
-
 .alert.alert-success a:hover {
-    color: #082216;
+  color: #082216;
 }
-
 .alert.alert-info {
-    background-color: #cff4fc;
-    color: #055160;
+  background-color: #cff4fc;
+  color: #055160;
 }
-
 .alert.alert-info a {
-    color: #033c47;
-    font-weight: 600;
-    text-decoration: underline;
+  color: #033c47;
+  font-weight: 600;
+  text-decoration: underline;
 }
-
 .alert.alert-info a:hover {
-    color: #02242a;
+  color: #02242a;
 }
-
 .alert.alert-warning {
-    background-color: #fff3cd;
-    color: #664d03;
+  background-color: #fff3cd;
+  color: #664d03;
 }
-
 .alert.alert-warning a {
-    color: #4d3902;
-    font-weight: 600;
-    text-decoration: underline;
+  color: #4d3902;
+  font-weight: 600;
+  text-decoration: underline;
 }
-
 .alert.alert-warning a:hover {
-    color: #332501;
+  color: #332501;
 }
-
 .alert.alert-danger {
-    background-color: #f8d7da;
-    color: #842029;
+  background-color: #f8d7da;
+  color: #842029;
 }
-
 .alert.alert-danger a {
-    color: #5c141b;
-    font-weight: 600;
-    text-decoration: underline;
+  color: #5c141b;
+  font-weight: 600;
+  text-decoration: underline;
 }
-
 .alert.alert-danger a:hover {
-    color: #3c0c11;
+  color: #3c0c11;
 }
 
 .d-flex {
-    display: flex;
-    align-items: center;
-    gap: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 /*# sourceMappingURL=index.css.map */

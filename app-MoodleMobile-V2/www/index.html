@@ -45,44 +45,53 @@
     <ons-navigator id="page-login" style="display:none"
                    swipeable swipe-target-width="80px">
         <ons-page>
-            <div style="text-align: center;margin-bottom: 45px;">
-                <div class="icon-user">
-                    <img id="logo-login" src="img/login/user.svg" alt="logo">
+            <div class="login-shell">
+                <div class="login-brand">
+                    <div class="icon-user">
+                        <img id="logo-login" src="img/login/user.svg" alt="logo">
+                    </div>
+                    <div id="login-site-name" class="login-site-name"></div>
                 </div>
-                <div>
-                    <ons-input class="input-username"
-                               data-i18n-placeholder="login.username"
-                               type="text" modifier="underbar"
-                               autocorrect="off"
-                               autocapitalize="off"
-                               spellcheck="false"></ons-input>
-                </div>
-                <div>
-                    <ons-input class="input-password"
-                               data-i18n-placeholder="login.password"
-                               type="password"
-                               modifier="underbar"></ons-input>
-                </div>
-                <div>
+
+                <div class="login-card">
+                    <div class="login-card__intro">
+                        <h1>Bem-vindo(a)!</h1>
+                        <p>Faça login para continuar</p>
+                    </div>
+
+                    <label class="login-field">
+                        <ons-icon icon="ion-ios-person"></ons-icon>
+                        <ons-input class="input-username"
+                                   data-i18n-placeholder="login.username"
+                                   type="text"
+                                   autocorrect="off"
+                                   autocapitalize="off"
+                                   spellcheck="false"></ons-input>
+                    </label>
+
+                    <label class="login-field login-field--password">
+                        <ons-icon icon="ion-ios-lock"></ons-icon>
+                        <ons-input class="input-password"
+                                   data-i18n-placeholder="login.password"
+                                   type="password"></ons-input>
+                        <button type="button" class="login-password-toggle"
+                                onclick="Login.togglePassword(this)" aria-label="Mostrar senha">
+                            <ons-icon icon="ion-ios-eye"></ons-icon>
+                        </button>
+                    </label>
+
                     <ons-button class="button-login-submit"
                                 onclick="Login.login()"
                                 data-i18n="login.submit"></ons-button>
-                </div>
 
-                <div>
                     <ons-button class="recuperar-senha"
                                 onclick="Login.open_forgot()"
                                 data-i18n-html="login.forgot"></ons-button>
+
+                    <div id="htmllogin"></div>
+                    <div class="status-login-submit"></div>
                 </div>
-                <div id="htmllogin"></div>
 
-                <div class="status-login-submit"></div>
-
-                <ons-modal id="login-wait">
-                    <div style="text-align: center">
-                        <ons-progress-circular style="width:60px;height:60px" indeterminate></ons-progress-circular>
-                    </div>
-                </ons-modal>
                 <div id="data-versao"
                      class="versao"
                      data-package_uid="com.eduardokraus.aulaemvideo"
@@ -90,8 +99,14 @@
                      data-onesignalappid="c6eb35bc-b481-4e4c-a305-978c5ce17333"
                      data-wwwroot_web="https://moodle.aulaemvideo.com.br">
                     <span data-i18n-html="profile.appversion"></span>:
-                    <span id="config-package_version">4.2.14</span>
+                    <span id="config-package_version">4.3.0</span>
                 </div>
+
+                <ons-modal id="login-wait">
+                    <div class="login-wait-content">
+                        <ons-progress-circular indeterminate></ons-progress-circular>
+                    </div>
+                </ons-modal>
             </div>
         </ons-page>
     </ons-navigator>

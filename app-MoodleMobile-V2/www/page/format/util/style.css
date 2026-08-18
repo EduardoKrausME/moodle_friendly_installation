@@ -2,35 +2,27 @@
   padding: 10px 5px 5px 10px;
 }
 .moodle4 .mod_purpose.mod_purpose-icon--administration {
-  background: #5D63F6;
+  background: #5D63F6 !important;
 }
 .moodle4 .mod_purpose.mod_purpose-icon--assessment {
-  background: #EB66A2;
+  background: #EB66A2 !important;
 }
 .moodle4 .mod_purpose.mod_purpose-icon--collaboration {
-  background: #F7634D;
+  background: #F7634D !important;
 }
 .moodle4 .mod_purpose.mod_purpose-icon--communication {
-  background: #11A676;
+  background: #11A676 !important;
 }
 .moodle4 .mod_purpose.mod_purpose-icon--content {
-  background: #399BE2;
+  background: #399BE2 !important;
 }
 .moodle4 .mod_purpose.mod_purpose-icon--interface {
-  background: #A378FF;
+  background: #A378FF !important;
 }
 .moodle4 .mod_purpose.mod_purpose-icon img {
   filter: brightness(0) invert(1);
 }
 
-.page-format ons-toolbar.toolbar {
-  background: transparent;
-  box-shadow: none;
-}
-.page-format ons-toolbar.toolbar .toolbar__center,
-.page-format ons-toolbar.toolbar .toolbar__right {
-  opacity: 0;
-}
 .page-format .page__content {
   top: 0 !important;
   background: linear-gradient(to bottom, color-mix(in srgb, var(--material-background-color) 71%, transparent), white), var(--page-content-background-image);
@@ -40,7 +32,7 @@
 }
 #course-top {
   margin: 70px 26px 18px;
-  color: #FFFFFF;
+  color: #FFF;
 }
 #course-top .titles {
   display: flex;
@@ -99,7 +91,7 @@
   height: 10px;
 }
 #course-top .progress-area ons-progress-bar .progress-bar__primary {
-  background: var(--primary-color, #0088DF);
+  background: var(--primary-color, #0B8F95);
   border-radius: 4px;
 }
 #course-top .status-download {
@@ -126,6 +118,109 @@
 }
 #course-top .status-download.course-done .course-done {
   display: block;
+}
+
+/* Compact course header for the topics layout. */
+#page-format-topics .page__content {
+  top: 44px !important;
+  background: #F5F7F7;
+}
+#page-format-topics #course-top {
+  width: min(100% - 28px, 720px);
+  box-sizing: border-box;
+  margin: 0 auto;
+  padding: 18px 2px 10px;
+  color: #151A1E;
+}
+#page-format-topics #course-top .titles,
+#page-format-topics #course-top .course-shortname {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+#page-format-topics #course-top > div,
+#page-format-topics #course-top .titles > div {
+  width: 100%;
+}
+#page-format-topics #course-top h3 {
+  margin: 0;
+  color: #151A1E;
+  font-size: 18px;
+  font-weight: 800;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+}
+#page-format-topics #course-top .course-shortname {
+  margin-top: 6px;
+}
+#page-format-topics #course-top .course-shortname h4 {
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  color: #7A858D;
+  font-size: 10px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+#page-format-topics #course-top .status-download {
+  width: auto;
+  flex: 0 0 auto;
+  color: var(--primary-color, #0B8F95);
+  font-size: 10px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+#page-format-topics #course-top .status-download .download-course,
+#page-format-topics #course-top .status-download .course-progress,
+#page-format-topics #course-top .status-download .course-done {
+  display: none;
+}
+#page-format-topics #course-top .status-download.download-course .download-course, #page-format-topics #course-top .status-download.course-progress .course-progress, #page-format-topics #course-top .status-download.course-done .course-done {
+  display: block;
+}
+#page-format-topics #course-top .status-download:not(.download-course) .download-course {
+  display: none !important;
+}
+#page-format-topics #course-top .download-course {
+  display: flex !important;
+  align-items: center;
+  gap: 5px;
+}
+#page-format-topics #course-top .progress-area {
+  width: 100%;
+  margin-top: 13px;
+}
+#page-format-topics #course-top .progress-area > span {
+  display: block;
+  width: 100%;
+  margin: 0 0 6px;
+  color: #65717A;
+  font-size: 10px;
+  font-weight: 700;
+  text-align: right;
+}
+#page-format-topics #course-top .progress-area ons-progress-bar {
+  width: 100%;
+  margin: 0;
+}
+#page-format-topics #course-top .progress-area .progress-bar {
+  height: 5px;
+  border-radius: 999px;
+  background: #E3E8EA;
+}
+#page-format-topics #course-top .progress-area .progress-bar__primary {
+  border-radius: inherit;
+  background: var(--primary-color, #0B8F95);
+}
+
+.platform-android #page-format-topics .page__content {
+  top: 56px !important;
+}
+
+.platform-ios #page-format-topics .page__content {
+  top: 44px !important;
 }
 
 /*# sourceMappingURL=style.css.map */

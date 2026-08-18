@@ -3126,8 +3126,6 @@ h4, h5, h6 {
   margin-right: 6px;
   display: -webkit-inline-flex;
   display: inline-flex;
-  fill: rgb(0, 118, 255);
-  fill: var(--toolbar-button-color);
   -webkit-align-items: center;
   align-items: center;
   height: 100%;

@@ -1,5 +1,5 @@
-<ons-page id="page-course-list">
 
+<ons-page id="page-course-list">
     <div class="content">
         <div id="user-info"></div>
 
@@ -13,9 +13,25 @@
                 </div>
             </div>
 
-            <div id="page-course-list-content">
-                <ons-icon icon="md-spinner" spin></ons-icon>
-            </div>
+            <main class="home-dashboard">
+                <section id="home-continue" aria-live="polite"></section>
+
+                <section class="home-courses">
+                    <div class="home-section-heading">
+                        <h2 data-i18n="home.mycourses"></h2>
+                        <span id="home-course-count" class="home-course-count"></span>
+                    </div>
+
+                    <div id="page-course-list-content" class="home-course-list">
+                        <ons-icon icon="md-spinner" spin></ons-icon>
+                    </div>
+
+                    <div id="home-search-empty" class="home-search-empty" hidden>
+                        <ons-icon icon="ion-ios-search"></ons-icon>
+                        <p data-i18n="home.search.empty"></p>
+                    </div>
+                </section>
+            </main>
         </div>
     </div>
 
@@ -29,4 +45,7 @@
 
     <link href="page/home/course_list/style.css" rel="stylesheet"/>
 
+    <script>
+        I18n.apply();
+    </script>
 </ons-page>

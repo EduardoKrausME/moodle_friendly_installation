@@ -1,95 +1,126 @@
+#page-storage-management .page__background,
 #page-storage-management .content {
-  padding: 12px 10px 24px;
+  background: #f6f7f8;
+}
+
+#page-storage-management .content {
   box-sizing: border-box;
+  padding: calc(env(safe-area-inset-top, 0px) + 16px) 14px calc(84px + env(safe-area-inset-bottom, 0px));
 }
 
-.storage-summary-card,
-.storage-course-card,
-.storage-download-card,
-.storage-pending-card {
-  border-radius: 16px;
+#page-storage-management .simple-page-header,
+#page-storage-management #storage-management-content {
+  width: min(100%, 720px);
+  margin-right: auto;
+  margin-left: auto;
 }
 
-.storage-summary-title {
-  font-size: 19px;
-  font-weight: 700;
-  margin-bottom: 14px;
+#page-storage-management .simple-page-header {
+  margin-bottom: 13px;
 }
 
-.storage-summary-grid {
+#page-storage-management .simple-page-header h1 {
+  margin: 0;
+  color: #151a1e;
+  font-size: 20px;
+  font-weight: 800;
+}
+
+#page-storage-management .storage-summary-card,
+#page-storage-management .storage-course-card,
+#page-storage-management .storage-download-card,
+#page-storage-management .storage-pending-card {
+  margin: 0 0 9px;
+  border: 1px solid #e5e9eb;
+  border-radius: 11px;
+  background: #ffffff;
+  box-shadow: 0 2px 8px rgba(20, 38, 43, 0.03);
+}
+
+#page-storage-management .storage-summary-title {
+  margin-bottom: 12px;
+  color: #171d21;
+  font-size: 15px;
+  font-weight: 800;
+}
+
+#page-storage-management .storage-summary-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
-  margin-bottom: 12px;
+  gap: 7px;
+  margin-bottom: 10px;
 }
 
-.storage-summary-grid div {
-  background: rgba(0, 0, 0, 0.04);
-  border-radius: 14px;
-  padding: 12px 8px;
+#page-storage-management .storage-summary-grid div {
+  padding: 10px 6px;
+  border-radius: 8px;
+  background: #f2f6f6;
   text-align: center;
 }
 
-.storage-summary-grid strong {
+#page-storage-management .storage-summary-grid strong {
   display: block;
-  font-size: 16px;
-  margin-bottom: 4px;
+  margin-bottom: 3px;
+  color: var(--primary-color, #0b8f95);
+  font-size: 13px;
 }
 
-.storage-summary-grid span,
-.storage-course-meta,
-.storage-download-meta,
-.storage-pending-meta,
-.storage-pending-error {
-  color: #666666;
-  font-size: 12px;
+#page-storage-management .storage-summary-grid span,
+#page-storage-management .storage-course-meta,
+#page-storage-management .storage-download-meta,
+#page-storage-management .storage-pending-meta,
+#page-storage-management .storage-pending-error {
+  color: #6f7a82;
+  font-size: 10px;
   line-height: 1.35;
 }
 
-.storage-section-title {
-  font-size: 15px;
-  font-weight: 700;
-  margin: 18px 8px 8px;
+#page-storage-management .storage-section-title {
+  margin: 15px 4px 7px;
+  color: #3f4a51;
+  font-size: 12px;
+  font-weight: 800;
 }
 
-.storage-empty {
-  color: #777777;
-  font-size: 14px;
-  padding: 8px 12px 14px;
+#page-storage-management .storage-empty {
+  padding: 8px 10px 12px;
+  color: #737e86;
+  font-size: 11px;
 }
 
-.storage-course-main {
-  align-items: center;
+#page-storage-management .storage-course-main {
   display: flex;
-  gap: 12px;
+  align-items: center;
   justify-content: space-between;
+  gap: 10px;
 }
 
-.storage-course-title,
-.storage-download-title,
-.storage-pending-title {
-  font-size: 15px;
-  font-weight: 700;
-  margin-bottom: 5px;
+#page-storage-management .storage-course-title,
+#page-storage-management .storage-download-title,
+#page-storage-management .storage-pending-title {
+  margin-bottom: 4px;
+  color: #222a2f;
+  font-size: 12px;
+  font-weight: 800;
 }
 
-.storage-delete-course {
+#page-storage-management .storage-delete-course {
   flex: 0 0 auto;
 }
 
-.storage-download-card ons-progress-bar {
-  margin-top: 10px;
+#page-storage-management .storage-download-card ons-progress-bar {
+  margin-top: 8px;
 }
 
-.storage-pending-error {
-  margin-top: 6px;
+#page-storage-management .storage-pending-error {
+  margin-top: 5px;
 }
 
 @media (max-width: 380px) {
-  .storage-summary-grid {
+  #page-storage-management .storage-summary-grid {
     grid-template-columns: 1fr;
   }
-  .storage-course-main {
+  #page-storage-management .storage-course-main {
     align-items: stretch;
     flex-direction: column;
   }

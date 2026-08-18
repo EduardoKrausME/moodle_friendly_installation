@@ -1,5 +1,73 @@
 #tabbar-page .toolbar--material__center {
-    text-align: center;
+  text-align: center;
+}
+
+#tabbar-page #home-tabbar .tabbar {
+  z-index: 30;
+  box-sizing: border-box;
+  height: calc(64px + env(safe-area-inset-bottom, 0px));
+  padding: 5px 4px env(safe-area-inset-bottom, 0px);
+  border-top: 1px solid #e6e9eb;
+  background: rgba(255, 255, 255, 0.98);
+  background-image: none;
+  box-shadow: 0 -2px 10px rgba(16, 35, 43, 0.04);
+}
+
+#tabbar-page #home-tabbar .tabbar__content {
+  bottom: calc(64px + env(safe-area-inset-bottom, 0px));
+}
+
+#tabbar-page #home-tabbar .tabbar__button,
+#tabbar-page #home-tabbar .tabbar--material__button {
+  display: flex;
+  height: 54px;
+  align-items: center;
+  flex-direction: column;
+  justify-content: center;
+  padding: 0 2px;
+  background: transparent;
+  color: #68737d;
+  line-height: 1;
+}
+
+#tabbar-page #home-tabbar .tabbar__button:after,
+#tabbar-page #home-tabbar .tabbar--material__button:after {
+  display: none;
+}
+
+#tabbar-page #home-tabbar .tabbar__icon,
+#tabbar-page #home-tabbar .tabbar--material__icon {
+  width: auto;
+  height: 24px;
+  margin: 0;
+  font-size: 21px;
+  line-height: 24px;
+}
+
+#tabbar-page #home-tabbar .tabbar__label,
+#tabbar-page #home-tabbar .tabbar--material__label,
+#tabbar-page #home-tabbar .tabbar--material__icon + .tabbar--material__label {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin: 4px 0 0;
+  overflow: hidden;
+  font-size: 8px;
+  font-weight: 700;
+  line-height: 10px;
+  letter-spacing: 0;
+  text-overflow: ellipsis;
+  text-transform: none;
+}
+
+#tabbar-page #home-tabbar input:checked + .tabbar__button,
+#tabbar-page #home-tabbar input:checked + .tabbar--material__button {
+  color: var(--primary-color, #0b8f95);
+}
+
+#tabbar-page #home-tabbar input:checked + .tabbar__button:before,
+#tabbar-page #home-tabbar input:checked + .tabbar--material__button:before {
+  display: none;
 }
 
 /*# sourceMappingURL=style.css.map */

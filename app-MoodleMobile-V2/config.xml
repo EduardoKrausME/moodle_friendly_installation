@@ -1,9 +1,6 @@
 <?xml version='1.0' encoding='utf-8'?>
-<widget android-packageName="com.eduardokraus.aulaemvideo"
-        version="4.2.14"
-        xmlns="http://www.w3.org/ns/widgets"
-        xmlns:android="http://schemas.android.com/apk/res/android">
-    <preference name="AppendUserAgent" value=" AppMoodleMobileV2\/4.2.14" />
+<widget android-packageName="com.eduardokraus.aulaemvideo" ios-CFBundleIdentifier="com.eduardokraus.aulaemvideo" ios-CFBundleVersion="4.3.0" version="4.3.0" xmlns="http://www.w3.org/ns/widgets" xmlns:android="http://schemas.android.com/apk/res/android">
+    <preference name="AppendUserAgent" value=" AppMoodleMobileV2\/4.3.0" />
     <name>Aula em Vídeo</name>
     <description>Kraus Moodle™ Mobile</description>
     <author email="kraus@eduardokraus.com" href="https://eduardokraus.com">
@@ -25,7 +22,7 @@
         <icon density="xxhdpi" src="res/kraus/android/144x144.png" />
         <icon density="xxxhdpi" src="res/kraus/android/192x192.png" />
 
-        <preference value="all-clients/splashscreen.xml" name="AndroidWindowSplashScreenAnimatedIcon" />
+        <preference value="res/kraus/splashscreen.xml" name="AndroidWindowSplashScreenAnimatedIcon" />
 
         <resource-file src="res/kraus/android-notification/48x48.png" target="app/src/main/res/drawable-mdpi/ic_stat_onesignal_default.png" />
         <resource-file src="res/kraus/android-notification/72x72.png" target="app/src/main/res/drawable-hdpi/ic_stat_onesignal_default.png" />
@@ -42,6 +39,69 @@
             <activity android:exported="true" />
         </edit-config>
     </platform>
+    <platform name="ios">
+        <preference name="StatusBarOverlaysWebView" value="false" />
+        <preference name="StatusBarStyle" value="lightcontent" />
+        <preference name="MediaTypesRequiringUserActionForPlayback" value="all" />
+
+        <icon height="20" src="res/kraus/ios/icon-20.png" width="20" />
+        <icon height="29" src="res/kraus/ios/icon-small.png" width="29" />
+        <icon height="40" src="res/kraus/ios/icon-20@2x.png" width="40" />
+        <icon height="40" src="res/kraus/ios/icon-40.png" width="40" />
+        <icon height="50" src="res/kraus/ios/icon-50.png" width="50" />
+        <icon height="57" src="res/kraus/ios/icon-57.png" width="57" />
+        <icon height="58" src="res/kraus/ios/icon-small@2x.png" width="58" />
+        <icon height="58" src="res/kraus/ios/icon-29@2x.png" width="58" />
+        <icon height="60" src="res/kraus/ios/icon-20@3x.png" width="60" />
+        <icon height="60" src="res/kraus/ios/icon-60.png" width="60" />
+        <icon height="72" src="res/kraus/ios/icon-72.png" width="72" />
+        <icon height="76" src="res/kraus/ios/icon-76.png" width="76" />
+        <icon height="80" src="res/kraus/ios/icon-40@2x.png" width="80" />
+        <icon height="87" src="res/kraus/ios/icon-small@3x.png" width="87" />
+        <icon height="87" src="res/kraus/ios/icon-29@3x.png" width="87" />
+        <icon height="100" src="res/kraus/ios/icon-50@2x.png" width="100" />
+        <icon height="114" src="res/kraus/ios/icon@2x.png" width="114" />
+        <icon height="120" src="res/kraus/ios/icon-60@2x.png" width="120" />
+        <icon height="144" src="res/kraus/ios/icon-72@2x.png" width="144" />
+        <icon height="152" src="res/kraus/ios/icon-76@2x.png" width="152" />
+        <icon height="167" src="res/kraus/ios/icon-83.5@2x.png" width="167" />
+        <icon height="180" src="res/kraus/ios/icon-60@3x.png" width="180" />
+        <icon height="1024" src="res/kraus/ios/icon-1024.png" width="1024" />
+        <icon height="172" src="res/kraus/ios/icon-98@2x.png" width="172" />
+        <icon height="196" src="res/kraus/ios/icon-86@2x.png" width="196" />
+        <icon height="88" src="res/kraus/ios/icon-44@2x.png" width="88" />
+        <icon height="55" src="res/kraus/ios/icon-27.5@2x.png" width="55" />
+        <icon height="48" src="res/kraus/ios/icon-24@2x.png" width="48" />
+
+        <splash height="480" src="res/kraus/ios-screen/Default~iphone.png" width="320" />
+        <splash height="768" src="res/kraus/ios-screen/Default-Landscape~ipad.png" width="1024" />
+        <splash height="960" src="res/kraus/ios-screen/Default@2x~iphone.png" width="640" />
+        <splash height="1024" src="res/kraus/ios-screen/Default-Portrait~ipad.png" width="768" />
+        <splash height="1125" src="res/kraus/ios-screen/Default-Landscape-2436h.png" width="2436" />
+        <splash height="1136" src="res/kraus/ios-screen/Default-568h@2x~iphone.png" width="640" />
+        <splash height="1242" src="res/kraus/ios-screen/Default-Landscape-736h.png" width="2208" />
+        <splash height="1334" src="res/kraus/ios-screen/Default-667h.png" width="750" />
+        <splash height="1536" src="res/kraus/ios-screen/Default-Landscape@2x~ipad.png" width="2048" />
+        <splash height="2048" src="res/kraus/ios-screen/Default-Portrait@2x~ipad.png" width="1536" />
+        <splash height="2208" src="res/kraus/ios-screen/Default-736h.png" width="1242" />
+        <splash height="2436" src="res/kraus/ios-screen/Default-2436h.png" width="1125" />
+
+        <edit-config file="*-Info.plist" mode="merge" target="NSUserTrackingUsageDescription">
+            <string>Você deve fornecer seu e-mail e senha do seu cadastro do Moodle pra fazer login.
+
+Seus acessos pelo APP são salvos no Moodle. Estes dados pode ser de notas, tarefas enviadas, postagens em foruns e suas solicitações ao suporte.
+
+Seus dados de navegação, notas, postagens em foruns e tarefas não serão enviados a terceiros e ficarão exclusivamente armazenados na base de dados do Moodle.
+
+Nós usaremos seus dados para acompanhamento da evolção dos seus estudos.</string>
+        </edit-config>
+        <edit-config file="*-Info.plist" mode="merge" target="NSLocationWhenInUseUsageDescription">
+            <string>Para proporcionar a melhor experiência possível, nosso aplicativo precisa acessar sua localização enquanto estiver em uso. Isso nos permite oferecer recursos personalizados de cursos com base na sua localização. Tenha a certeza de que respeitamos sua privacidade e que sua localização não será utilizada fora do contexto do aplicativo.</string>
+        </edit-config>
+        <config-file parent="UIRequiresFullScreen" target="*-Info.plist">
+            <true />
+        </config-file>
+    </platform>
 
     <preference name="StatusBarOverlaysWebView" value="false" />
     <preference name="StatusBarBackgroundColor" value="#12284C" />
@@ -53,6 +113,7 @@
     <preference name="DisallowOverscroll" value="true" />
     <preference name="AllowInlineMediaPlayback" value="true" />
     <preference name="KeyboardDisplayRequiresUserAction" value="true" />
+    <preference name="iosPersistentFileLocation" value="Library" />
     <preference name="AndroidLaunchMode" value="singleInstance" />
 
     <access origin="*" />
