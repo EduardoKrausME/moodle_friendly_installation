@@ -49,6 +49,38 @@ $jobs = [];
 $selectedjob = null;
 $shouldrefresh = false;
 $alljobs = JobManager::all();
+
+if (isset($_GET["ajax"]) && $_GET["ajax"] === "logs" && $selectedjobid !== "") {
+    header("Content-Type: application/json; charset=utf-8");
+    header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
+
+    foreach ($alljobs as $job) {
+        if (($job["id"] ?? "") !== $selectedjobid) {
+            continue;
+        }
+
+        $status = (string) ($job["status"] ?? "pending");
+        $log = "";
+        $haslog = !empty($job["log_file"]) && is_readable($job["log_file"]);
+        if ($haslog) {
+            $log = (string) file_get_contents($job["log_file"]);
+        }
+
+        echo json_encode([
+            "found" => true,
+            "status" => $status,
+            "has_log" => $haslog,
+            "log" => $log,
+            "refresh_page" => !in_array($status, ["running", "pending", "waiting_dns"], true),
+        ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_INVALID_UTF8_SUBSTITUTE);
+        exit;
+    }
+
+    http_response_code(404);
+    echo json_encode(["found" => false], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    exit;
+}
+
 $jobsbyid = [];
 $latestinstallationbydomain = [];
 foreach ($alljobs as $storedjob) {
@@ -98,6 +130,7 @@ foreach ($alljobs as $job) {
 
     $viewjob = [
         "id" => $jobid,
+        "has_done" => $status == "done",
         "domain" => $job["domain"] ?? "",
         "status_class" => $statusclass,
         "status_badge" => status_badge($status),
@@ -139,6 +172,8 @@ echo render_app_template("page/jobs", [
     "selected_job" => $selectedjob,
     "selected_job_id" => $selectedjobid,
     "selected_job_not_found" => $selectedjobid !== "" && empty($selectedjob),
-    "should_refresh" => $shouldrefresh,
+    "poll_selected_job" => !empty($selectedjob)
+        && in_array(($selectedjob["status"] ?? ""), ["running", "pending", "waiting_dns"], true),
+    "should_refresh" => $selectedjobid === "" && $shouldrefresh,
 ]);
 render_footer();

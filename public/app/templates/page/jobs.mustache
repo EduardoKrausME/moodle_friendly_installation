@@ -19,7 +19,14 @@
 
         <div class="card" style="margin-bottom: 10px">
             <h2><strong>{{{i18n.jobs.job}}}</strong>: <code>{{id}}</code></h2>
-            <div><strong>{{{i18n.jobs.domain}}}</strong>: {{domain}}</div>
+            <div><strong>{{{i18n.jobs.domain}}}</strong>:
+                {{#has_done}}
+                    <a href="/details.php?domain={{domain}}">{{domain}}</a>
+                {{/has_done}}
+                {{^has_done}}
+                    {{domain}}
+                {{/has_done}}
+            </div>
             <div class="status-{{status_class}}"><strong>{{{i18n.jobs.status}}}</strong>: {{{status_badge}}}</div>
             <div class="nowrap"><strong>{{{i18n.jobs.created}}}</strong>: {{created_at}}</div>
             {{#can_cancel}}
@@ -54,11 +61,12 @@
                 {{/has_error}}
 
                 {{#has_log}}
-                    <pre class="job-log {{status_class}}">{{log}}</pre>
+                    <pre id="job-log" class="job-log {{status_class}}">{{log}}</pre>
                 {{/has_log}}
 
                 {{^has_log}}
-                    <p class="muted">{{{i18n.jobs.no_log}}}</p>
+                    <pre id="job-log" class="job-log {{status_class}}" hidden></pre>
+                    <p id="job-no-log" class="muted">{{{i18n.jobs.no_log}}}</p>
                 {{/has_log}}
             </div>
         </div>
@@ -74,7 +82,14 @@
         {{#jobs}}
             <div class="card" style="margin-bottom: 10px">
                 <h2><strong>{{{i18n.jobs.job}}}</strong>: <code>{{id}}</code></h2>
-                <div><strong>{{{i18n.jobs.domain}}}</strong>: {{domain}}</div>
+                <div><strong>{{{i18n.jobs.domain}}}</strong>:
+                    {{#has_done}}
+                        <a href="/details.php?domain={{domain}}">{{domain}}</a>
+                    {{/has_done}}
+                    {{^has_done}}
+                        {{domain}}
+                    {{/has_done}}
+                </div>
                 <div class="status-{{status_class}}"><strong>{{{i18n.jobs.status}}}</strong>: {{{status_badge}}}</div>
                 <div class="nowrap"><strong>{{{i18n.jobs.created}}}</strong>: {{created_at}}</div>
                 <div class="job-card-actions">
@@ -114,6 +129,63 @@
         {{/jobs}}
     {{/has_jobs}}
 {{/has_selected_job}}
+
+{{#poll_selected_job}}
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const logElement = document.getElementById("job-log");
+            const noLogElement = document.getElementById("job-no-log");
+            let currentLog = logElement ? logElement.textContent : "";
+
+            const scrollLogToBottom = function () {
+                if (logElement && !logElement.hidden) {
+                    logElement.scrollTop = logElement.scrollHeight;
+                }
+            };
+
+            const refreshLog = function () {
+                fetch("/jobs.php?job={{selected_job_id}}&ajax=logs", {
+                    cache: "no-store",
+                    headers: {"Accept": "application/json"}
+                })
+                    .then(function (response) {
+                        if (!response.ok) {
+                            throw new Error("Unable to load job log");
+                        }
+                        return response.json();
+                    })
+                    .then(function (data) {
+                        if (!data.found) {
+                            return;
+                        }
+
+                        if (data.has_log && logElement) {
+                            logElement.hidden = false;
+                            if (noLogElement) {
+                                noLogElement.hidden = true;
+                            }
+
+                            if (data.log !== currentLog) {
+                                currentLog = data.log;
+                                logElement.textContent = data.log;
+                                scrollLogToBottom();
+                            }
+                        }
+
+                        if (data.refresh_page) {
+                            window.location.reload();
+                        }
+                    })
+                    .catch(function () {
+                        // Keep the current log visible and try again on the next interval.
+                    });
+            };
+
+            scrollLogToBottom();
+            window.setInterval(refreshLog, 5000);
+        });
+    </script>
+{{/poll_selected_job}}
 
 {{#should_refresh}}
     <script>
