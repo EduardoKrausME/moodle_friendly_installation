@@ -45,6 +45,7 @@
             <form action="/phpmyadmin-signon.php" method="post" target="_blank"
                   style="margin-left:auto;">
                 <input type="hidden" name="csrf_token" value="{{csrf_token}}">
+                <input type="hidden" name="domain" value="{{domain}}">
                 <button class="button" type="submit">{{{i18n.dashboard.open_phpmyadmin}}}</button>
             </form>
 

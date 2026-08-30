@@ -48,8 +48,16 @@ $_SESSION = [
     "PMA_single_signon_port" => $configbase["mysql_admin_port"],
     "PMA_single_signon_HMAC_secret" => bin2hex(random_bytes(32)),
 ];
-
 session_write_close();
 
-header("Location: /phpMyAdmin/");
+$domain = $_POST["domain"] ?? false;
+if ($domain) {
+    $dbName = preg_replace('/[^a-z0-9]+/', "_", strtolower($domain));
+    $dbName = trim($dbName, "_");
+    $dbName = substr($dbName, 0, 60);
+
+    header("Location: /phpMyAdmin/index.php?route=/database/structure&db={$dbName}");
+} else {
+    header("Location: /phpMyAdmin/");
+}
 exit;
