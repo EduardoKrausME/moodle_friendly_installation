@@ -405,6 +405,7 @@ return [
             <p>Install it on the source Moodle, generate the backup, and upload the ZIP here to restore it together with the new installation.</p>",
         "kopere_backup_help" => "Accepts ZIP with schema/*.json + data/*.csv and, when present, moodledata/files or other moodledata files.",
         "queued" => "Installation queued. The root CRON will run job {id}.",
+        "theme_colors" => "Theme colors",
     ],
     "jobs" => [
         "title" => "Queue",

@@ -403,6 +403,7 @@ return [
             <p>Instálalo en el Moodle de origen, genera el backup y envía el ZIP aquí para restaurarlo junto con la nueva instalación.</p>",
         "kopere_backup_help" => "Acepta ZIP con schema/*.json + data/*.csv y, cuando existan, moodledata/files u otros archivos de moodledata.",
         "queued" => "Instalación en cola. El CRON root ejecutará el job {id}.",
+        "theme_colors" => "Colores del tema",
     ],
     "jobs" => [
         "title" => "Cola",

@@ -5,6 +5,66 @@
     </div>
 </section>
 
+<style>
+    .theme-palette-group {
+        margin-top: .85rem;
+        display: block;
+    }
+
+    .theme-palette-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: .75rem;
+        margin-top: .75rem;
+    }
+
+    .theme-palette-option {
+        position: relative;
+        display: flex;
+        align-items: center;
+        gap: .75rem;
+        padding: .7rem .8rem;
+        border: 1px solid #d8deea;
+        border-radius: 14px;
+        background: #fff;
+        cursor: pointer;
+        transition: border-color .15s ease, box-shadow .15s ease, transform .15s ease;
+        color: #fff;
+    }
+
+    .theme-palette-option:hover {
+        border-color: #7c8fb6;
+        transform: translateY(-1px);
+    }
+
+    .theme-palette-option input[type="radio"] {
+        margin: 0;
+        flex: 0 0 auto;
+    }
+
+    .theme-palette-meta {
+        display: flex;
+        justify-content: space-between;
+        width: 100%;
+        gap: .18rem;
+        min-width: 0;
+        padding: 8px 6px;
+    }
+
+    .theme-palette-code {
+        font-size: .78rem;
+        color: #ffffff;
+        line-height: 1.25;
+        word-break: break-all;
+        text-transform: uppercase;
+    }
+
+    .theme-palette-option:has(input[type="radio"]:checked) {
+        border-color: #2857c5;
+        box-shadow: 0 0 0 3px rgba(40, 87, 197, .12);
+    }
+</style>
+
 <div class="alert warning">
     {{{dns_intro}}}
 </div>
@@ -37,6 +97,9 @@
 {{#errors.kopere_backup_zip}}
     <small class="alert alert-danger">{{.}}</small>
 {{/errors.kopere_backup_zip}}
+{{#errors.theme_palette}}
+    <small class="alert alert-danger">{{.}}</small>
+{{/errors.theme_palette}}
 
 <form method="post" enctype="multipart/form-data" class="card form">
     <input type="hidden" name="csrf_token" value="{{csrf_token}}">
@@ -98,6 +161,24 @@
         <input type="checkbox" name="issue_cert" value="1" {{#values.issue_cert}}checked{{/values.issue_cert}}>
         {{{i18n.install.issue_cert}}}
     </label>
+
+    <div class="theme-palette-group">
+        <strong>{{{i18n.install.theme_colors}}}</strong>
+        <div class="theme-palette-grid">
+            {{#theme_palette_options}}
+                <label class="theme-palette-option" style="{{style}}">
+                    <input type="radio" name="theme_palette"
+                           style="display: none"
+                           value="{{index}}" {{#checked}}checked{{/checked}}>
+                    <div class="theme-palette-meta">
+                        <div class="theme-palette-code">{{primary}}</div>
+                        <div class="theme-palette-code">{{secondary}}</div>
+                    </div>
+                </label>
+            {{/theme_palette_options}}
+        </div>
+        {{#errors.theme_palette}}<small class="alert alert-danger">{{.}}</small>{{/errors.theme_palette}}
+    </div>
 
     <div class="form-actions">
         <button type="submit"

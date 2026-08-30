@@ -252,6 +252,8 @@ function executeInstallJob(array $job, string $mode = "install"): array {
         "CONFIG_FILE_TEMPLATE" => $configTemplate,
         "CRON_FILE" => $cronfile,
         "ISSUE_CERT" => !empty($job["issue_cert"]) ? "1" : "0",
+        "THEME_PRIMARY" => $job["theme_primary"] ?? "#000428",
+        "THEME_SECONDARY" => $job["theme_secondary"] ?? "#000d84",
         "PHP_BIN" => app_config("php_bin"),
         "INSTALL_MODE" => $isrestore ? "restore" : "install",
     ]);
@@ -320,7 +322,7 @@ function renderTemplateFile(string $file, array $vars): string {
         $content = str_replace("{{{$key}}}", $value, $content);
     }
     if (preg_match('/\.php$/i', $file)) {
-        $content = str_replace('$', '\$', $content);
+        $content = str_replace('$', '\\$', $content);
     }
     return $content;
 }

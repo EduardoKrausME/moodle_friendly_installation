@@ -62,25 +62,25 @@
     </section>
 
     <script>
-    document.addEventListener("DOMContentLoaded", function () {
-        const filter = document.getElementById("moodle-site-filter");
-        const grid = document.getElementById("moodle-site-grid");
-        if (!filter || !grid) return;
+        document.addEventListener("DOMContentLoaded", function () {
+            const filter = document.getElementById("moodle-site-filter");
+            const grid = document.getElementById("moodle-site-grid");
+            if (!filter || !grid) return;
 
-        const cards = Array.from(grid.querySelectorAll(".site-card"));
-        const normalize = function (value) {
-            return value
-                .normalize("NFD")
-                .replace(/[\u0300-\u036f]/g, "")
-                .toLowerCase();
-        };
+            const cards = Array.from(grid.querySelectorAll(".site-card"));
+            const normalize = function (value) {
+                return value
+                    .normalize("NFD")
+                    .replace(/[\u0300-\u036f]/g, "")
+                    .toLowerCase();
+            };
 
-        filter.addEventListener("input", function () {
-            const query = normalize(filter.value.trim());
-            cards.forEach(function (card) {
-                card.hidden = query !== "" && !normalize(card.textContent).includes(query);
+            filter.addEventListener("input", function () {
+                const query = normalize(filter.value.trim());
+                cards.forEach(function (card) {
+                    card.hidden = query !== "" && !normalize(card.textContent).includes(query);
+                });
             });
         });
-    });
     </script>
 {{/has_sites}}

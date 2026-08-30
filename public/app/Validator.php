@@ -10,6 +10,152 @@ use ZipArchive;
  */
 class Validator {
     /**
+     * Function themeColors
+     *
+     * @return array<int, array{primary: string, secondary: string}>
+     */
+    public static function themeColors(): array {
+        return [
+            [
+                "primary" => "#000428",
+                "secondary" => "#000d84",
+            ],
+            [
+                "primary" => "#070000",
+                "secondary" => "#630000",
+            ],
+            [
+                "primary" => "#314755",
+                "secondary" => "#53788f",
+            ],
+            [
+                "primary" => "#314755",
+                "secondary" => "#53788f",
+            ],
+            [
+                "primary" => "#007bc3",
+                "secondary" => "#20adff",
+            ],
+            [
+                "primary" => "#007fff",
+                "secondary" => "#0051a3",
+            ],
+            [
+                "primary" => "#00bf8f",
+                "secondary" => "#1cffc6",
+            ],
+            [
+                "primary" => "#00c3b0",
+                "secondary" => "#20ffe9",
+            ],
+            [
+                "primary" => "#30e8bf",
+                "secondary" => "#13a988",
+            ],
+            [
+                "primary" => "#83a4d4",
+                "secondary" => "#4172bb",
+            ],
+            [
+                "primary" => "#7303c0",
+                "secondary" => "#a323fc",
+            ],
+            [
+                "primary" => "#8000ff",
+                "secondary" => "#5200a3",
+            ],
+            [
+                "primary" => "#86377b",
+                "secondary" => "#bc5caf",
+            ],
+            [
+                "primary" => "#b21f1f",
+                "secondary" => "#e04d4d",
+            ],
+            [
+                "primary" => "#c10f41",
+                "secondary" => "#f03c6e",
+            ],
+            [
+                "primary" => "#d12924",
+                "secondary" => "#e66f6b",
+            ],
+            [
+                "primary" => "#fc354c",
+                "secondary" => "#d2031b",
+            ],
+            [
+                "primary" => "#ff0000",
+                "secondary" => "#a30000",
+            ],
+            [
+                "primary" => "#ff007f",
+                "secondary" => "#a30051",
+            ],
+            [
+                "primary" => "#ff00ff",
+                "secondary" => "#a300a3",
+            ],
+            [
+                "primary" => "#f55ff2",
+                "secondary" => "#ea0fe5",
+            ],
+            [
+                "primary" => "#fd81b5",
+                "secondary" => "#fc2780",
+            ],
+            [
+                "primary" => "#ff512f",
+                "secondary" => "#d22200",
+            ],
+            [
+                "primary" => "#e65c00",
+                "secondary" => "#ff8e43",
+            ],
+            [
+                "primary" => "#ff8000",
+                "secondary" => "#a35200",
+            ],
+            [
+                "primary" => "#c99b10",
+                "secondary" => "#f0c645",
+            ],
+            [
+                "primary" => "#997540",
+                "secondary" => "#c4a271",
+            ],
+        ];
+    }
+
+    /**
+     * Function resolveThemePaletteInput
+     *
+     * @param mixed $value
+     * @return array{valid: bool, index: int, primary: string, secondary: string}
+     */
+    public static function resolveThemePaletteInput(mixed $value): array {
+        $colors = self::themeColors();
+        $index = is_scalar($value) ? (int) $value : 0;
+
+        if (!array_key_exists($index, $colors)) {
+            $index = 0;
+            return [
+                "valid" => false,
+                "index" => $index,
+                "primary" => $colors[$index]["primary"],
+                "secondary" => $colors[$index]["secondary"],
+            ];
+        }
+
+        return [
+            "valid" => true,
+            "index" => $index,
+            "primary" => $colors[$index]["primary"],
+            "secondary" => $colors[$index]["secondary"],
+        ];
+    }
+
+    /**
      * Function normalizeDomain
      *
      * @param string $domain
@@ -83,6 +229,11 @@ class Validator {
             $errors["moodle_branch"] = I18n::get("validation.branch_unavailable");
         }
 
+        $themePalette = self::resolveThemePaletteInput($input["theme_palette"] ?? 0);
+        if (!$themePalette["valid"]) {
+            $errors["theme_palette"] = "Invalid theme color selection.";
+        }
+
         if (!empty($_FILES["kopere_backup_zip"]) && is_array($_FILES["kopere_backup_zip"])) {
             $backuperror = self::validateKopereBackupUpload($_FILES["kopere_backup_zip"]);
             if ($backuperror !== null) {
@@ -91,7 +242,9 @@ class Validator {
         }
 
         $issuecert = !empty($input["issue_cert"]);
-        $language = I18n::moodleLanguage(isset($input["language"]) && is_string($input["language"]) ? $input["language"] : I18n::current());
+        $language = I18n::moodleLanguage(isset($input["language"]) && is_string($input["language"])
+            ? $input["language"]
+            : I18n::current());
 
         return [
             "valid" => empty($errors),
@@ -106,6 +259,9 @@ class Validator {
                 "moodle_branch" => $branch,
                 "issue_cert" => $issuecert,
                 "language" => $language,
+                "theme_palette" => $themePalette["index"],
+                "theme_primary" => $themePalette["primary"],
+                "theme_secondary" => $themePalette["secondary"],
             ],
         ];
     }
