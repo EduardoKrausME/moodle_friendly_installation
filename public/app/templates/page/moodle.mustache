@@ -1,13 +1,13 @@
-<section class="page-title">
+<section class="page-title management-title">
     <div>
         <h1>{{{i18n.moodle.heading}}}</h1>
         <p>{{{i18n.moodle.intro}}}</p>
     </div>
-    <div style="display:grid;gap:12px;">
+    <div class="title-actions">
         <a class="button" href="/install.php">{{{i18n.actions.install_moodle}}}</a>
         <form action="/phpmyadmin-signon.php" method="post" target="_blank">
             <input type="hidden" name="csrf_token" value="{{csrf_token}}">
-            <button class="button" type="submit">{{{i18n.dashboard.open_phpmyadmin}}}</button>
+            <button class="button secondary" type="submit">{{{i18n.dashboard.open_phpmyadmin}}}</button>
         </form>
     </div>
 </section>
@@ -26,29 +26,61 @@
 {{/has_sites}}
 
 {{#has_sites}}
-    <section class="site-grid">
+    <div class="management-toolbar">
+        <label class="search-field">
+            <span>{{{i18n.actions.search}}}</span>
+            <input
+                type="search"
+                id="moodle-site-filter"
+                placeholder="{{{i18n.actions.search}}}"
+                autocomplete="off"
+                aria-controls="moodle-site-grid">
+        </label>
+    </div>
+
+    <section class="site-grid" id="moodle-site-grid">
         {{#sites}}
             <article class="site-card">
                 <div class="site-card-header">
                     <div>
-                        <h2>{{site_fullname}} - {{domain}}</h2>
+                        {{#has_site_identity}}
+                            {{#site_shortname}}
+                                <span class="eyebrow"
+                                      style="word-break: break-all;">{{site_fullname}}</span>
+                            {{/site_shortname}}
+                            <h2>{{site_shortname}}</h2>
+                        {{/has_site_identity}}
+                        {{^has_site_identity}}
+                            <h2>{{domain}}</h2>
+                        {{/has_site_identity}}
                     </div>
                     {{{status_badge}}}
                 </div>
-                <dl class="site-meta">
-                    <div>
-                        <dt>{{{i18n.moodle.branch}}}</dt>
-                        <dd>{{moodle_branch}}</dd>
-                    </div>
-                    {{#has_resource_usage}}
-                        <div>
-                            <dt>{{{i18n.resources.site_total}}}</dt>
-                            <dd>{{resource_usage}}</dd>
-                        </div>
-                    {{/has_resource_usage}}
-                </dl>
                 <a class="button secondary" href="{{details_url}}">{{details_label}}</a>
             </article>
         {{/sites}}
     </section>
+
+    <script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const filter = document.getElementById("moodle-site-filter");
+        const grid = document.getElementById("moodle-site-grid");
+        if (!filter || !grid) return;
+
+        const cards = Array.from(grid.querySelectorAll(".site-card"));
+        const normalize = function (value) {
+            return value
+                .normalize("NFD")
+                .replace(/[\u0300-\u036f]/g, "")
+                .toLowerCase();
+        };
+
+        filter.addEventListener("input", function () {
+            const query = normalize(filter.value.trim());
+            cards.forEach(function (card) {
+                card.hidden = query !== "" && !normalize(card.textContent).includes(query);
+            });
+        });
+    });
+    </script>
 {{/has_sites}}
