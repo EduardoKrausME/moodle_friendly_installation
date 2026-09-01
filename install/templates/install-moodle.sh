@@ -73,7 +73,8 @@ if [ "{{INSTALL_MODE}}" = "install" ]; then
             --summary="Moodle™ Admin" \
             --adminuser="{{ADMIN_USER}}" \
             --adminpass={{ADMIN_PASS_SH}} \
-            --adminemail="{{ADMIN_EMAIL}}"
+            --adminemail="{{ADMIN_EMAIL}}" \
+            --allow-unstable
         touch "{{BASE_DIR}}/moodledata/.moodle_friendly_installation-installed"
     fi
 else
