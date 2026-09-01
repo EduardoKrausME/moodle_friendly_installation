@@ -1204,8 +1204,8 @@ validate_database_version() {
 
 install_web_servers() {
     log "Installing Apache, NGINX and Certbot"
-    pkg_install apache2 nginx certbot python3-certbot-nginx
-    a2enmod proxy proxy_fcgi setenvif rewrite headers security2 >/dev/null 2>&1 || true
+    pkg_install apache2 nginx certbot python3-certbot-nginx libapache2-mod-xsendfile
+    a2enmod proxy proxy_fcgi setenvif rewrite headers security2 xsendfile >/dev/null 2>&1 || true
 }
 
 install_bundled_nginx_files() {

@@ -1116,7 +1116,7 @@ validate_database_version() {
 
 install_web_servers() {
     log "Installing Apache, NGINX and Certbot"
-    pkg_install httpd nginx certbot python3-certbot-nginx || pkg_install httpd nginx certbot
+    pkg_install httpd nginx certbot python3-certbot-nginx mod_xsendfile || pkg_install httpd nginx certbot mod_xsendfile
 }
 
 install_bundled_nginx_files() {
