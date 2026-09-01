@@ -60,7 +60,7 @@ rm -rf portfolio/flickr portfolio/mahara portfolio/googledocs
 rm -rf ai/provider/azureai ai/provider/ollama ai/provider/deepseek
 rm -rf sms/gateway/modica
 rm -rf quiz/accessrule/seb
-rm -rf admin/tool/moodlenet message/output/airnotifier search/engine/solr files/converter/googledrive payment/gateway/paypal
+rm -rf admin/tool/moodlenet message/output/airnotifier search/engine/solr files/converter/googledrive
 
 if [ "{{INSTALL_MODE}}" = "install" ]; then
     log "Installing Moodle database"
