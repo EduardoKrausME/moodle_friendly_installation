@@ -73,8 +73,7 @@ if [ "{{INSTALL_MODE}}" = "install" ]; then
             --summary="Moodle™ Admin" \
             --adminuser="{{ADMIN_USER}}" \
             --adminpass={{ADMIN_PASS_SH}} \
-            --adminemail="{{ADMIN_EMAIL}}" \
-            --allow-unstable
+            --adminemail="{{ADMIN_EMAIL}}"
         touch "{{BASE_DIR}}/moodledata/.moodle_friendly_installation-installed"
     fi
 else
@@ -103,7 +102,7 @@ git clone --depth 1 https://github.com/EduardoKrausME/moodle-mod_scicalc        
 
 if [ "{{INSTALL_MODE}}" = "install" ]; then
     log "Set default info Plugins"
-    sudo -u "{{APACHE_USER}}" "{{PHP_BIN}}" {{BASE_DIR}}/moodle/admin/cli/upgrade.php                       --non-interactive
+    sudo -u "{{APACHE_USER}}" "{{PHP_BIN}}" {{BASE_DIR}}/moodle/admin/cli/upgrade.php                       --non-interactive --allow-unstable
     sudo -u "{{APACHE_USER}}" "{{PHP_BIN}}" {{BASE_DIR}}/moodle/admin/cli/cfg.php --name=theme              --set=eadtraining
     sudo -u "{{APACHE_USER}}" "{{PHP_BIN}}" {{BASE_DIR}}/moodle/admin/cli/cfg.php --name=brandcolor         --set="{{THEME_PRIMARY}}"   --component=theme_boost
     sudo -u "{{APACHE_USER}}" "{{PHP_BIN}}" {{BASE_DIR}}/moodle/admin/cli/cfg.php --name=secondary          --set="{{THEME_SECONDARY}}" --component=theme_boost

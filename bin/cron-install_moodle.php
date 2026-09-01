@@ -199,6 +199,7 @@ function executeInstallJob(array $job, string $mode = "install"): array {
     $apacheTemplate = renderTemplateFile(app_config_path("/install/templates/httpd-site.conf"), [
         "DOMAIN" => $domain,
         "MOODLE_DIR" => $moodledir,
+        "MOODLEDATA" => "{$base}/moodledata",
         "WEBROOT" => $webroot,
         "BASE_DIR" => $base,
         "WEBROOT_MODE" => $usespublicdir ? "public" : "legacy",
