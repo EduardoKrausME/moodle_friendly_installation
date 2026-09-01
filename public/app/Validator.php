@@ -221,12 +221,14 @@ class Validator {
         }
 
         $branch = $input["moodle_branch"];
-        if (!preg_match('/^MOODLE_(\d+)_STABLE$/', $branch, $branchmatches)) {
-            $errors["moodle_branch"] = I18n::get("validation.branch_invalid");
-        } else if ($branchmatches[1] < 502) {
-            $errors["moodle_branch"] = I18n::get("validation.branch_min");
-        } else if (!empty($allowedbranches) && !in_array($branch, $allowedbranches, true)) {
-            $errors["moodle_branch"] = I18n::get("validation.branch_unavailable");
+        if ($branch != "main") {
+            if (!preg_match('/^MOODLE_(\d+)_STABLE$/', $branch, $branchmatches)) {
+                $errors["moodle_branch"] = I18n::get("validation.branch_invalid");
+            } else if ($branchmatches[1] < 502) {
+                $errors["moodle_branch"] = I18n::get("validation.branch_min");
+            } else if (!empty($allowedbranches) && !in_array($branch, $allowedbranches, true)) {
+                $errors["moodle_branch"] = I18n::get("validation.branch_unavailable");
+            }
         }
 
         $themePalette = self::resolveThemePaletteInput($input["theme_palette"] ?? 0);
