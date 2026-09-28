@@ -3,8 +3,9 @@
 
 ## Documentation
 
-[Access the documentation](docs/)
+[Access the documentation](https://eduardokrausme.github.io/moodle_friendly_installation/)
 
+Source: [docs/](docs/)
 ## Installation
 
 Run the command below in the terminal as `root` or using `sudo`:
