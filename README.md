@@ -1,5 +1,10 @@
 # Install Software Moodle™ Admin
 
+
+## Documentation
+
+[Access the documentation](docs/)
+
 ## Installation
 
 Run the command below in the terminal as `root` or using `sudo`:
