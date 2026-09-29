@@ -443,3 +443,7 @@ html[data-theme="dark"] .language-notice-close:hover{background:rgba(139,184,255
     .language-notice-inner{padding:9px 0;align-items:flex-start;flex-direction:column;gap:6px}
     .language-notice-inner>div{width:100%;justify-content:space-between}
 }
+
+.language-flag{display:inline-flex;align-items:center;justify-content:center;font-size:17px;line-height:1}
+.language-option{display:inline-flex;align-items:center;gap:9px;min-width:0}
+.language-menu summary .language-flag{margin-right:1px}
