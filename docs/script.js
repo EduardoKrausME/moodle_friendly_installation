@@ -51,15 +51,16 @@
         details.className = 'language-menu';
         details.innerHTML =
             '<summary aria-label="' + (current === 'pt_br' ? 'Trocar idioma' : 'Change language') + '">' +
+                '<span class="language-flag" aria-hidden="true">' + (current === 'pt_br' ? '🇧🇷' : '🇺🇸') + '</span>' +
                 '<span class="language-code">' + (current === 'pt_br' ? 'PT-BR' : 'EN') + '</span>' +
                 '<span class="language-caret" aria-hidden="true">⌄</span>' +
             '</summary>' +
             '<div class="language-menu-panel">' +
                 '<a href="' + alternateUrl('pt_br') + '"' + (current === 'pt_br' ? ' class="active" aria-current="page"' : '') + '>' +
-                    '<span>Português</span><small>Brasil</small>' +
+                    '<span class="language-option"><span class="language-flag" aria-hidden="true">🇧🇷</span><span>Português</span></span><small>Brasil</small>' +
                 '</a>' +
                 '<a href="' + alternateUrl('en') + '"' + (current === 'en' ? ' class="active" aria-current="page"' : '') + '>' +
-                    '<span>English</span><small>EN</small>' +
+                    '<span class="language-option"><span class="language-flag" aria-hidden="true">🇺🇸</span><span>English</span></span><small>EN</small>' +
                 '</a>' +
             '</div>';
 
