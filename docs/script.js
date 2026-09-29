@@ -17,17 +17,98 @@
         if (!button) return;
         const dark = currentTheme() === 'dark';
         button.innerHTML = '<span aria-hidden="true">' + (dark ? '☀' : '☾') + '</span>';
-        button.setAttribute('aria-label', dark ? 'Ativar modo claro' : 'Ativar modo escuro');
-        button.setAttribute('title', dark ? 'Ativar modo claro' : 'Ativar modo escuro');
+        button.setAttribute('aria-label', dark ? 'Ativar modo claro / Switch to light mode' : 'Ativar modo escuro / Switch to dark mode');
+        button.setAttribute('title', dark ? 'Ativar modo claro / Switch to light mode' : 'Ativar modo escuro / Switch to dark mode');
         button.setAttribute('aria-pressed', dark ? 'true' : 'false');
     };
+
+    const currentLanguage = () => root.lang && root.lang.toLowerCase().startsWith('pt') ? 'pt_br' : 'en';
+
+    const browserLanguage = () => {
+        const languages = navigator.languages && navigator.languages.length ? navigator.languages : [navigator.language || 'en'];
+        return /^pt(?:[-_]|$)/i.test(languages[0] || 'en') ? 'pt_br' : 'en';
+    };
+
+    const alternateUrl = language => {
+        const path = window.location.pathname;
+        let next = path;
+
+        if (/\/pt_br(?:\/|$)/.test(path)) {
+            next = path.replace(/\/pt_br(?=\/|$)/, '/' + language);
+        } else if (/\/en(?:\/|$)/.test(path)) {
+            next = path.replace(/\/en(?=\/|$)/, '/' + language);
+        } else {
+            next = language + '/';
+        }
+
+        return next + window.location.search + window.location.hash;
+    };
+
+    const createLanguageMenu = () => {
+        if (!headerActions) return;
+        const current = currentLanguage();
+        const details = document.createElement('details');
+        details.className = 'language-menu';
+        details.innerHTML =
+            '<summary aria-label="' + (current === 'pt_br' ? 'Trocar idioma' : 'Change language') + '">' +
+                '<span class="language-code">' + (current === 'pt_br' ? 'PT-BR' : 'EN') + '</span>' +
+                '<span class="language-caret" aria-hidden="true">⌄</span>' +
+            '</summary>' +
+            '<div class="language-menu-panel">' +
+                '<a href="' + alternateUrl('pt_br') + '"' + (current === 'pt_br' ? ' class="active" aria-current="page"' : '') + '>' +
+                    '<span>Português</span><small>Brasil</small>' +
+                '</a>' +
+                '<a href="' + alternateUrl('en') + '"' + (current === 'en' ? ' class="active" aria-current="page"' : '') + '>' +
+                    '<span>English</span><small>EN</small>' +
+                '</a>' +
+            '</div>';
+
+        headerActions.insertBefore(details, headerActions.firstChild);
+
+        document.addEventListener('click', event => {
+            if (!details.open || details.contains(event.target)) return;
+            details.removeAttribute('open');
+        });
+    };
+
+    const createLanguageNotice = () => {
+        if (!header) return;
+        const current = currentLanguage();
+        const preferred = browserLanguage();
+        if (current === preferred) return;
+
+        const notice = document.createElement('div');
+        notice.className = 'language-notice';
+
+        if (current === 'pt_br') {
+            notice.innerHTML =
+                '<div class="shell language-notice-inner">' +
+                    '<span>Your browser language is not Portuguese. Would you prefer the English version?</span>' +
+                    '<div><a class="language-notice-action" href="' + alternateUrl('en') + '">Switch to English →</a>' +
+                    '<button type="button" class="language-notice-close" aria-label="Dismiss">×</button></div>' +
+                '</div>';
+        } else {
+            notice.innerHTML =
+                '<div class="shell language-notice-inner">' +
+                    '<span>Seu navegador está configurado para Português. Deseja abrir a versão em Português?</span>' +
+                    '<div><a class="language-notice-action" href="' + alternateUrl('pt_br') + '">Abrir em Português →</a>' +
+                    '<button type="button" class="language-notice-close" aria-label="Fechar">×</button></div>' +
+                '</div>';
+        }
+
+        header.parentNode.insertBefore(notice, header);
+        notice.querySelector('.language-notice-close')?.addEventListener('click', () => notice.remove());
+    };
+
+    createLanguageNotice();
+    createLanguageMenu();
 
     let themeButton = null;
     if (headerActions) {
         themeButton = document.createElement('button');
         themeButton.type = 'button';
         themeButton.className = 'theme-toggle';
-        headerActions.insertBefore(themeButton, menu || headerActions.firstChild);
+        headerActions.insertBefore(themeButton, menu || null);
 
         themeButton.addEventListener('click', () => {
             const next = currentTheme() === 'dark' ? 'light' : 'dark';
