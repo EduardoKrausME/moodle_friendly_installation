@@ -47,29 +47,22 @@
     const createLanguageMenu = () => {
         if (!headerActions) return;
         const current = currentLanguage();
-        const details = document.createElement('details');
-        details.className = 'language-menu';
-        details.innerHTML =
-            '<summary aria-label="' + (current === 'pt_br' ? 'Trocar idioma' : 'Change language') + '">' +
-                '<span class="language-flag" aria-hidden="true">' + (current === 'pt_br' ? '🇧🇷' : '🇺🇸') + '</span>' +
-                '<span class="language-code">' + (current === 'pt_br' ? 'PT-BR' : 'EN') + '</span>' +
-                '<span class="language-caret" aria-hidden="true">⌄</span>' +
-            '</summary>' +
-            '<div class="language-menu-panel">' +
-                '<a href="' + alternateUrl('pt_br') + '"' + (current === 'pt_br' ? ' class="active" aria-current="page"' : '') + '>' +
-                    '<span class="language-option"><span class="language-flag" aria-hidden="true">🇧🇷</span><span>Português</span></span><small>Brasil</small>' +
-                '</a>' +
-                '<a href="' + alternateUrl('en') + '"' + (current === 'en' ? ' class="active" aria-current="page"' : '') + '>' +
-                    '<span class="language-option"><span class="language-flag" aria-hidden="true">🇺🇸</span><span>English</span></span><small>EN</small>' +
-                '</a>' +
-            '</div>';
+        const switcher = document.createElement('nav');
+        switcher.className = 'language-switcher';
+        switcher.setAttribute('aria-label', current === 'pt_br' ? 'Trocar idioma' : 'Change language');
+        switcher.innerHTML =
+            '<a class="language-flag-link' + (current === 'pt_br' ? ' active' : '') + '" href="' + alternateUrl('pt_br') + '"' +
+                (current === 'pt_br' ? ' aria-current="page"' : '') +
+                ' aria-label="Português (Brasil)" title="Português (Brasil)">' +
+                '<span aria-hidden="true">🇧🇷</span>' +
+            '</a>' +
+            '<a class="language-flag-link' + (current === 'en' ? ' active' : '') + '" href="' + alternateUrl('en') + '"' +
+                (current === 'en' ? ' aria-current="page"' : '') +
+                ' aria-label="English" title="English">' +
+                '<span aria-hidden="true">🇺🇸</span>' +
+            '</a>';
 
-        headerActions.insertBefore(details, headerActions.firstChild);
-
-        document.addEventListener('click', event => {
-            if (!details.open || details.contains(event.target)) return;
-            details.removeAttribute('open');
-        });
+        headerActions.insertBefore(switcher, headerActions.firstChild);
     };
 
     const createLanguageNotice = () => {
