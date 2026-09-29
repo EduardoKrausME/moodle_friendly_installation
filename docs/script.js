@@ -1,8 +1,53 @@
 (() => {
     const body = document.body;
+    const root = document.documentElement;
     const header = document.querySelector('.site-header');
     const menu = document.querySelector('.menu-button');
     const nav = document.querySelector('.site-header nav');
+    const headerActions = document.querySelector('.header-actions');
+    const themeKey = 'mfi-theme';
+
+    const preferredTheme = () => (
+        window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+    );
+
+    const currentTheme = () => root.dataset.theme || preferredTheme();
+
+    const syncThemeButton = button => {
+        if (!button) return;
+        const dark = currentTheme() === 'dark';
+        button.innerHTML = '<span aria-hidden="true">' + (dark ? '☀' : '☾') + '</span>';
+        button.setAttribute('aria-label', dark ? 'Ativar modo claro' : 'Ativar modo escuro');
+        button.setAttribute('title', dark ? 'Ativar modo claro' : 'Ativar modo escuro');
+        button.setAttribute('aria-pressed', dark ? 'true' : 'false');
+    };
+
+    let themeButton = null;
+    if (headerActions) {
+        themeButton = document.createElement('button');
+        themeButton.type = 'button';
+        themeButton.className = 'theme-toggle';
+        headerActions.insertBefore(themeButton, menu || headerActions.firstChild);
+
+        themeButton.addEventListener('click', () => {
+            const next = currentTheme() === 'dark' ? 'light' : 'dark';
+            root.dataset.theme = next;
+            localStorage.setItem(themeKey, next);
+            syncThemeButton(themeButton);
+        });
+        syncThemeButton(themeButton);
+    }
+
+    if (window.matchMedia) {
+        const media = window.matchMedia('(prefers-color-scheme: dark)');
+        const onSystemThemeChange = event => {
+            if (localStorage.getItem(themeKey)) return;
+            root.dataset.theme = event.matches ? 'dark' : 'light';
+            syncThemeButton(themeButton);
+        };
+        if (media.addEventListener) media.addEventListener('change', onSystemThemeChange);
+        else if (media.addListener) media.addListener(onSystemThemeChange);
+    }
 
     const syncHeader = () => header?.classList.toggle('scrolled', window.scrollY > 10);
     syncHeader();
