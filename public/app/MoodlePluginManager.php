@@ -7,6 +7,9 @@ use Throwable;
 
 class MoodlePluginManager {
     private const WEEK_SECONDS = 604800;
+    private const MARKETPLACE_JSON_URL = "https://raw.githubusercontent.com/EduardoKrausME/marketplace-plugins/master/plugins.json";
+    private const MARKETPLACE_RAW_BASE = "https://raw.githubusercontent.com/EduardoKrausME/marketplace-plugins/master";
+
 
     /**
      * Returns Git-cloned Moodle plugins installed in this site.
@@ -238,6 +241,91 @@ class MoodlePluginManager {
     public static function cachedSiteState(string $domain): array {
         $state = self::readState();
         return is_array($state["sites"][$domain] ?? null) ? $state["sites"][$domain] : [];
+    }
+
+    /**
+     * Loads the public plugin catalog maintained in the marketplace-plugins repository.
+     *
+     * Only the fields used by this panel are returned, and repository/icon URLs are
+     * constrained to the expected GitHub locations before they reach the template.
+     *
+     * @return array
+     */
+    public static function marketplaceCatalog(): array {
+        $command = "curl -fsSL --connect-timeout 8 --max-time 25 " .
+            escapeshellarg(self::MARKETPLACE_JSON_URL) . " 2>&1";
+        [$exitcode, $json] = self::run($command);
+        if ($exitcode !== 0 || trim($json) === "") {
+            throw new RuntimeException("Não foi possível carregar o catálogo de plugins do GitHub.");
+        }
+
+        $catalog = json_decode($json, true);
+        if (!is_array($catalog)) {
+            throw new RuntimeException("O catálogo de plugins retornado pelo GitHub é inválido.");
+        }
+
+        $plugins = [];
+        foreach ($catalog as $entry) {
+            if (!is_array($entry)) {
+                continue;
+            }
+
+            $component = trim((string) ($entry["component"] ?? ""));
+            $repositoryurl = trim((string) ($entry["repository_url"] ?? ""));
+            if (!preg_match('/^[a-z][a-z0-9_]*_[a-z][a-z0-9_]*$/', $component) || $repositoryurl === "") {
+                continue;
+            }
+
+            try {
+                self::parseGithubRepository($repositoryurl);
+            } catch (Throwable) {
+                continue;
+            }
+
+            $name = trim((string) ($entry["name"] ?? ""));
+            $category = trim((string) ($entry["category"] ?? ""));
+            $description = trim((string) ($entry["description"] ?? ""));
+            $moodle = trim((string) ($entry["moodle"] ?? ""));
+            $iconurl = self::marketplaceIconUrl((string) ($entry["iconUrl"] ?? ""));
+
+            $plugins[] = [
+                "name" => $name !== "" ? $name : $component,
+                "component" => $component,
+                "repository_url" => $repositoryurl,
+                "category" => $category,
+                "description" => $description,
+                "moodle" => $moodle,
+                "icon_url" => $iconurl,
+                "has_icon" => $iconurl !== "",
+            ];
+        }
+
+        usort($plugins, static function (array $a, array $b): int {
+            return strcasecmp((string) $a["name"], (string) $b["name"]);
+        });
+
+        return $plugins;
+    }
+
+    /**
+     * Converts marketplace-relative icon paths into raw GitHub URLs.
+     *
+     * @param string $iconurl
+     * @return string
+     */
+    private static function marketplaceIconUrl(string $iconurl): string {
+        $iconurl = trim($iconurl);
+        $prefix = "/marketplace-plugins/";
+        if ($iconurl === "" || !str_starts_with($iconurl, $prefix)) {
+            return "";
+        }
+
+        $relative = ltrim(substr($iconurl, strlen($prefix)), "/");
+        if (!preg_match('~^icon/[A-Za-z0-9._%/-]+$~', $relative)) {
+            return "";
+        }
+
+        return self::MARKETPLACE_RAW_BASE . "/" . $relative;
     }
 
     /**
