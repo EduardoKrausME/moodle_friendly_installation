@@ -924,6 +924,7 @@ return [
         "marketplace_install" => "Instalar",
         "marketplace_installed" => "Já instalado",
         "marketplace_moodle" => "Software Moodle",
+        "marketplace_page" => "Marketplace",
         "marketplace_repository" => "GitHub",
         "marketplace_category_plugin" => "Plugin",
         "status_version_different" => "Versão diferente no Git",
