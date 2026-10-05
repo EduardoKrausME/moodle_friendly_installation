@@ -128,11 +128,27 @@
                        autocomplete="off">
             </label>
 
+            <div class="marketplace-type-filters" role="group"
+                 aria-label="{{{i18n.moodle_plugins.marketplace_type_filters_label}}}">
+                {{#marketplace_type_filters}}
+                    <button type="button"
+                            class="marketplace-type-button {{#is_active}}is-active{{/is_active}}"
+                            data-marketplace-type="{{type}}"
+                            aria-pressed="{{aria_pressed}}"
+                            title="{{label}}">
+                        <svg aria-hidden="true"><use href="#{{icon}}"></use></svg>
+                        <span>{{label}}</span>
+                        <small>{{count}}</small>
+                    </button>
+                {{/marketplace_type_filters}}
+            </div>
+
             <div class="marketplace-plugin-grid" id="marketplace-plugin-grid">
                 {{#marketplace_plugins}}
                     <article class="marketplace-plugin-item"
                              data-marketplace-card
-                             data-search="{{name}} {{component}} {{category}} {{description}}">
+                             data-marketplace-plugin-type="{{type}}"
+                             data-search="{{name}} {{component}} {{type}} {{category}} {{description}}">
                         <div class="marketplace-plugin-header">
                             <div class="marketplace-plugin-icon">
                                 {{#has_icon}}
@@ -227,6 +243,61 @@
         margin: 18px 0 20px;
         max-width: 560px;
         font-weight: 600;
+    }
+
+    .marketplace-type-filters {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 9px;
+        margin: -4px 0 20px;
+    }
+
+    .marketplace-type-button {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        min-height: 40px;
+        padding: 7px 10px;
+        border: 1px solid rgba(127, 127, 127, .24);
+        border-radius: 11px;
+        background: rgba(127, 127, 127, .05);
+        color: inherit;
+        font: inherit;
+        font-weight: 700;
+        cursor: pointer;
+        transition: background .15s ease, border-color .15s ease, transform .15s ease;
+    }
+
+    .marketplace-type-button:hover {
+        border-color: currentColor;
+        background: rgba(127, 127, 127, .11);
+        transform: translateY(-1px);
+    }
+
+    .marketplace-type-button.is-active {
+        border-color: currentColor;
+        background: rgba(127, 127, 127, .16);
+        box-shadow: inset 0 0 0 1px currentColor;
+    }
+
+    .marketplace-type-button svg {
+        width: 18px;
+        height: 18px;
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 1.8;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+    }
+
+    .marketplace-type-button small {
+        min-width: 24px;
+        padding: 2px 6px;
+        border-radius: 999px;
+        background: rgba(127, 127, 127, .14);
+        text-align: center;
+        font-size: .72rem;
+        font-weight: 800;
     }
 
     .marketplace-plugin-grid {
@@ -369,17 +440,22 @@
 
         const marketplaceSearch = document.getElementById("marketplace-search");
         const marketplaceCards = Array.from(document.querySelectorAll("[data-marketplace-card]"));
+        const marketplaceTypeButtons = Array.from(document.querySelectorAll("[data-marketplace-type]"));
         const marketplaceCount = document.getElementById("marketplace-visible-count");
         const marketplaceEmpty = document.getElementById("marketplace-empty-filter");
+        let marketplaceSelectedType = "";
 
-        if (marketplaceSearch && marketplaceCards.length) {
+        if (marketplaceCards.length) {
             const filterMarketplace = function () {
-                const query = marketplaceSearch.value.trim().toLocaleLowerCase();
+                const query = marketplaceSearch ? marketplaceSearch.value.trim().toLocaleLowerCase() : "";
                 let visible = 0;
 
                 marketplaceCards.forEach(function (card) {
                     const haystack = (card.dataset.search || "").toLocaleLowerCase();
-                    const show = query === "" || haystack.includes(query);
+                    const matchesQuery = query === "" || haystack.includes(query);
+                    const matchesType = marketplaceSelectedType === "" ||
+                        card.dataset.marketplacePluginType === marketplaceSelectedType;
+                    const show = matchesQuery && matchesType;
                     card.hidden = !show;
                     if (show) {
                         visible++;
@@ -394,7 +470,21 @@
                 }
             };
 
-            marketplaceSearch.addEventListener("input", filterMarketplace);
+            if (marketplaceSearch) {
+                marketplaceSearch.addEventListener("input", filterMarketplace);
+            }
+
+            marketplaceTypeButtons.forEach(function (button) {
+                button.addEventListener("click", function () {
+                    marketplaceSelectedType = button.dataset.marketplaceType || "";
+                    marketplaceTypeButtons.forEach(function (item) {
+                        const active = item === button;
+                        item.classList.toggle("is-active", active);
+                        item.setAttribute("aria-pressed", active ? "true" : "false");
+                    });
+                    filterMarketplace();
+                });
+            });
         }
     });
 </script>
