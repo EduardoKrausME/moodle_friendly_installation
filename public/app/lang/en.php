@@ -912,7 +912,7 @@ return [
         "install_button" => "Validate version.php and install",
         "install_permissions" => "The repository is cloned only after validation. The folder remains writable by the web server user/group so Apache can update or remove the plugin later.",
         "marketplace_heading" => "Plugin marketplace",
-        "marketplace_intro" => "Catalog loaded directly from the <a href=\"https://github.com/EduardoKrausME/moodle-plugin-validate\" target=\"_blank\"><code>EduardoKrausME/moodle-plugin-validate</code></a> repository. Icons also come from GitHub, while installation uses the same secure <code>version.php</code> validation flow.",
+        "marketplace_intro" => "Catalog loaded directly from the <a href=\"https://eduardokraus.com/marketplace-plugins/\" target=\"_blank\" rel=\"noopener\">eduardokraus.com/marketplace-plugins</a> repository. Icons also come from GitHub, while installation uses the same secure <code>version.php</code> validation flow.",
         "marketplace_search_label" => "Search the marketplace",
         "marketplace_search_placeholder" => "Name, component, type, category or description",
         "marketplace_type_filters_label" => "Filter plugins by type",
