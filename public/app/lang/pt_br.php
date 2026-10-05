@@ -914,7 +914,7 @@ return [
         "install_button" => "Validar version.php e instalar",
         "install_permissions" => "O clone é feito somente depois da validação. A pasta fica com escrita para o usuário/grupo do servidor web, permitindo ao Apache atualizar ou remover o plugin posteriormente.",
         "marketplace_heading" => "Marketplace de plugins",
-        "marketplace_intro" => "Catálogo carregado diretamente do repositório <code>EduardoKrausME/marketplace-plugins</code>. Os ícones também vêm do GitHub e a instalação usa o mesmo fluxo seguro de validação por <code>version.php</code>.",
+        "marketplace_intro" => "Catálogo carregado diretamente do repositório <a href="https://github.com/EduardoKrausME/moodle-plugin-validate" target="_blank" rel="noopener"><code>EduardoKrausME/moodle-plugin-validate</code></a>. Os ícones também vêm do GitHub e a instalação usa o mesmo fluxo seguro de validação por <code>version.php</code>.",
         "marketplace_search_label" => "Pesquisar no marketplace",
         "marketplace_search_placeholder" => "Nome, componente, tipo, categoria ou descrição",
         "marketplace_type_filters_label" => "Filtrar plugins por tipo",
