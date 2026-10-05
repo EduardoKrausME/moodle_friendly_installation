@@ -88,11 +88,40 @@ foreach ($plugins as $plugin) {
     $installedcomponents[$plugin["component"]] = true;
 }
 
+$marketplacetypeicons = [
+    "mod" => "icon-activity",
+    "local" => "icon-settings",
+    "theme" => "icon-dashboard",
+    "block" => "icon-layers",
+    "tool" => "icon-settings",
+    "report" => "icon-activity",
+    "qtype" => "icon-check",
+    "qbank" => "icon-check",
+    "filter" => "icon-layers",
+    "auth" => "icon-users",
+    "enrol" => "icon-users",
+    "repository" => "icon-database",
+    "media" => "icon-mobile",
+    "profilefield" => "icon-users",
+    "message" => "icon-logs",
+    "h5plib" => "icon-layers",
+];
+$marketplacetypeorder = array_flip([
+    "mod", "local", "theme", "block", "tool", "report", "qtype", "qbank",
+    "filter", "auth", "enrol", "repository", "media", "profilefield", "message", "h5plib",
+]);
+$marketplacetypecounts = [];
 $marketplaceplugins = [];
 $marketplaceerror = "";
 try {
     $marketplaceplugins = MoodlePluginManager::marketplaceCatalog();
     foreach ($marketplaceplugins as &$marketplaceplugin) {
+        $marketplacetype = strstr($marketplaceplugin["component"], "_", true) ?: "";
+        $marketplaceplugin["type"] = $marketplacetype;
+        $marketplaceplugin["type_display"] = strtoupper($marketplacetype);
+        if ($marketplacetype !== "") {
+            $marketplacetypecounts[$marketplacetype] = ($marketplacetypecounts[$marketplacetype] ?? 0) + 1;
+        }
         $marketplaceplugin["is_installed"] = isset($installedcomponents[$marketplaceplugin["component"]]);
         $marketplaceplugin["can_install"] = !$marketplaceplugin["is_installed"];
         $marketplaceplugin["install_button_label"] = $marketplaceplugin["is_installed"]
@@ -109,6 +138,36 @@ try {
     $marketplaceerror = $e->getMessage();
 }
 
+$marketplacetypefilters = [];
+if (!empty($marketplaceplugins)) {
+    $marketplacetypefilters[] = [
+        "type" => "",
+        "label" => t("moodle_plugins.marketplace_filter_all"),
+        "count" => count($marketplaceplugins),
+        "icon" => "icon-dashboard",
+        "is_active" => true,
+        "aria_pressed" => "true",
+    ];
+
+    $marketplacetypes = array_keys($marketplacetypecounts);
+    usort($marketplacetypes, static function (string $a, string $b) use ($marketplacetypeorder): int {
+        $positiona = $marketplacetypeorder[$a] ?? PHP_INT_MAX;
+        $positionb = $marketplacetypeorder[$b] ?? PHP_INT_MAX;
+        return $positiona === $positionb ? strcasecmp($a, $b) : $positiona <=> $positionb;
+    });
+
+    foreach ($marketplacetypes as $marketplacetype) {
+        $marketplacetypefilters[] = [
+            "type" => $marketplacetype,
+            "label" => strtoupper($marketplacetype),
+            "count" => $marketplacetypecounts[$marketplacetype],
+            "icon" => $marketplacetypeicons[$marketplacetype] ?? "icon-layers",
+            "is_active" => false,
+            "aria_pressed" => "false",
+        ];
+    }
+}
+
 $context = [
     "domain" => $domain,
     "details_url" => "/details.php?domain=" . rawurlencode($domain),
@@ -119,6 +178,7 @@ $context = [
     "has_plugins" => !empty($plugins),
     "plugins" => $plugins,
     "marketplace_plugins" => $marketplaceplugins,
+    "marketplace_type_filters" => $marketplacetypefilters,
     "marketplace_count" => count($marketplaceplugins),
     "has_marketplace" => !empty($marketplaceplugins),
     "has_marketplace_error" => $marketplaceerror !== "",
