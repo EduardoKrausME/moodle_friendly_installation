@@ -306,6 +306,10 @@
         gap: 16px;
     }
 
+    .marketplace-plugin-item[hidden] {
+        display: none !important;
+    }
+
     .marketplace-plugin-item {
         display: flex;
         min-width: 0;
@@ -440,7 +444,7 @@
 
         const marketplaceSearch = document.getElementById("marketplace-search");
         const marketplaceCards = Array.from(document.querySelectorAll("[data-marketplace-card]"));
-        const marketplaceTypeButtons = Array.from(document.querySelectorAll("[data-marketplace-type]"));
+        const marketplaceTypeFilters = document.querySelector(".marketplace-type-filters");
         const marketplaceCount = document.getElementById("marketplace-visible-count");
         const marketplaceEmpty = document.getElementById("marketplace-empty-filter");
         let marketplaceSelectedType = "";
@@ -451,11 +455,12 @@
                 let visible = 0;
 
                 marketplaceCards.forEach(function (card) {
-                    const haystack = (card.dataset.search || "").toLocaleLowerCase();
+                    const haystack = (card.getAttribute("data-search") || "").toLocaleLowerCase();
+                    const cardType = card.getAttribute("data-marketplace-plugin-type") || "";
                     const matchesQuery = query === "" || haystack.includes(query);
-                    const matchesType = marketplaceSelectedType === "" ||
-                        card.dataset.marketplacePluginType === marketplaceSelectedType;
+                    const matchesType = marketplaceSelectedType === "" || cardType === marketplaceSelectedType;
                     const show = matchesQuery && matchesType;
+
                     card.hidden = !show;
                     if (show) {
                         visible++;
@@ -474,17 +479,27 @@
                 marketplaceSearch.addEventListener("input", filterMarketplace);
             }
 
-            marketplaceTypeButtons.forEach(function (button) {
-                button.addEventListener("click", function () {
-                    marketplaceSelectedType = button.dataset.marketplaceType || "";
-                    marketplaceTypeButtons.forEach(function (item) {
+            if (marketplaceTypeFilters) {
+                marketplaceTypeFilters.addEventListener("click", function (event) {
+                    const button = event.target.closest(".marketplace-type-button");
+                    if (!button || !marketplaceTypeFilters.contains(button)) {
+                        return;
+                    }
+
+                    event.preventDefault();
+                    marketplaceSelectedType = button.getAttribute("data-marketplace-type") || "";
+
+                    marketplaceTypeFilters.querySelectorAll(".marketplace-type-button").forEach(function (item) {
                         const active = item === button;
                         item.classList.toggle("is-active", active);
                         item.setAttribute("aria-pressed", active ? "true" : "false");
                     });
+
                     filterMarketplace();
                 });
-            });
+            }
+
+            filterMarketplace();
         }
     });
 </script>
