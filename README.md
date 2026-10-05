@@ -1,5 +1,10 @@
 # Install Software Moodle™ Admin
 
+
+## Documentation
+
+[Access the documentation](https://eduardokrausme.github.io/moodle_friendly_installation/)
+
 ## Installation
 
 Run the command below in the terminal as `root` or using `sudo`:

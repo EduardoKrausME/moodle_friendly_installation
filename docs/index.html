@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Moodle Friendly Installation</title>
+    <script>
+        (() => {
+            const languages = navigator.languages && navigator.languages.length ? navigator.languages : [navigator.language || 'en'];
+            const preferred = languages[0] || 'en';
+            const target = /^pt(?:[-_]|$)/i.test(preferred) ? 'pt_br/' : 'en/';
+            window.location.replace(target + window.location.search + window.location.hash);
+        })();
+    </script>
+</head>
+<body>
+<noscript>
+    <p><a href="pt_br/">Português (Brasil)</a> · <a href="en/">English</a></p>
+</noscript>
+</body>
+</html>

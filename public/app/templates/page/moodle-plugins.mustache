@@ -102,6 +102,83 @@
         {{/has_plugins}}
     </div>
 
+    <div class="card full-card marketplace-card">
+        <div class="section-heading-actions marketplace-heading">
+            <div>
+                <h2>{{{i18n.moodle_plugins.marketplace_heading}}}</h2>
+                <p class="card-subtitle">{{{i18n.moodle_plugins.marketplace_intro}}}</p>
+            </div>
+            {{#has_marketplace}}
+                <div class="marketplace-result-count">
+                    <strong id="marketplace-visible-count">{{marketplace_count}}</strong>
+                    <span>{{{i18n.moodle_plugins.marketplace_count_suffix}}}</span>
+                </div>
+            {{/has_marketplace}}
+        </div>
+
+        {{#has_marketplace_error}}
+            <div class="alert warning compact-alert">{{marketplace_error}}</div>
+        {{/has_marketplace_error}}
+
+        {{#has_marketplace}}
+            <label class="marketplace-search">
+                <span>{{{i18n.moodle_plugins.marketplace_search_label}}}</span>
+                <input type="search" id="marketplace-search"
+                       placeholder="{{{i18n.moodle_plugins.marketplace_search_placeholder}}}"
+                       autocomplete="off">
+            </label>
+
+            <div class="marketplace-plugin-grid" id="marketplace-plugin-grid">
+                {{#marketplace_plugins}}
+                    <article class="marketplace-plugin-item"
+                             data-marketplace-card
+                             data-search="{{name}} {{component}} {{category}} {{description}}">
+                        <div class="marketplace-plugin-header">
+                            <div class="marketplace-plugin-icon">
+                                {{#has_icon}}
+                                    <img src="{{icon_url}}" alt="{{name}}" loading="lazy">
+                                {{/has_icon}}
+                                {{^has_icon}}
+                                    <span>EK</span>
+                                {{/has_icon}}
+                            </div>
+                            <div class="marketplace-plugin-title">
+                                <h3>{{name}}</h3>
+                                <code>{{component}}</code>
+                            </div>
+                        </div>
+
+                        <p class="marketplace-plugin-description">{{description}}</p>
+
+                        <div class="marketplace-plugin-meta">
+                            <span>{{category_display}}</span>
+                            {{#has_moodle}}
+                                <span>{{{i18n.moodle_plugins.marketplace_moodle}}} {{moodle}}</span>
+                            {{/has_moodle}}
+                        </div>
+
+                        <div class="marketplace-plugin-actions">
+                            <a class="button secondary" href="{{repository_url}}" target="_blank" rel="noopener">
+                                {{{i18n.moodle_plugins.marketplace_repository}}}
+                            </a>
+                            <form method="post" class="inline-form">
+                                <input type="hidden" name="csrf_token" value="{{csrf_token}}">
+                                <input type="hidden" name="action" value="install_plugin">
+                                <input type="hidden" name="git_url" value="{{repository_url}}">
+                                <button type="submit" class="button" {{^can_install}}disabled{{/can_install}}>
+                                    {{install_button_label}}
+                                </button>
+                            </form>
+                        </div>
+                    </article>
+                {{/marketplace_plugins}}
+            </div>
+            <div class="alert warning compact-alert" id="marketplace-empty-filter" hidden>
+                {{{i18n.moodle_plugins.marketplace_empty}}}
+            </div>
+        {{/has_marketplace}}
+    </div>
+
     <div class="card full-card">
         <h2>{{{i18n.moodle_plugins.install_heading}}}</h2>
         <p class="card-subtitle">{{{i18n.moodle_plugins.install_intro}}}</p>
@@ -119,6 +196,149 @@
         <p class="card-subtitle">{{{i18n.moodle_plugins.install_permissions}}}</p>
     </div>
 </div>
+
+
+<style>
+    .marketplace-card {
+        overflow: hidden;
+    }
+
+    .marketplace-heading {
+        align-items: flex-start;
+        gap: 18px;
+    }
+
+    .marketplace-result-count {
+        display: inline-flex;
+        align-items: baseline;
+        gap: 6px;
+        white-space: nowrap;
+        font-size: .9rem;
+        opacity: .8;
+    }
+
+    .marketplace-result-count strong {
+        font-size: 1.25rem;
+    }
+
+    .marketplace-search {
+        display: grid;
+        gap: 7px;
+        margin: 18px 0 20px;
+        max-width: 560px;
+        font-weight: 600;
+    }
+
+    .marketplace-plugin-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(285px, 1fr));
+        gap: 16px;
+    }
+
+    .marketplace-plugin-item {
+        display: flex;
+        min-width: 0;
+        flex-direction: column;
+        gap: 14px;
+        padding: 18px;
+        border: 1px solid rgba(127, 127, 127, .24);
+        border-radius: 16px;
+        background: rgba(127, 127, 127, .04);
+    }
+
+    .marketplace-plugin-header {
+        display: flex;
+        align-items: center;
+        gap: 13px;
+        min-width: 0;
+    }
+
+    .marketplace-plugin-icon {
+        display: grid;
+        width: 58px;
+        height: 58px;
+        flex: 0 0 58px;
+        place-items: center;
+        overflow: hidden;
+        border: 1px solid rgba(127, 127, 127, .2);
+        border-radius: 14px;
+        background: rgba(127, 127, 127, .08);
+        font-weight: 800;
+    }
+
+    .marketplace-plugin-icon img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        padding: 7px;
+        box-sizing: border-box;
+    }
+
+    .marketplace-plugin-title {
+        min-width: 0;
+    }
+
+    .marketplace-plugin-title h3 {
+        margin: 0 0 5px;
+        font-size: 1rem;
+    }
+
+    .marketplace-plugin-title code {
+        display: block;
+        max-width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .marketplace-plugin-description {
+        margin: 0;
+        line-height: 1.5;
+        opacity: .86;
+    }
+
+    .marketplace-plugin-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: auto;
+    }
+
+    .marketplace-plugin-meta span {
+        padding: 5px 9px;
+        border-radius: 999px;
+        background: rgba(127, 127, 127, .11);
+        font-size: .78rem;
+    }
+
+    .marketplace-plugin-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        align-items: center;
+    }
+
+    .marketplace-plugin-actions .inline-form {
+        margin: 0;
+    }
+
+    @media (max-width: 640px) {
+        .marketplace-plugin-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .marketplace-plugin-actions {
+            align-items: stretch;
+            flex-direction: column;
+        }
+
+        .marketplace-plugin-actions .button,
+        .marketplace-plugin-actions .inline-form,
+        .marketplace-plugin-actions .inline-form button {
+            width: 100%;
+        }
+    }
+</style>
 
 <script>
     document.addEventListener("DOMContentLoaded", function () {
@@ -146,5 +366,35 @@
                 }
             });
         });
+
+        const marketplaceSearch = document.getElementById("marketplace-search");
+        const marketplaceCards = Array.from(document.querySelectorAll("[data-marketplace-card]"));
+        const marketplaceCount = document.getElementById("marketplace-visible-count");
+        const marketplaceEmpty = document.getElementById("marketplace-empty-filter");
+
+        if (marketplaceSearch && marketplaceCards.length) {
+            const filterMarketplace = function () {
+                const query = marketplaceSearch.value.trim().toLocaleLowerCase();
+                let visible = 0;
+
+                marketplaceCards.forEach(function (card) {
+                    const haystack = (card.dataset.search || "").toLocaleLowerCase();
+                    const show = query === "" || haystack.includes(query);
+                    card.hidden = !show;
+                    if (show) {
+                        visible++;
+                    }
+                });
+
+                if (marketplaceCount) {
+                    marketplaceCount.textContent = String(visible);
+                }
+                if (marketplaceEmpty) {
+                    marketplaceEmpty.hidden = visible !== 0;
+                }
+            };
+
+            marketplaceSearch.addEventListener("input", filterMarketplace);
+        }
     });
 </script>

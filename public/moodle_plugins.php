@@ -83,6 +83,32 @@ foreach ($plugins as $index => &$plugin) {
 }
 unset($plugin);
 
+$installedcomponents = [];
+foreach ($plugins as $plugin) {
+    $installedcomponents[$plugin["component"]] = true;
+}
+
+$marketplaceplugins = [];
+$marketplaceerror = "";
+try {
+    $marketplaceplugins = MoodlePluginManager::marketplaceCatalog();
+    foreach ($marketplaceplugins as &$marketplaceplugin) {
+        $marketplaceplugin["is_installed"] = isset($installedcomponents[$marketplaceplugin["component"]]);
+        $marketplaceplugin["can_install"] = !$marketplaceplugin["is_installed"];
+        $marketplaceplugin["install_button_label"] = $marketplaceplugin["is_installed"]
+            ? t("moodle_plugins.marketplace_installed")
+            : t("moodle_plugins.marketplace_install");
+        $marketplaceplugin["category_display"] = $marketplaceplugin["category"] !== ""
+            ? ucfirst($marketplaceplugin["category"])
+            : t("moodle_plugins.marketplace_category_plugin");
+        $marketplaceplugin["has_moodle"] = $marketplaceplugin["moodle"] !== "";
+        $marketplaceplugin["csrf_token"] = csrf_token();
+    }
+    unset($marketplaceplugin);
+} catch (Throwable $e) {
+    $marketplaceerror = $e->getMessage();
+}
+
 $context = [
     "domain" => $domain,
     "details_url" => "/details.php?domain=" . rawurlencode($domain),
@@ -92,6 +118,11 @@ $context = [
     "flash_class" => $actionerror ? "danger" : "ok",
     "has_plugins" => !empty($plugins),
     "plugins" => $plugins,
+    "marketplace_plugins" => $marketplaceplugins,
+    "marketplace_count" => count($marketplaceplugins),
+    "has_marketplace" => !empty($marketplaceplugins),
+    "has_marketplace_error" => $marketplaceerror !== "",
+    "marketplace_error" => $marketplaceerror,
     "has_updates" => $updatecount > 0,
     "update_count" => $updatecount,
     "show_finish_install" => $installedcomponent !== "",
