@@ -625,6 +625,7 @@ class MoodlePluginManager {
             "paygw" => "payment/gateway",
             "aiprovider" => "ai/provider",
             "smsgateway" => "sms/gateway",
+            "proctoringpolicy" => "local/kopere_proctoring/policy",
         ];
 
         if (!isset($bases[$type])) {
