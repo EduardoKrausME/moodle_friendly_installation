@@ -69,7 +69,7 @@ if [ "{{INSTALL_MODE}}" = "install" ]; then
             --agree-license \
             --fullname="{{SITE_FULLNAME}}" \
             --lang={{MOODLE_LANG}} \
-            --shortname="{{DOMAIN}}" \
+            --shortname="{{SITE_FULLNAME}}" \
             --summary="Moodle™ Admin" \
             --adminuser="{{ADMIN_USER}}" \
             --adminpass={{ADMIN_PASS_SH}} \
@@ -89,8 +89,6 @@ git clone --depth 1 https://github.com/EduardoKrausME/moodle-local-kopere_dashbo
 git clone --depth 1 https://github.com/EduardoKrausME/moodle-local_kopere_bi                {{BASE_DIR}}/moodle/public/local/kopere_bi
 git clone --depth 1 https://github.com/EduardoKrausME/moodle-local_boost_dark               {{BASE_DIR}}/moodle/public/local/boost_dark
 git clone --depth 1 https://github.com/EduardoKrausME/moodle-local_kopere_mobile            {{BASE_DIR}}/moodle/public/local/kopere_mobile
-git clone --depth 1 https://github.com/EduardoKrausME/moodle-local_copy                     {{BASE_DIR}}/moodle/public/local/copy
-git clone --depth 1 https://github.com/EduardoKrausME/moodle-local_backupftp                {{BASE_DIR}}/moodle/public/local/backupftp
 git clone --depth 1 https://github.com/EduardoKrausME/moodle-local_slow_queries             {{BASE_DIR}}/moodle/public/local/slow_queries
 git clone --depth 1 https://github.com/EduardoKrausME/moodle-local_alternative_file_system  {{BASE_DIR}}/moodle/public/local/alternative_file_system
 
@@ -98,7 +96,6 @@ git clone --depth 1 https://github.com/EduardoKrausME/moodle-mod_supervideo     
 git clone --depth 1 https://github.com/EduardoKrausME/moodle-mod_certificatebeautiful       {{BASE_DIR}}/moodle/public/mod/certificatebeautiful
 git clone --depth 1 https://github.com/EduardoKrausME/moodle-mod_pdfprotect                 {{BASE_DIR}}/moodle/public/mod/pdfprotect
 git clone --depth 1 https://github.com/EduardoKrausME/moodle-mod_childcourse                {{BASE_DIR}}/moodle/public/mod/childcourse
-git clone --depth 1 https://github.com/EduardoKrausME/moodle-mod_scicalc                    {{BASE_DIR}}/moodle/public/mod/scicalc
 
 if [ "{{INSTALL_MODE}}" = "install" ]; then
     log "Set default info Plugins"
