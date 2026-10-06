@@ -573,6 +573,7 @@ class MoodlePluginManager {
         $bases = [
             "mod" => "mod",
             "local" => "local",
+            "h5plib" => "h5p/h5plib",
             "theme" => "theme",
             "block" => "blocks",
             "auth" => "auth",
