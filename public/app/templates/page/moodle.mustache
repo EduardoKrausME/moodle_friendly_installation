@@ -40,7 +40,7 @@
 
     <section class="site-grid" id="moodle-site-grid">
         {{#sites}}
-            <article class="site-card">
+            <article class="site-card" data-search="{{domain}} {{site_fullname}} {{site_shortname}}">
                 <div class="site-card-header">
                     <div>
                         {{#has_site_identity}}
@@ -74,11 +74,17 @@
                     .replace(/[\u0300-\u036f]/g, "")
                     .toLowerCase();
             };
+            const searchableCards = cards.map(function (card) {
+                return {
+                    card: card,
+                    search: normalize(card.textContent + " " + card.dataset.search),
+                };
+            });
 
             filter.addEventListener("input", function () {
                 const query = normalize(filter.value.trim());
-                cards.forEach(function (card) {
-                    card.hidden = query !== "" && !normalize(card.textContent).includes(query);
+                searchableCards.forEach(function (entry) {
+                    entry.card.hidden = query !== "" && !entry.search.includes(query);
                 });
             });
         });

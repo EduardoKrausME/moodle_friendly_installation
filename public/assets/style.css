@@ -1266,6 +1266,10 @@ a:hover {
   backdrop-filter: blur(16px);
 }
 
+.site-card[hidden] {
+    display: none;
+}
+
 .card,
 .login-card {
   padding: clamp(20px, 3vw, 28px);
