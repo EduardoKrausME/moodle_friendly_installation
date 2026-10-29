@@ -210,10 +210,16 @@ function executeInstallJob(array $job, string $mode = "install"): array {
         "BASE_DIR" => $base,
     ]);
 
-    $dbengine = strtolower(app_config("db_engine") ?: "mysqli");
-    if ($dbengine == "mysql") {
-        $dbengine == "mysqli";
+    // Verify the connected database: a legacy panel may still claim MySQL.
+    $dbengine = createMysqlDatabaseAndUser($dbname, $dbuser, $dbpass, $isrestore);
+    $configuredengine = strtolower((string) (app_config("db_engine") ?: "mysqli"));
+    if ($configuredengine === "mysql") {
+        $configuredengine = "mysqli";
     }
+    if ($configuredengine !== $dbengine) {
+        appendJobLog($job, "WARNING: Panel configured as {$configuredengine}, server is {$dbengine}; writing {$dbengine} into Moodle config.php.");
+    }
+    appendJobLog($job, "Database created using {$dbengine}.");
     $extraConfig = trim(app_config("extra_moodle_config") ?? "");
 
     $configTemplate = renderTemplateFile(app_config_path("/install/templates/config-mysqli.php"), [
@@ -258,11 +264,6 @@ function executeInstallJob(array $job, string $mode = "install"): array {
         "PHP_BIN" => app_config("php_bin"),
         "INSTALL_MODE" => $isrestore ? "restore" : "install",
     ]);
-
-    // Creating MySQL database and user. Restore mode recreates an empty database,
-    // because the Moodle tables will be rebuilt from schema/*.json.
-    appendJobLog($job, "Created MySQL database and user");
-    createMysqlDatabaseAndUser($dbname, $dbuser, $dbpass, $isrestore);
 
     $scriptfile = app_config_path("/data/runtime/scripts/install-{$domain}-{$job["id"]}.sh");
     if (!is_dir(dirname($scriptfile))) {
@@ -369,9 +370,9 @@ function dbUser(string $domain): string {
  * @param string $dbuser
  * @param string $dbpass
  * @param bool $reset
- * @return void
+ * @return string Moodle database driver: mysqli or mariadb.
  */
-function createMysqlDatabaseAndUser(string $dbname, string $dbuser, string $dbpass, bool $reset = false): void {
+function createMysqlDatabaseAndUser(string $dbname, string $dbuser, string $dbpass, bool $reset = false): string {
     $host = app_config("mysql_admin_host");
     $port = app_config("mysql_admin_port");
     $user = app_config("mysql_admin_user");
@@ -384,6 +385,12 @@ function createMysqlDatabaseAndUser(string $dbname, string $dbuser, string $dbpa
         PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
         PDO::ATTR_EMULATE_PREPARES => false,
     ]);
+
+    $serverversion = (string) $pdo->query("SELECT VERSION()")->fetchColumn();
+    if ($serverversion === "") {
+        throw new RuntimeException("Could not identify the running database server.");
+    }
+    $dbengine = stripos($serverversion, "mariadb") !== false ? "mariadb" : "mysqli";
 
     $quotedDb = quoteMysqlIdentifier($dbname);
     $quotedUser = $pdo->quote($dbuser);
@@ -407,6 +414,7 @@ function createMysqlDatabaseAndUser(string $dbname, string $dbuser, string $dbpa
 
     $sql = "FLUSH PRIVILEGES ";
     $pdo->exec($sql);
+    return $dbengine;
 }
 
 /**

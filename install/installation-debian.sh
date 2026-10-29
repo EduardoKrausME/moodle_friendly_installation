@@ -990,15 +990,9 @@ install_mariadb() {
     DB_SERVICE="mariadb"
     systemctl enable --now mariadb || systemctl enable --now mysql
 
-    local client raw_version version=""
-    client="$(mysql_client || true)"
-    if [[ -n "${client}" ]]; then
-        raw_version="$(${client} --version || true)"
-        version="$(printf '%s' "${raw_version}" | grep -oE 'Distrib[[:space:]]+[0-9]+(\.[0-9]+){1,2}' | grep -oE '[0-9]+(\.[0-9]+){1,2}' | head -n1 || true)"
-        if [[ -z "${version}" ]]; then
-            version="$(printf '%s' "${raw_version}" | grep -oE '[0-9]+(\.[0-9]+){1,2}[^[:space:]]*-MariaDB' | grep -oE '^[0-9]+(\.[0-9]+){1,2}' | head -n1 || true)"
-        fi
-    fi
+    local raw_version version=""
+    raw_version="$(database_server_version || true)"
+    version="$(printf '%s' "${raw_version}" | grep -oE '[0-9]+(\.[0-9]+){1,2}' | head -n1 || true)"
 
     if [[ -n "${version}" ]] && version_ge "${version}" "${wanted}"; then
         return 0
@@ -1073,8 +1067,17 @@ install_mysql() {
         printf 'mysql-community-server mysql-community-server/root-pass password %s\n' "${DB_ROOT_PASS}" | debconf-set-selections || true
         printf 'mysql-community-server mysql-community-server/re-root-pass password %s\n' "${DB_ROOT_PASS}" | debconf-set-selections || true
     fi
-    pkg_install mysql-server mysql-client || pkg_install default-mysql-server default-mysql-client
-    DB_SERVICE="mysqli"
+    # Debian's default-mysql-server is MariaDB. Never install it silently.
+    if ! pkg_install mysql-server mysql-client; then
+        warn "MySQL installation failed; explicitly installing MariaDB as fallback."
+        install_mariadb
+        DB_ENGINE="mariadb"
+        DB_SERVICE="mariadb"
+        warn "IMPORTANT: MariaDB was installed instead of MySQL. The panel and future Moodle config.php files will use mariadb."
+        save_progress
+        return 0
+    fi
+    DB_SERVICE="mysql"
     systemctl enable --now mysql || systemctl enable --now mysqld
 }
 
@@ -1086,6 +1089,18 @@ mysql_client() {
     else
         return 1
     fi
+}
+
+# The client may be MySQL while the server is MariaDB; inspect server binary.
+database_server_version() {
+    local binary
+    for binary in /usr/sbin/mysqld /usr/sbin/mariadbd /usr/bin/mysqld /usr/bin/mariadbd; do
+        if [[ -x "${binary}" ]]; then
+            "${binary}" --version
+            return
+        fi
+    done
+    return 1
 }
 
 run_mysql_socket() {
@@ -1178,27 +1193,30 @@ FLUSH PRIVILEGES;
 }
 
 validate_database_version() {
-    local client version required label raw_version
-    client="$(mysql_client)" || die "MySQL/MariaDB client was not found."
-    raw_version="$(${client} --version || true)"
-
-    if [[ "${DB_ENGINE}" == "mariadb" ]]; then
+    local version required label raw_version
+    raw_version="$(run_mysql_socket --batch --skip-column-names -e 'SELECT VERSION()' 2>/dev/null || true)"
+    if [[ -z "${raw_version}" ]]; then
+        raw_version="$(run_mysql_password --batch --skip-column-names -e 'SELECT VERSION()' 2>/dev/null || true)"
+    fi
+    [[ -n "${raw_version}" ]] || die "Could not read the running database server version."
+    if printf '%s' "${raw_version}" | grep -qi mariadb; then
+        if [[ "${DB_ENGINE}" != "mariadb" ]]; then
+            warn "IMPORTANT: MySQL was selected, but MariaDB is running (${raw_version})."
+            warn "Switching the panel and new Moodle config.php driver to mariadb."
+            DB_ENGINE="mariadb"
+            DB_SERVICE="mariadb"
+            save_progress
+        fi
         required="${MARIADB_REQUIRED:-10.11.0}"
         label="MariaDB"
-        version="$(printf '%s' "${raw_version}" | grep -oE 'Distrib[[:space:]]+[0-9]+(\.[0-9]+){1,2}' | grep -oE '[0-9]+(\.[0-9]+){1,2}' | head -n1 || true)"
-        if [[ -z "${version}" ]]; then
-            version="$(printf '%s' "${raw_version}" | grep -oE '[0-9]+(\.[0-9]+){1,2}[^[:space:]]*-MariaDB' | grep -oE '^[0-9]+(\.[0-9]+){1,2}' | head -n1 || true)"
-        fi
     else
+        [[ "${DB_ENGINE}" == "mysqli" ]] || die "MariaDB was selected, but MySQL is running (${raw_version})."
         required="${MYSQL_REQUIRED:-8.4}"
         label="MySQL"
-        version="$(printf '%s' "${raw_version}" | grep -oE '[0-9]+(\.[0-9]+){1,2}' | head -n1 || true)"
     fi
-
-    [[ -n "${version}" ]] || die "Could not validate the database version. Raw output: ${raw_version}"
-    if ! version_ge "${version}" "${required}"; then
-        die "Installed ${label} (${version}) is lower than the Moodle requirement (${required}). Install a newer repository and run this installer again."
-    fi
+    version="$(printf '%s' "${raw_version}" | grep -oE '^[0-9]+(\.[0-9]+){1,2}' | head -n1 || true)"
+    [[ -n "${version}" ]] || die "Could not validate database server version: ${raw_version}"
+    version_ge "${version}" "${required}" || die "Installed ${label} (${version}) is below Moodle requirement (${required})."
     log "${label} active: ${version}"
 }
 
@@ -1738,62 +1756,27 @@ php_requirement_installed() {
 
 database_requirement_installed() {
     [[ -n "${DB_ENGINE:-}" ]] || return 1
-
-    local client=""
-    local raw_version=""
-    local version=""
-    local required=""
-    local label=""
-
-    client="$(mysql_client 2>/dev/null || true)"
-    [[ -n "${client}" ]] || return 1
-    raw_version="$(${client} --version 2>/dev/null || true)"
+    mysql_client >/dev/null 2>&1 || return 1
+    local raw_version version required
+    raw_version="$(database_server_version 2>/dev/null || true)"
     [[ -n "${raw_version}" ]] || return 1
-
-    if [[ "${DB_ENGINE}" == "mariadb" ]]; then
-        required="${MARIADB_REQUIRED:-10.11.0}"
-        label="MariaDB"
-        printf '%s' "${raw_version}" | grep -qi 'mariadb' || return 1
-        version="$(printf '%s' "${raw_version}" | grep -oE 'Distrib[[:space:]]+[0-9]+(\.[0-9]+){1,2}' | grep -oE '[0-9]+(\.[0-9]+){1,2}' | head -n1 || true)"
-        if [[ -z "${version}" ]]; then
-            version="$(printf '%s' "${raw_version}" | grep -oE '[0-9]+(\.[0-9]+){1,2}[^[:space:]]*-MariaDB' | grep -oE '^[0-9]+(\.[0-9]+){1,2}' | head -n1 || true)"
-        fi
-        if command_exists systemctl && systemctl list-unit-files mariadb.service >/dev/null 2>&1; then
-            DB_SERVICE="mariadb"
-        elif command_exists systemctl && systemctl list-unit-files mysql.service >/dev/null 2>&1; then
-            DB_SERVICE="mysqli"
-        else
-            DB_SERVICE="mariadb"
-        fi
-    else
-        required="${MYSQL_REQUIRED:-8.4}"
-        label="MySQL"
-        printf '%s' "${raw_version}" | grep -qi 'mariadb' && return 1
-        version="$(printf '%s' "${raw_version}" | grep -oE '[0-9]+(\.[0-9]+){1,2}' | head -n1 || true)"
-        if command_exists systemctl && systemctl list-unit-files mysql.service >/dev/null 2>&1; then
-            DB_SERVICE="mysqli"
-        elif command_exists systemctl && systemctl list-unit-files mysqld.service >/dev/null 2>&1; then
-            DB_SERVICE="mysqld"
-        else
-            DB_SERVICE="mysqli"
-        fi
-    fi
-
+    version="$(printf '%s' "${raw_version}" | grep -oE '[0-9]+(\.[0-9]+){1,2}' | head -n1 || true)"
     [[ -n "${version}" ]] || return 1
+    if [[ "${DB_ENGINE}" == "mariadb" ]]; then
+        printf '%s' "${raw_version}" | grep -qi mariadb || return 1
+        required="${MARIADB_REQUIRED:-10.11.0}"
+        DB_SERVICE="mariadb"
+    else
+        if printf '%s' "${raw_version}" | grep -qi mariadb; then
+            return 1
+        fi
+        required="${MYSQL_REQUIRED:-8.4}"
+        DB_SERVICE="mysql"
+    fi
     if ! version_ge "${version}" "${required}"; then
-        warn "${label} is installed (${version}), but Moodle requires ${required}. Database installation will run."
+        warn "Installed database (${version}) does not meet Moodle requirement (${required})."
         return 1
     fi
-
-    return 0
-}
-
-web_servers_requirement_installed() {
-    command_exists nginx || return 1
-    command_exists certbot || return 1
-
-    command_exists apache2ctl || return 1
-
     return 0
 }
 
