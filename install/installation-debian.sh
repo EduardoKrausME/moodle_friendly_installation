@@ -1780,6 +1780,13 @@ database_requirement_installed() {
     return 0
 }
 
+web_servers_requirement_installed() {
+    command_exists nginx || return 1
+    command_exists certbot || return 1
+    command_exists apache2ctl || return 1
+    return 0
+}
+
 lets_encrypt_certificate_exists() {
     [[ -n "${PANEL_DOMAIN:-}" ]] || return 1
     [[ -f "/etc/letsencrypt/live/${PANEL_DOMAIN}/fullchain.pem" ]] || return 1
