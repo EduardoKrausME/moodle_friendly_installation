@@ -24,6 +24,10 @@ if (function_exists("posix_geteuid") && posix_geteuid() !== 0) {
     exit(1);
 }
 
+// Cron may omit sbin directories, which Certbot needs to locate NGINX.
+// Set PATH for child processes even on installations with an older cron file.
+putenv("PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin");
+
 $lockpath = app_config_path("/data/runtime/runner.lock");
 $lock = fopen($lockpath, "c");
 if (!$lock) {

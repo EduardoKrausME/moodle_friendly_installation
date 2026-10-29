@@ -1,2 +1,5 @@
-# Copy this line to /etc/cron.d/moodle-admin-runner
+# Copy this file to /etc/cron.d/moodle-admin-runner
+SHELL=/bin/bash
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
 * * * * * root /usr/bin/php /home/admin.moodle/bin/cron-root-runner.php >/var/log/moodle-admin-runner.log 2>&1
