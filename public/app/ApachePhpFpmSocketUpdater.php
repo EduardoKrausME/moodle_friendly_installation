@@ -97,7 +97,7 @@ final class ApachePhpFpmSocketUpdater {
         return preg_replace_callback(
             '~<VirtualHost\b([^>]*)>(.*?)</VirtualHost>~is',
             static function(array $vhost) use ($socket): string {
-                if (!preg_match('/(?:^|\s)\S+:8080(?:\s|$)/', trim($vhost[1]))) {
+                if (!preg_match('/(?:^|\s)\S+:(?:80|8080)(?:\s|$)/', trim($vhost[1]))) {
                     return $vhost[0];
                 }
                 if (!preg_match('~^[ \t]*DocumentRoot[ \t]+["\x27]?/home/[^/"\x27\s]+/moodle(?:/public)?["\x27]?[ \t]*$~mi', $vhost[2])) {
