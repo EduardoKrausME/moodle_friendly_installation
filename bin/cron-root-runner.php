@@ -68,13 +68,13 @@ try {
     try {
         require_once __DIR__ . "/../public/app/PhpFpmSocketResolver.php";
         require_once __DIR__ . "/../public/app/ApachePhpFpmSocketUpdater.php";
-        $updatedhosts = \\app\\ApachePhpFpmSocketUpdater::run();
+        $updatedhosts = \app\ApachePhpFpmSocketUpdater::run();
         if ($updatedhosts !== []) {
-            echo "PHP-FPM socket synchronized for " . count($updatedhosts) . " Moodle site(s).\\n";
+            echo "PHP-FPM socket synchronized for " . count($updatedhosts) . " Moodle site(s).\n";
         }
     } catch (Throwable $e) {
         // A failing FPM health check must not prevent pending install/build jobs.
-        fwrite(STDERR, "PHP-FPM socket reconciliation failed: {$e->getMessage()}\\n");
+        fwrite(STDERR, "PHP-FPM socket reconciliation failed: {$e->getMessage()}\n");
     }
 
     try {
