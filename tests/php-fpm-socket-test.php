@@ -31,6 +31,7 @@ $socket = '/run/php/php8.4-fpm.sock';
 $fixed = Updater::replaceLegacySocket($old, $socket);
 verifySocket(str_contains($fixed, "proxy:unix:{$socket}|fcgi://localhost/"), 'replaces Moodle FPM socket');
 verifySocket(Updater::replaceLegacySocket($fixed, $socket) === $fixed, 'migration is idempotent');
+verifySocket(str_contains(Updater::replaceLegacySocket(str_replace('*:8080', '*:80', $old), $socket), "proxy:unix:{$socket}|fcgi://localhost/"), 'repairs Moodle HTTP vhost on port 80');
 verifySocket(Updater::replaceLegacySocket(str_replace('*:8080', '*:443', $old), $socket) === str_replace('*:8080', '*:443', $old), 'ignores HTTPS vhosts');
 verifySocket(Updater::replaceLegacySocket(str_replace('/moodle/public', '/application', $old), $socket) === str_replace('/moodle/public', '/application', $old), 'ignores unrelated applications');
 
