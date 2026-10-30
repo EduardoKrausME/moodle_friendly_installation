@@ -26,7 +26,7 @@ $CFG->sslproxy = true;
 
 $CFG->showcampaigncontent           = false;
 $CFG->showservicesandsupportcontent = false;
-$CFG->enableuserfeedback            = " ";
+$CFG->enableuserfeedback            = false;
 $CFG->registrationpending           = false;
 $CFG->site_is_public                = false;
 //$CFG->disableupdatenotifications    = true;
