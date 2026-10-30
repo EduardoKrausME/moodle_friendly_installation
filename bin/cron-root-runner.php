@@ -62,6 +62,21 @@ try {
         fwrite(STDERR, "Panel domain processing failed: {$e->getMessage()}\n");
     }
 
+    // Check the active PHP-FPM pool on each root cron run. A PHP upgrade may
+    // change the socket after the one-off post-update migration has completed.
+    // Unchanged virtual hosts never cause an Apache reload.
+    try {
+        require_once __DIR__ . "/../public/app/PhpFpmSocketResolver.php";
+        require_once __DIR__ . "/../public/app/ApachePhpFpmSocketUpdater.php";
+        $updatedhosts = \\app\\ApachePhpFpmSocketUpdater::run();
+        if ($updatedhosts !== []) {
+            echo "PHP-FPM socket synchronized for " . count($updatedhosts) . " Moodle site(s).\\n";
+        }
+    } catch (Throwable $e) {
+        // A failing FPM health check must not prevent pending install/build jobs.
+        fwrite(STDERR, "PHP-FPM socket reconciliation failed: {$e->getMessage()}\\n");
+    }
+
     try {
         ResourceUsageManager::scheduleDueCollections();
     } catch (Throwable $e) {
