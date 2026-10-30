@@ -5,47 +5,73 @@ namespace app;
 use RuntimeException;
 
 /**
- * Resolves the Unix socket of the PHP-FPM instance matching the configured PHP CLI.
+ * Finds the live Unix socket configured for the selected PHP-FPM service.
+ * Socket names and PHP versions are never hard-coded in Apache templates.
  */
 final class PhpFpmSocketResolver {
     public static function resolve(string $phpbin, string $os): string {
         $series = self::phpSeries($phpbin);
-        $default = self::expectedPath($series, $os);
-        $poolconfig = $os === "debian"
-            ? "/etc/php/{$series}/fpm/pool.d/www.conf"
-            : "/etc/php-fpm.d/www.conf";
+        $pooldirectory = match ($os) {
+            "debian" => "/etc/php/{$series}/fpm/pool.d",
+            "redhat" => "/etc/php-fpm.d",
+            default => throw new RuntimeException("Unsupported OS for PHP-FPM: {$os}"),
+        };
 
-        $candidates = [];
-        if (is_readable($poolconfig)) {
-            $config = file_get_contents($poolconfig);
-            if ($config !== false && preg_match('/^[ \t]*listen[ \t]*=[ \t]*(\/[^\s;#]+)[ \t]*(?:[;#].*)?$/mi', $config, $match)) {
+        $candidates = self::configuredPoolSockets($pooldirectory);
+
+        // Existing panel configurations may use a custom socket outside the
+        // standard pool directory. Check that actual handler as a fallback.
+        $panelconf = $os === "debian"
+            ? "/etc/apache2/sites-enabled/admin.moodle.conf"
+            : "/etc/httpd/sites-enabled/admin.moodle.conf";
+        if (is_readable($panelconf)) {
+            $config = file_get_contents($panelconf);
+            if ($config !== false &&
+                preg_match('~^[ \t]*SetHandler[ \t]+["\x27]?proxy:unix:(/[A-Za-z0-9_./-]+)\|fcgi://localhost/~mi', $config, $match)) {
                 $candidates[] = $match[1];
             }
         }
-        $candidates[] = $default;
 
-        foreach (array_unique($candidates) as $socket) {
-            if (is_socket($socket)) {
-                return $socket;
+        foreach (array_unique($candidates) as $candidate) {
+            if (is_socket($candidate)) {
+                return $candidate;
             }
         }
 
         throw new RuntimeException(
-            "PHP-FPM socket for PHP {$series} was not found. Checked: "
-            . implode(", ", array_unique($candidates))
-            . ". Start the corresponding PHP-FPM service and verify its pool listen directive."
+            "No active PHP-FPM Unix socket was found for PHP {$series}. "
+            . "Checked configured pool files in {$pooldirectory} and {$panelconf}. "
+            . "Verify the running FPM service and pool listen directives."
         );
     }
 
-    public static function expectedPath(string $series, string $os): string {
-        if (!preg_match('/^\d+\.\d+$/', $series)) {
-            throw new RuntimeException("Invalid PHP version: {$series}");
+    /**
+     * Read live pool configuration instead of guessing /run/php/... or
+     * /run/php-fpm/...; supports renamed/custom pool files and sockets.
+     *
+     * @return array<int, string>
+     */
+    public static function configuredPoolSockets(string $directory): array {
+        $files = glob(rtrim($directory, "/") . "/*.conf") ?: [];
+        $defaultpool = rtrim($directory, "/") . "/www.conf";
+        if (in_array($defaultpool, $files, true)) {
+            $files = array_values(array_diff($files, [$defaultpool]));
+            array_unshift($files, $defaultpool);
         }
-        return match ($os) {
-            "debian" => "/run/php/php{$series}-fpm.sock",
-            "redhat" => "/run/php-fpm/www.sock",
-            default => throw new RuntimeException("Cannot select PHP-FPM socket for unsupported OS: {$os}"),
-        };
+
+        $sockets = [];
+        foreach ($files as $file) {
+            if (!is_readable($file)) {
+                continue;
+            }
+            $config = file_get_contents($file);
+            if ($config !== false &&
+                preg_match('~^[ \t]*listen[ \t]*=[ \t]*["\x27]?(/[A-Za-z0-9_./-]+)["\x27]?[ \t]*(?:[;#].*)?$~mi', $config, $match)) {
+                $sockets[] = $match[1];
+            }
+        }
+
+        return array_values(array_unique($sockets));
     }
 
     public static function phpSeries(string $phpbin): string {

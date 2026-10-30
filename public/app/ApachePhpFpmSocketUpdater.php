@@ -6,7 +6,7 @@ use RuntimeException;
 use Throwable;
 
 /**
- * Repairs only Moodle HTTP virtual hosts that have the Red Hat PHP-FPM socket on Debian.
+ * Keeps managed Moodle HTTP virtual hosts aligned with the active PHP-FPM socket.
  */
 final class ApachePhpFpmSocketUpdater {
     /**
@@ -19,10 +19,15 @@ final class ApachePhpFpmSocketUpdater {
         ?callable $reload = null,
         ?string $socket = null
     ): array {
-        if ($directories === null && !is_file("/etc/debian_version")) {
+        // A PHP upgrade or a custom pool may change the socket without changing
+        // the panel's version. Discover the active server at every reconciliation.
+        $debian = is_dir("/etc/apache2/sites-enabled");
+        $directories ??= $debian
+            ? ["/etc/apache2/sites-enabled"]
+            : (is_dir("/etc/httpd/sites-enabled") ? ["/etc/httpd/sites-enabled"] : []);
+        if ($directories === []) {
             return [];
         }
-        $directories ??= ["/etc/apache2/sites-enabled"];
         $changed = [];
         $reloadattempted = false;
 
@@ -43,11 +48,15 @@ final class ApachePhpFpmSocketUpdater {
                     if ($original === false) {
                         throw new RuntimeException("Cannot read Apache virtual host: {$path}");
                     }
-                    if (!str_contains($original, "/run/php-fpm/www.sock")) {
+                    // Skip unrelated configs without even starting PHP CLI.
+                    if (!preg_match('~SetHandler\\s+["\\x27]?proxy:unix:/[^|\\s"\\x27]+\\|fcgi://localhost/~i', $original)) {
                         continue;
                     }
-                    $socket ??= PhpFpmSocketResolver::resolve((string)app_config("php_bin"), "debian");
-                    $updated = self::replaceLegacySocket($original, $socket);
+                    $socket ??= PhpFpmSocketResolver::resolve(
+                        (string)app_config("php_bin"),
+                        $debian ? "debian" : "redhat"
+                    );
+                    $updated = self::replaceManagedSocket($original, $socket);
                     if ($updated === $original) {
                         continue;
                     }
@@ -61,9 +70,12 @@ final class ApachePhpFpmSocketUpdater {
             if ($changed === []) {
                 return [];
             }
-            ($validate ?? static fn() => self::command(["/usr/sbin/apache2ctl", "configtest"]))();
+            ($validate ?? static fn() => self::command($debian
+                ? ["/usr/sbin/apache2ctl", "configtest"]
+                : ["/usr/sbin/httpd", "-t"]
+            ))();
             $reloadattempted = true;
-            ($reload ?? static fn() => self::command(["systemctl", "reload", "apache2"]))();
+            ($reload ?? static fn() => self::command(["systemctl", "reload", $debian ? "apache2" : "httpd"]))();
             return array_keys($changed);
         } catch (Throwable $error) {
             $failed = [];
@@ -77,7 +89,7 @@ final class ApachePhpFpmSocketUpdater {
             }
             if ($reloadattempted) {
                 try {
-                    ($reload ?? static fn() => self::command(["systemctl", "reload", "apache2"]))();
+                    ($reload ?? static fn() => self::command(["systemctl", "reload", $debian ? "apache2" : "httpd"]))();
                 } catch (Throwable $rollbackerror) {
                     throw new RuntimeException(
                         $error->getMessage() . "; reload after rollback failed: " . $rollbackerror->getMessage(),
@@ -90,27 +102,38 @@ final class ApachePhpFpmSocketUpdater {
         }
     }
 
-    public static function replaceLegacySocket(string $config, string $socket): string {
-        if (!str_starts_with($socket, "/") || !preg_match('~^/[A-Za-z0-9_./-]+$~', $socket)) {
+    /**
+     * Replaces only the PHP handler in managed Moodle HTTP virtual hosts.
+     * Deliberately leaves HTTPS, the admin panel and unrelated applications alone.
+     */
+    public static function replaceManagedSocket(string $config, string $socket): string {
+        if (!preg_match('~^/[A-Za-z0-9_./-]+$~', $socket)) {
             throw new RuntimeException("Invalid PHP-FPM socket path: {$socket}");
         }
+
         return preg_replace_callback(
-            '~<VirtualHost\b([^>]*)>(.*?)</VirtualHost>~is',
+            '~<VirtualHost\\b([^>]*)>(.*?)</VirtualHost>~is',
             static function(array $vhost) use ($socket): string {
-                if (!preg_match('/(?:^|\s)\S+:(?:80|8080)(?:\s|$)/', trim($vhost[1]))) {
+                if (!preg_match('/(?:^|\\s)\\S+:(?:80|8080)(?:\\s|$)/', trim($vhost[1]))) {
                     return $vhost[0];
                 }
-                if (!preg_match('~^[ \t]*DocumentRoot[ \t]+["\x27]?/home/[^/"\x27\s]+/moodle(?:/public)?["\x27]?[ \t]*$~mi', $vhost[2])) {
+                if (!preg_match('~^[ \\t]*DocumentRoot[ \\t]+["\\x27]?/home/[^/"\\x27\\s]+/moodle(?:/public)?["\\x27]?[ \\t]*$~mi', $vhost[2])) {
                     return $vhost[0];
                 }
-                return str_replace(
-                    "proxy:unix:/run/php-fpm/www.sock|fcgi://localhost/",
-                    "proxy:unix:{$socket}|fcgi://localhost/",
-                    $vhost[0]
+                $body = preg_replace_callback(
+                    '~(^[ \\t]*SetHandler[ \\t]+["\\x27]?proxy:unix:)/[^|\\s"\\x27]+(\\|fcgi://localhost/["\\x27]?)~mi',
+                    static fn(array $match): string => $match[1] . $socket . $match[2],
+                    $vhost[2]
                 );
+                return str_replace($vhost[2], $body, $vhost[0]);
             },
             $config
         );
+    }
+
+    /** Retained for existing callers of the original one-off migration. */
+    public static function replaceLegacySocket(string $config, string $socket): string {
+        return self::replaceManagedSocket($config, $socket);
     }
 
     /** @param array<int, string> $args */

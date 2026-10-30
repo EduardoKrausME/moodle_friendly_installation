@@ -15,8 +15,17 @@ function verifySocket(bool $value, string $message): void {
 
 $series = Resolver::phpSeries(PHP_BINARY);
 verifySocket((bool)preg_match('/^\d+\.\d+$/', $series), 'reads configured PHP CLI version');
-verifySocket(Resolver::expectedPath('8.4', 'debian') === '/run/php/php8.4-fpm.sock', 'Debian socket is versioned');
-verifySocket(Resolver::expectedPath('8.4', 'redhat') === '/run/php-fpm/www.sock', 'Red Hat socket is unchanged');
+$pooldir = sys_get_temp_dir() . '/fpm-pools-' . bin2hex(random_bytes(6));
+mkdir($pooldir);
+file_put_contents($pooldir . '/custom.conf', ";listen = /ignored.sock\nlisten = /run/php/custom.sock\n");
+file_put_contents($pooldir . '/www.conf', "listen = /run/php/primary.sock ; live socket\n");
+verifySocket(
+    Resolver::configuredPoolSockets($pooldir) === ['/run/php/primary.sock', '/run/php/custom.sock'],
+    'discovers arbitrary pool socket paths and prefers the default pool'
+);
+unlink($pooldir . '/custom.conf');
+unlink($pooldir . '/www.conf');
+rmdir($pooldir);
 
 $old = <<<'CONF'
 <VirtualHost *:8080>
@@ -31,6 +40,16 @@ $socket = '/run/php/php8.4-fpm.sock';
 $fixed = Updater::replaceLegacySocket($old, $socket);
 verifySocket(str_contains($fixed, "proxy:unix:{$socket}|fcgi://localhost/"), 'replaces Moodle FPM socket');
 verifySocket(Updater::replaceLegacySocket($fixed, $socket) === $fixed, 'migration is idempotent');
+$previous = str_replace('/run/php-fpm/www.sock', '/run/php/php8.3-fpm.sock', $old);
+verifySocket(
+    str_contains(Updater::replaceManagedSocket($previous, $socket), "proxy:unix:{$socket}|fcgi://localhost/"),
+    'updates a previously valid socket after a PHP version upgrade'
+);
+$customsocket = '/srv/fpm/custom-pool.sock';
+verifySocket(
+    str_contains(Updater::replaceManagedSocket($fixed, $customsocket), "proxy:unix:{$customsocket}|fcgi://localhost/"),
+    'supports dynamic FPM pool socket changes without a versioned path'
+);
 verifySocket(str_contains(Updater::replaceLegacySocket(str_replace('*:8080', '*:80', $old), $socket), "proxy:unix:{$socket}|fcgi://localhost/"), 'repairs Moodle HTTP vhost on port 80');
 verifySocket(Updater::replaceLegacySocket(str_replace('*:8080', '*:443', $old), $socket) === str_replace('*:8080', '*:443', $old), 'ignores HTTPS vhosts');
 verifySocket(Updater::replaceLegacySocket(str_replace('/moodle/public', '/application', $old), $socket) === str_replace('/moodle/public', '/application', $old), 'ignores unrelated applications');
@@ -49,6 +68,11 @@ verifySocket(count($result) === 1 && $validations === 1 && $reloads === 1, 'upda
 verifySocket(is_link($base . '/enabled/site.conf'), 'keeps Debian enabled-site symlink');
 verifySocket(file_get_contents($base . '/enabled/admin.moodle.conf') === $old, 'never modifies panel vhost');
 verifySocket(Updater::run([$base . '/enabled'], function() {throw new RuntimeException('unexpected validation');}, function() {throw new RuntimeException('unexpected reload');}, $socket) === [], 'no-op after migration');
+
+$second = Updater::run([$base . '/enabled'], function() use (&$validations) {$validations++;}, function() use (&$reloads) {$reloads++;}, $customsocket);
+verifySocket(count($second) === 1 && $validations === 2 && $reloads === 2, 'reconciles an already migrated host to a new socket');
+verifySocket(str_contains(file_get_contents($base . '/available/site.conf'), $customsocket), 'writes the new active FPM socket');
+verifySocket(Updater::run([$base . '/enabled'], function() {throw new RuntimeException('unnecessary configtest');}, function() {throw new RuntimeException('unnecessary reload');}, $customsocket) === [], 'does not reload if socket has not changed');
 
 file_put_contents($base . '/available/site.conf', $old);
 try {
