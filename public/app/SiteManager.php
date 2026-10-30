@@ -222,6 +222,41 @@ class SiteManager {
     }
 
     /**
+     * Build a fresh, short-lived SSO link when the administrator clicks the
+     * button. A link generated during page rendering expires after five minutes.
+     *
+     * @param array $site
+     * @param string $destination
+     * @return string
+     */
+    public static function adminSsoUrl(array $site, string $destination = "/admin/index.php"): string {
+        if (!preg_match('~^/(?!/)[a-zA-Z0-9_./-]+$~D', $destination)
+            || str_contains($destination, "..")) {
+            throw new \InvalidArgumentException("Invalid Moodle administration path.");
+        }
+
+        $config = self::readMoodleConfig((string) ($site["config_file"] ?? ""));
+        $dbname = (string) ($config["dbname"] ?? "");
+        $wwwroot = rtrim((string) ($config["wwwroot"] ?? $site["url"] ?? ""), "/");
+        $host = parse_url($wwwroot, PHP_URL_HOST);
+        if ($dbname === "" || !is_string($host)
+            || strtolower($host) !== strtolower((string) ($site["domain"] ?? ""))
+            || parse_url($wwwroot, PHP_URL_SCHEME) !== "https"
+            || parse_url($wwwroot, PHP_URL_USER) !== null
+            || parse_url($wwwroot, PHP_URL_PASS) !== null
+            || parse_url($wwwroot, PHP_URL_QUERY) !== null
+            || parse_url($wwwroot, PHP_URL_FRAGMENT) !== null) {
+            throw new \RuntimeException("Moodle SSO cannot be generated from an invalid site configuration.");
+        }
+
+        // Keep the signing scheme used by the currently installed Moodle script.
+        $time = time();
+        $signature = hash_hmac("sha256", (string) $time, $dbname);
+        return $wwwroot . "/moodle-logar-admin.php?time={$time}&signature={$signature}"
+            . "&to=" . rawurlencode($destination);
+    }
+
+    /**
      * Function readMoodleConfig
      *
      * @param string $configfile
