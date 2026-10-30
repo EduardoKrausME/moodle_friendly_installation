@@ -25,6 +25,18 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     validate_csrf();
     $action = isset($_POST["action"]) && is_string($_POST["action"]) ? $_POST["action"] : "";
 
+    if ($action === "admin_login") {
+        if (empty($site["moodle_enabled"])) {
+            http_response_code(403);
+            exit("Moodle is disabled.");
+        }
+
+        // Sign only when clicked, after validating the panel session and CSRF.
+        header("Cache-Control: no-store");
+        header("Referrer-Policy: no-referrer");
+        redirect_to(SiteManager::adminSsoUrl($site));
+    }
+
     if ($action == "toggle_flag") {
         $flag = isset($_POST["flag"]) && is_string($_POST["flag"]) ? $_POST["flag"] : "";
         $enabled = !empty($_POST["enabled"]) && $_POST["enabled"] == "1";

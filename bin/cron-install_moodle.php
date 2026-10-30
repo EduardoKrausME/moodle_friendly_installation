@@ -2,6 +2,9 @@
 
 use app\I18n;
 use app\JobManager;
+use app\PhpFpmSocketResolver;
+
+require_once __DIR__ . "/../public/app/PhpFpmSocketResolver.php";
 
 if (!isset($job) || !is_array($job)) {
     die("\$job empty");
@@ -195,6 +198,9 @@ function executeInstallJob(array $job, string $mode = "install"): array {
     $nginxconf = "/etc/nginx/sites-enabled/{$domain}.conf";
     $cronfile = "/etc/cron.d/moodle-" . str_replace(".", "-", $domain);
     $configfile = "{$moodledir}/config.php";
+    // Require the Unix socket of the PHP-FPM instance matching the selected PHP CLI.
+    // The previous template hard-coded Red Hat's /run/php-fpm/www.sock on Debian.
+    $phpfpmsocket = PhpFpmSocketResolver::resolve((string)app_config("php_bin"), detectOperatingSystem());
 
     $apacheTemplate = renderTemplateFile(app_config_path("/install/templates/httpd-site.conf"), [
         "DOMAIN" => $domain,
@@ -203,6 +209,7 @@ function executeInstallJob(array $job, string $mode = "install"): array {
         "WEBROOT" => $webroot,
         "BASE_DIR" => $base,
         "WEBROOT_MODE" => $usespublicdir ? "public" : "legacy",
+        "PHP_FPM_SOCKET" => $phpfpmsocket,
     ]);
 
     $nginxTemplate = renderTemplateFile(app_config_path("/install/templates/nginx-site.conf"), [

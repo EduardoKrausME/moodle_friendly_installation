@@ -38,8 +38,12 @@
             <a class="button" href="{{url}}" target="_blank" rel="noopener">{{{i18n.actions.open_moodle}}}</a>
 
             {{#sso_url}}
-                <a class="button secondary" href="{{sso_url}}" target="_blank"
-                   rel="noopener">{{{i18n.actions.access_admin}}}</a>
+                <form action="/details.php?domain={{domain}}" method="post" target="_blank"
+                      rel="noopener" class="inline-form">
+                    <input type="hidden" name="csrf_token" value="{{csrf_token}}">
+                    <input type="hidden" name="action" value="admin_login">
+                    <button class="button secondary" type="submit">{{{i18n.actions.access_admin}}}</button>
+                </form>
             {{/sso_url}}
 
             <form action="/phpmyadmin-signon.php" method="post" target="_blank"

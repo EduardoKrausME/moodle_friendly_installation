@@ -391,6 +391,28 @@ detect_os() {
     log "Detected system: ${OS_ID} ${OS_VERSION_ID} (debian/ubuntu)"
 }
 
+ubuntu_uses_sury_php() {
+    # Resolute (26.04) and newer Ubuntu releases use packages.sury.org,
+    # not the ondrej/php Launchpad PPA.
+    [[ "${OS_ID}" == "ubuntu" ]] && version_ge "${OS_VERSION_ID}" "26.04"
+}
+
+disable_obsolete_ubuntu_php_ppa() {
+    ubuntu_uses_sury_php || return 0
+
+    local source_file=""
+    # add-apt-repository creates a dedicated .list or .sources file for this PPA.
+    # Keep the file as a backup and do not touch unrelated APT sources.
+    for source_file in /etc/apt/sources.list.d/ondrej-ubuntu-php-*.list \
+                       /etc/apt/sources.list.d/ondrej-ubuntu-php-*.sources; do
+        [[ -f "${source_file}" ]] || continue
+        if grep -Eq 'ppa\.launchpad(content)?\.net/ondrej/php/ubuntu' "${source_file}"; then
+            mv -- "${source_file}" "${source_file}.disabled"
+            warn "Disabled unsupported PHP PPA for Ubuntu ${OS_VERSION_ID}: ${source_file}"
+        fi
+    done
+}
+
 pkg_update() {
     export DEBIAN_FRONTEND=noninteractive
     apt-get \
@@ -596,7 +618,7 @@ install_base_packages() {
     pkg_update
 
     # Debian 13/Trixie no longer provides software-properties-common in stable.
-    # It is only needed on Ubuntu for add-apt-repository/ondrej/php.
+    # Only older Ubuntu releases need it for add-apt-repository/ondrej/php.
 
     if [[ "${OS_ID}" == "debian" ]]; then
            tee /etc/apt/sources.list.d/sid.list <<'EOF'
@@ -607,7 +629,7 @@ EOF
     pkg_update
     pkg_install ca-certificates curl wget gnupg lsb-release unzip zip tar git dnsutils cron openssl python3 sed grep gawk coreutils debconf-utils whiptail build-essential imagemagick openjdk-17-jdk
 
-    if [[ "${OS_ID}" == "ubuntu" ]]; then
+    if [[ "${OS_ID}" == "ubuntu" ]] && ! ubuntu_uses_sury_php; then
         pkg_install software-properties-common
     fi
 
@@ -892,12 +914,42 @@ install_debian_php_default() {
     return 0
 }
 
+configure_ubuntu_sury_php_repository() {
+    local codename=""
+    codename="$(lsb_release -sc 2>/dev/null || true)"
+    if [[ -z "${codename}" && -r /etc/os-release ]]; then
+        # shellcheck source=/dev/null
+        source /etc/os-release
+        codename="${VERSION_CODENAME:-}"
+    fi
+    [[ -n "${codename}" ]] || die "Could not detect the Ubuntu codename for the Sury PHP repository."
+
+    log "Configuring Sury PHP repository for Ubuntu ${codename}"
+    local keyring_package="/tmp/debsuryorg-archive-keyring.deb"
+    curl -fsSLo "${keyring_package}" https://packages.sury.org/debsuryorg-archive-keyring.deb \
+        || die "Could not download the Sury PHP repository signing keyring package."
+    dpkg -i "${keyring_package}" \
+        || die "Could not install the Sury PHP repository signing keyring package."
+    rm -f "${keyring_package}"
+
+    cat > /etc/apt/sources.list.d/php-sury.list <<SURYPHP
+# Added by Moodle Friendly Installation installer.
+deb [signed-by=/usr/share/keyrings/debsuryorg-archive-keyring.gpg] https://packages.sury.org/php/ ${codename} main
+SURYPHP
+    pkg_update
+    apt-cache show "php${PHP_SERIES}-fpm" >/dev/null 2>&1 \
+        || die "Sury PHP repository for Ubuntu ${codename} does not provide php${PHP_SERIES}-fpm."
+}
+
 install_debian_php_versioned() {
     if ! apt-cache show "php${PHP_SERIES}-fpm" >/dev/null 2>&1; then
-        if [[ "${OS_ID}" == "ubuntu" ]]; then
+        if ubuntu_uses_sury_php; then
+            disable_obsolete_ubuntu_php_ppa
+            configure_ubuntu_sury_php_repository
+        elif [[ "${OS_ID}" == "ubuntu" ]]; then
             log "The default repository did not find php${PHP_SERIES}; adding ondrej/php PPA"
             LC_ALL=C.UTF-8 add-apt-repository -y ppa:ondrej/php
-            apt-get update -y
+            pkg_update
         else
             log "The default repository did not provide a compatible PHP; adding Sury PHP repository for Debian"
             mkdir -p /usr/share/keyrings
@@ -1859,6 +1911,8 @@ main() {
     need_root
     load_progress
     detect_os
+    # Repair an obsolete PPA left by an earlier run before the first apt update.
+    disable_obsolete_ubuntu_php_ppa
     open_interactive_terminal
 
     if base_packages_installed; then
