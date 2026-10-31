@@ -34,6 +34,21 @@ if [ ! -d "{{BASE_DIR}}/moodle/public" ]; then
     exit 21
 fi
 
+# Composer dependencies must be installed before Moodle CLI scripts run.
+# A Composer failure is non-fatal, but is recorded in the installation log.
+if [ -f "{{MOODLE_DIR}}/composer.json" ]; then
+    if command -v composer >/dev/null 2>&1; then
+        log "Installing Moodle PHP dependencies with Composer"
+        if ! (cd "{{MOODLE_DIR}}" && COMPOSER_ALLOW_SUPERUSER=1 composer install --no-dev --classmap-authoritative --no-interaction); then
+            log "WARNING: Moodle Composer install failed. Continuing installation"
+        fi
+    else
+        log "WARNING: Composer not found. Continuing Moodle installation"
+    fi
+else
+    log "WARNING: Moodle composer.json not found. Skipping Composer"
+fi
+
 log "Writing Moodle config.php"
 cat > "{{CONFIG_FILE}}" <<PHP
 {{CONFIG_FILE_TEMPLATE}}
