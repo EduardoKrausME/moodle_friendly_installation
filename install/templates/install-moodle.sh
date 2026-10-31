@@ -191,14 +191,22 @@ else
     systemctl reload nginx   || systemctl restart nginx
 fi
 
+CERTBOT_FAILED=0
 if [ "{{ISSUE_CERT}}" = "1" ]; then
     log "Issuing Let's Encrypt certificate"
-    certbot --nginx \
+    if certbot --nginx \
         --non-interactive \
         --agree-tos \
         --redirect \
         --email "{{ADMIN_EMAIL}}" \
-        -d "{{DOMAIN}}"
+        -d "{{DOMAIN}}"; then
+        log "Let's Encrypt certificate issued successfully"
+    else
+        certbot_exit_code=$?
+        CERTBOT_FAILED=1
+        log "ERROR: Let's Encrypt certificate issuance failed for {{DOMAIN}} (Certbot exit code: ${certbot_exit_code})."
+        log "WARNING: Continuing Moodle installation without an HTTPS certificate. Check DNS, port 80, NGINX and /var/log/letsencrypt/letsencrypt.log, then retry Certbot."
+    fi
 fi
 
 if [ "{{INSTALL_MODE}}" = "install" ]; then
@@ -208,4 +216,8 @@ else
     log "Restore mode: Moodle caches will be purged after database import"
 fi
 
-log "Done"
+if [ "$CERTBOT_FAILED" = "1" ]; then
+    log "Done with warnings: Moodle installed, but the HTTPS certificate is still pending for {{DOMAIN}}"
+else
+    log "Done"
+fi
