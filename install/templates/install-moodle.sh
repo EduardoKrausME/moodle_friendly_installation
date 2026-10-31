@@ -123,6 +123,7 @@ if [ "{{INSTALL_MODE}}" = "install" ]; then
     sudo -u "{{APACHE_USER}}" "{{PHP_BIN}}" {{BASE_DIR}}/moodle/admin/cli/cfg.php --name=enablemycourses    --set=1
     sudo -u "{{APACHE_USER}}" "{{PHP_BIN}}" {{BASE_DIR}}/moodle/admin/cli/cfg.php --name=defaulthomepage    --set=0
     sudo -u "{{APACHE_USER}}" "{{PHP_BIN}}" {{BASE_DIR}}/moodle/admin/cli/cfg.php --name=allowguestmymoodle --set=0
+    sudo -u "{{APACHE_USER}}" "{{PHP_BIN}}" {{BASE_DIR}}/moodle/admin/cli/cfg.php --name=forcelogin         --set=0
     sudo -u "{{APACHE_USER}}" "{{PHP_BIN}}" {{BASE_DIR}}/moodle/admin/cli/cfg.php --name=enablemyhome       --set=1
     sudo -u "{{APACHE_USER}}" "{{PHP_BIN}}" {{BASE_DIR}}/moodle/admin/cli/cfg.php --name=navshowallcourses  --set=0
     sudo -u "{{APACHE_USER}}" "{{PHP_BIN}}" {{BASE_DIR}}/moodle/admin/cli/cfg.php --name=allowframembedding --set=1
