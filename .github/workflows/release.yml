@@ -79,6 +79,18 @@ jobs:
 
           echo "Version validated successfully."
 
+      - name: Test PHP migration before publishing release
+        if: steps.ver.outputs.version != ''
+        shell: bash
+        run: |
+          set -euo pipefail
+          php -l public/app/Moodle260Migration.php
+          php -l bin/post-update/2.6.0.php
+          php -l public/app/version.php
+          php tests/moodle-260-migration.test.php
+          php tests/moodle-260-composer.test.php
+          php tests/apache-fallback-resource-test.php
+
       - name: Create annotated tag
         if: steps.ver.outputs.version != ''
         shell: bash
