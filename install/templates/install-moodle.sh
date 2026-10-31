@@ -106,6 +106,7 @@ git clone --depth 1 https://github.com/EduardoKrausME/moodle-local_boost_dark   
 git clone --depth 1 https://github.com/EduardoKrausME/moodle-local_kopere_mobile            {{BASE_DIR}}/moodle/public/local/kopere_mobile
 git clone --depth 1 https://github.com/EduardoKrausME/moodle-local_slow_queries             {{BASE_DIR}}/moodle/public/local/slow_queries
 git clone --depth 1 https://github.com/EduardoKrausME/moodle-local_alternative_file_system  {{BASE_DIR}}/moodle/public/local/alternative_file_system
+git clone --depth 1 https://github.com/EduardoKrausME/moodle-local_mcp                      {{BASE_DIR}}/moodle/public/local/mcp
 
 git clone --depth 1 https://github.com/EduardoKrausME/moodle-mod_supervideo                 {{BASE_DIR}}/moodle/public/mod/supervideo
 git clone --depth 1 https://github.com/EduardoKrausME/moodle-mod_certificatebeautiful       {{BASE_DIR}}/moodle/public/mod/certificatebeautiful
