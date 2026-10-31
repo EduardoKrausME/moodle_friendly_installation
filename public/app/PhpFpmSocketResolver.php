@@ -33,7 +33,7 @@ final class PhpFpmSocketResolver {
         }
 
         foreach (array_unique($candidates) as $candidate) {
-            if (is_socket($candidate)) {
+            if (@filetype($candidate) === "socket") {
                 return $candidate;
             }
         }
