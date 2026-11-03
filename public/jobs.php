@@ -48,7 +48,12 @@ $selectedjobid = isset($_GET["job"]) && is_string($_GET["job"])
 $jobs = [];
 $selectedjob = null;
 $shouldrefresh = false;
-$alljobs = JobManager::all();
+// Resource usage is periodic telemetry: keep its history in storage, but show only active jobs.
+$alljobs = array_values(array_filter(
+    JobManager::all(),
+    static fn(array $job): bool => ($job["type"] ?? "") !== "resource_usage"
+        || in_array(($job["status"] ?? ""), ["pending", "running"], true)
+));
 
 if (isset($_GET["ajax"]) && $_GET["ajax"] === "logs" && $selectedjobid !== "") {
     header("Content-Type: application/json; charset=utf-8");
