@@ -5,7 +5,7 @@ use app\MoodleManager;
 use app\SiteManager;
 
 require_once __DIR__ . "/app/bootstrap.php";
-Auth::requireLogin();
+Auth::requireLogin("json");
 
 ini_set("display_errors", "0");
 header("Content-Type: application/json; charset=utf-8");

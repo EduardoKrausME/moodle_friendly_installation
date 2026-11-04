@@ -7,7 +7,7 @@ use app\SiteManager;
 require_once __DIR__ . "/app/bootstrap.php";
 require_once __DIR__ . "/app/MoodlePluginManager.php";
 
-Auth::requireLogin();
+Auth::requireLogin("json");
 header("Content-Type: application/json; charset=utf-8");
 
 $domain = isset($_GET["domain"]) && is_string($_GET["domain"]) ? trim($_GET["domain"]) : "";

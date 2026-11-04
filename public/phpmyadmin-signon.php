@@ -7,7 +7,7 @@ use app\Auth;
 
 require_once __DIR__ . "/app/bootstrap.php";
 
-Auth::requireLogin();
+Auth::requireLogin("text");
 
 if ($_SERVER["REQUEST_METHOD"] !== "POST") {
     http_response_code(405);

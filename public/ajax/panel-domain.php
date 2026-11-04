@@ -11,7 +11,7 @@ header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
 
 $initialsetup = PanelConfigManager::requiresInitialSetup() && Auth::hasInitialAdminCredentials();
 if (!$initialsetup) {
-    Auth::requireLogin();
+    Auth::requireLogin("json");
 }
 
 try {

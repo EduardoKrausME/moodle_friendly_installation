@@ -5,7 +5,8 @@
         <div class="alert danger">{{error}}</div>
     {{/has_error}}
 
-    <form method="post" class="form">
+    <form method="post" action="/login.php" class="form">
+        <input type="hidden" name="redirect_to" value="{{redirect_to}}">
         <label>
             {{{i18n.login.username}}}
             <input type="text" name="username" value="{{username}}" autocomplete="username" required>

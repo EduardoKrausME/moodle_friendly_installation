@@ -216,20 +216,100 @@ class Auth {
     }
 
     /**
-     * Function requireLogin
+     * Function redirectTarget
      *
-     * @return void
+     * Only local absolute paths are accepted as post-login destinations.
+     *
+     * @param mixed $redirectTo
+     * @return string
      */
-    public static function requireLogin(): void {
-        if (!self::check()) {
-            redirect_to("/login.php");
+    public static function redirectTarget(mixed $redirectTo): string {
+        if (!is_string($redirectTo)
+            || $redirectTo === ""
+            || !str_starts_with($redirectTo, "/")
+            || str_starts_with($redirectTo, "//")
+            || str_contains($redirectTo, "\\")
+            || preg_match('/[\x00-\x1F\x7F]/', $redirectTo)
+        ) {
+            return "/";
         }
 
-        $user = self::currentUserRecord();
-        if (!$user || !UserManager::isActive($user)) {
-            self::logout();
-            redirect_to("/login.php");
+        $parts = parse_url($redirectTo);
+        if ($parts === false
+            || isset($parts["scheme"])
+            || isset($parts["host"])
+            || isset($parts["user"])
+            || isset($parts["pass"])
+            || isset($parts["fragment"])
+        ) {
+            return "/";
         }
+
+        return $redirectTo;
+    }
+
+    /**
+     * Function renderLogin
+     *
+     * Renders the shared login template and ends the current request.
+     *
+     * @param string $redirectTo
+     * @param string|null $error
+     * @param string $username
+     * @return never
+     */
+    public static function renderLogin(string $redirectTo = "/", ?string $error = null, string $username = ""): never {
+        header("Cache-Control: no-store");
+        render_header(t("login.title"));
+        echo render_app_template("page/login", [
+            "has_error" => $error !== null,
+            "error" => $error,
+            "username" => $username,
+            "redirect_to" => self::redirectTarget($redirectTo),
+        ]);
+        render_footer();
+        exit;
+    }
+
+    /**
+     * Function requireLogin
+     *
+     * Renders the login form at the original URL for HTML pages. Non-page
+     * endpoints can request a 401 JSON or plain-text response instead.
+     *
+     * @param string $responseFormat
+     * @return void
+     */
+    public static function requireLogin(string $responseFormat = "html"): void {
+        if (self::check()) {
+            $user = self::currentUserRecord();
+            if ($user && UserManager::isActive($user)) {
+                return;
+            }
+
+            self::logout();
+        }
+
+        if ($responseFormat !== "html") {
+            http_response_code(401);
+            header("Cache-Control: no-store");
+
+            if ($responseFormat === "json") {
+                header("Content-Type: application/json; charset=utf-8");
+                echo json_encode([
+                    "ok" => false,
+                    "success" => false,
+                    "error" => "authentication_required",
+                ]);
+            } else {
+                header("Content-Type: text/plain; charset=utf-8");
+                echo "Authentication required.";
+            }
+            exit;
+        }
+
+        http_response_code(401);
+        self::renderLogin(self::redirectTarget($_SERVER["REQUEST_URI"] ?? "/"));
     }
 
     /**
