@@ -97,7 +97,7 @@ fi
 
 log "Install Plugins"
 
-git clone --depth 1 https://github.com/EduardoKrausME/moodle-theme_eadtraining              {{BASE_DIR}}/moodle/public/theme/eadtraining
+git clone --depth 1 https://github.com/EduardoKrausME/moodle-theme_learnlingo               {{BASE_DIR}}/moodle/public/theme/learnlingo
 git clone --depth 1 https://github.com/EduardoKrausME/moodle-message_kopereemail            {{BASE_DIR}}/moodle/public/message/output/kopereemail
 
 git clone --depth 1 https://github.com/EduardoKrausME/moodle-local-kopere_dashboard         {{BASE_DIR}}/moodle/public/local/kopere_dashboard
@@ -116,9 +116,7 @@ git clone --depth 1 https://github.com/EduardoKrausME/moodle-mod_childcourse    
 if [ "{{INSTALL_MODE}}" = "install" ]; then
     log "Set default info Plugins"
     sudo -u "{{APACHE_USER}}" "{{PHP_BIN}}" {{BASE_DIR}}/moodle/admin/cli/upgrade.php                       --non-interactive --allow-unstable
-    sudo -u "{{APACHE_USER}}" "{{PHP_BIN}}" {{BASE_DIR}}/moodle/admin/cli/cfg.php --name=theme              --set=eadtraining
-    sudo -u "{{APACHE_USER}}" "{{PHP_BIN}}" {{BASE_DIR}}/moodle/admin/cli/cfg.php --name=brandcolor         --set="{{THEME_PRIMARY}}"   --component=theme_boost
-    sudo -u "{{APACHE_USER}}" "{{PHP_BIN}}" {{BASE_DIR}}/moodle/admin/cli/cfg.php --name=secondary          --set="{{THEME_SECONDARY}}" --component=theme_boost
+    sudo -u "{{APACHE_USER}}" "{{PHP_BIN}}" {{BASE_DIR}}/moodle/admin/cli/cfg.php --name=theme              --set=learnlingo
     sudo -u "{{APACHE_USER}}" "{{PHP_BIN}}" {{BASE_DIR}}/moodle/admin/cli/cfg.php --name=enabledashboard    --set=0
     sudo -u "{{APACHE_USER}}" "{{PHP_BIN}}" {{BASE_DIR}}/moodle/admin/cli/cfg.php --name=enablemycourses    --set=1
     sudo -u "{{APACHE_USER}}" "{{PHP_BIN}}" {{BASE_DIR}}/moodle/admin/cli/cfg.php --name=defaulthomepage    --set=0

@@ -97,9 +97,6 @@
 {{#errors.kopere_backup_zip}}
     <small class="alert alert-danger">{{.}}</small>
 {{/errors.kopere_backup_zip}}
-{{#errors.theme_palette}}
-    <small class="alert alert-danger">{{.}}</small>
-{{/errors.theme_palette}}
 
 <form method="post" enctype="multipart/form-data" class="card form">
     <input type="hidden" name="csrf_token" value="{{csrf_token}}">
@@ -161,24 +158,6 @@
         <input type="checkbox" name="issue_cert" value="1" {{#values.issue_cert}}checked{{/values.issue_cert}}>
         {{{i18n.install.issue_cert}}}
     </label>
-
-    <div class="theme-palette-group">
-        <strong>{{{i18n.install.theme_colors}}}</strong>
-        <div class="theme-palette-grid">
-            {{#theme_palette_options}}
-                <label class="theme-palette-option" style="{{style}}">
-                    <input type="radio" name="theme_palette"
-                           style="display: none"
-                           value="{{index}}" {{#checked}}checked{{/checked}}>
-                    <div class="theme-palette-meta">
-                        <div class="theme-palette-code">{{primary}}</div>
-                        <div class="theme-palette-code">{{secondary}}</div>
-                    </div>
-                </label>
-            {{/theme_palette_options}}
-        </div>
-        {{#errors.theme_palette}}<small class="alert alert-danger">{{.}}</small>{{/errors.theme_palette}}
-    </div>
 
     <div class="form-actions">
         <button type="submit"
