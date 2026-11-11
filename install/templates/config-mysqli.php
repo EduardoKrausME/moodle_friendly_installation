@@ -54,7 +54,7 @@ if (file_exists("{$domainroot}/debug.enable")) {
     ini_set("display_errors", "1");
     ini_set("display_startup_errors", "1");
 
-    $CFG->debug = 30719;
+    $CFG->debug = 32767;
     $CFG->debugdisplay = 1;
 }
 
