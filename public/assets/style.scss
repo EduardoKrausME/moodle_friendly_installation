@@ -188,8 +188,72 @@ input[type="search"]:focus {
             text-align: left;
         }
     }
+    .management-shortcut.is-app {
+        --shortcut-accent: #0284C7;
+        --shortcut-soft: #F0F9FF;
+        --shortcut-border: #BAE6FD;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+        min-height: 112px;
+        margin-top: 14px;
+
+        .moodle-app-identity {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            min-width: 0;
+        }
+
+        .moodle-app-description {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            min-width: 0;
+            strong {
+                margin: 0;
+                color: #0F172A;
+                font-size: 17px;
+            }
+            > span {
+                color: var(--muted);
+                font-size: 13px;
+            }
+        }
+
+        .moodle-app-actions {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 10px;
+            min-width: 0;
+            margin-left: auto;
+        }
+    }
+
     #plugin-update-alert {
         margin-top: 14px;
+    }
+}
+@media (max-width: 760px) {
+    .moodle-management .management-shortcut.is-app {
+        flex-direction: column;
+        align-items: stretch;
+        .moodle-app-actions {
+            width: 100%;
+            margin-left: 0;
+            justify-content: flex-start;
+            .button {
+                flex: 1 1 auto;
+            }
+        }
+    }
+}
+@media (max-width: 480px) {
+    .moodle-management .management-shortcut.is-app .moodle-app-actions .button {
+        width: 100%;
     }
 }
 .management-stats {
