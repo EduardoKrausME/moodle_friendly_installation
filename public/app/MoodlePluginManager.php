@@ -579,6 +579,7 @@ class MoodlePluginManager {
             "update_available" => $localversion !== $remoteversion,
             "check_error" => "",
         ];
+    }
 
     /**
      * @param string $domain
