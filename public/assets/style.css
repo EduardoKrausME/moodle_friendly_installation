@@ -196,6 +196,9 @@ input[type=search]:focus {
   font-size: 13px;
   text-align: left;
 }
+.moodle-management .moodle-app-shortcuts {
+  margin: 14px 0 0;
+}
 .moodle-management .management-shortcut.is-app {
   --shortcut-accent: #0284C7;
   --shortcut-soft: #F0F9FF;
@@ -205,7 +208,7 @@ input[type=search]:focus {
   justify-content: space-between;
   gap: 20px;
   min-height: 112px;
-  margin-top: 14px;
+  margin-top: 0;
 }
 .moodle-management .management-shortcut.is-app .moodle-app-identity {
   display: flex;
