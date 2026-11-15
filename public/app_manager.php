@@ -202,6 +202,8 @@ echo render_app_template("page/app-manager", [
     ],
     "app_version" => AppManager::appVersion(),
     "moodle_config_test" => $moodleconfigtest,
+    "plugin_install_action_url" => "/moodle_plugins.php?domain=" . rawurlencode($domain),
+    "plugin_install_repository_url" => "https://github.com/EduardoKrausME/moodle-local_kopere_mobile",
     "has_moodle_config_test_error" => !empty($moodleconfigtest["has_error"]),
     "has_moodle_config_test_warnings" => !empty($moodleconfigtest["has_warnings"]),
     "moodle_config_test_valid" => !empty($moodleconfigtest["valid"]),
