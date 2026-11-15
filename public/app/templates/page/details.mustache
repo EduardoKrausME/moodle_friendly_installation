@@ -179,24 +179,24 @@
         {{#app_exist}}
             <div class="management-shortcuts moodle-app-shortcuts">
                 <div class="management-shortcut is-app">
-                <div class="moodle-app-identity">
-                    <span class="management-shortcut-icon" aria-hidden="true">
-                        <svg><use href="#icon-mobile"></use></svg>
-                    </span>
-                    <span class="moodle-app-description">
-                        <strong>{{{i18n.details.app_heading}}}</strong>
-                        <span>{{{i18n.details.app_intro}}}</span>
-                    </span>
-                </div>
-                <div class="moodle-app-actions">
-                    <a class="button" href="{{app_manage_url}}">{{{i18n.actions.manage_app}}}</a>
-                    <a class="button secondary" href="{{app_preview_url}}" target="_blank" rel="noopener">{{{i18n.actions.preview_app}}}</a>
-                    {{#app_has_files}}
-                        {{#app_files}}
-                            <a class="button secondary" href="{{download_url}}">{{{i18n.actions.download}}} {{label}}</a>
-                        {{/app_files}}
-                    {{/app_has_files}}
-                </div>
+                    <div class="moodle-app-identity">
+                        <span class="management-shortcut-icon" aria-hidden="true">
+                            <svg><use href="#icon-mobile"></use></svg>
+                        </span>
+                        <span class="moodle-app-description">
+                            <strong>{{{i18n.details.app_heading}}}</strong>
+                            <span>{{{i18n.details.app_intro}}}</span>
+                        </span>
+                    </div>
+                    <div class="moodle-app-actions">
+                        <a class="button" href="{{app_manage_url}}">{{{i18n.actions.manage_app}}}</a>
+                        <a class="button secondary" href="{{app_preview_url}}" target="_blank" rel="noopener">{{{i18n.actions.preview_app}}}</a>
+                        {{#app_has_files}}
+                            {{#app_files}}
+                                <a class="button secondary" href="{{download_url}}">{{{i18n.actions.download}}} {{label}}</a>
+                            {{/app_files}}
+                        {{/app_has_files}}
+                    </div>
                 </div>
             </div>
         {{/app_exist}}
