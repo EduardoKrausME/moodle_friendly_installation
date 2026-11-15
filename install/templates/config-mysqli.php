@@ -30,7 +30,7 @@ $CFG->enableuserfeedback            = false;
 $CFG->registrationpending           = false;
 $CFG->site_is_public                = false;
 //$CFG->disableupdatenotifications    = true;
-$CFG->routerconfigured              = true;
+$CFG->routerconfigured              = false;
 
 $CFG->xsendfile = 'X-Sendfile';
 
