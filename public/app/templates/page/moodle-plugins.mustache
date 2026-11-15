@@ -252,42 +252,66 @@
 
     .marketplace-type-filters {
         display: flex;
-        flex-wrap: wrap;
-        gap: 9px;
+        align-items: stretch;
+        gap: 4px;
+        overflow-x: auto;
         margin: -4px 0 20px;
+        border-bottom: 1px solid var(--line-strong);
+        scrollbar-width: thin;
+        -webkit-overflow-scrolling: touch;
     }
 
     .marketplace-type-button {
         display: inline-flex;
+        flex: 0 0 auto;
         align-items: center;
+        justify-content: center;
         gap: 7px;
-        min-height: 40px;
-        padding: 7px 10px;
-        border: 1px solid rgba(127, 127, 127, .24);
-        border-radius: 11px;
-        background: rgba(127, 127, 127, .05);
-        color: inherit;
+        min-height: 42px;
+        margin-bottom: -1px;
+        padding: 8px 12px 9px;
+        border: 0;
+        border-bottom: 3px solid transparent;
+        border-radius: 8px 8px 0 0;
+        background: transparent;
+        color: var(--muted);
         font: inherit;
+        font-size: .85rem;
         font-weight: 700;
+        white-space: nowrap;
         cursor: pointer;
-        transition: background .15s ease, border-color .15s ease, transform .15s ease;
+        transform: none;
+        transition: background-color .15s ease, color .15s ease, border-color .15s ease;
     }
 
     .marketplace-type-button:hover {
-        border-color: currentColor;
-        background: rgba(127, 127, 127, .11);
-        transform: translateY(-1px);
+        border-bottom-color: var(--primary-dark);
+        background: var(--primary-dark);
+        color: #ffffff;
+        transform: none;
     }
 
     .marketplace-type-button.is-active {
-        border-color: currentColor;
-        background: rgba(127, 127, 127, .16);
-        box-shadow: inset 0 0 0 1px currentColor;
+        border-bottom-color: var(--primary);
+        background: var(--primary-soft);
+        color: var(--primary-dark);
+    }
+
+    .marketplace-type-button.is-active:hover {
+        border-bottom-color: var(--primary-dark);
+        background: var(--primary-dark);
+        color: #ffffff;
+    }
+
+    .marketplace-type-button:focus-visible {
+        outline: 2px solid var(--primary);
+        outline-offset: -4px;
     }
 
     .marketplace-type-button svg {
-        width: 18px;
-        height: 18px;
+        width: 16px;
+        height: 16px;
+        flex: 0 0 16px;
         fill: none;
         stroke: currentColor;
         stroke-width: 1.8;
@@ -296,13 +320,19 @@
     }
 
     .marketplace-type-button small {
-        min-width: 24px;
+        min-width: 22px;
         padding: 2px 6px;
-        border-radius: 999px;
-        background: rgba(127, 127, 127, .14);
+        border-radius: 5px;
+        background: rgba(100, 116, 139, .12);
+        color: inherit;
         text-align: center;
         font-size: .72rem;
         font-weight: 800;
+    }
+
+    .marketplace-type-button:hover small {
+        background: rgba(255, 255, 255, .2);
+        color: #ffffff;
     }
 
     .marketplace-plugin-grid {
