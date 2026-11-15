@@ -79,7 +79,7 @@
                 <span>{{{i18n.resources.collected_at}}}: <strong>{{collected_at}}</strong></span>
                 <span>{{{i18n.resources.duration}}}: <strong>{{duration}}s</strong></span>
                 {{#resources}}
-                    <form method="post" class="inline-form">
+                    <form method="post" class="inline-form" style="margin-left: auto;">
                         <input type="hidden" name="csrf_token" value="{{csrf_token}}">
                         <input type="hidden" name="action" value="refresh_resources">
                         <button type="submit"

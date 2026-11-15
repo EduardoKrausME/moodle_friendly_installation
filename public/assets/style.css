@@ -122,7 +122,6 @@ input[type=search]:focus {
   text-align: right;
 }
 
-
 .moodle-management {
   width: 100%;
   border-top: 1px solid rgba(148, 163, 184, 0.25);
@@ -145,11 +144,9 @@ input[type=search]:focus {
   --shortcut-soft: #EFF6FF;
   --shortcut-border: #BFDBFE;
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
+  align-items: center;
   gap: 12px;
   min-width: 0;
-  min-height: 174px;
   border-color: var(--shortcut-border);
   background: linear-gradient(135deg, #FFF 18%, var(--shortcut-soft) 110%);
   box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
@@ -207,7 +204,6 @@ input[type=search]:focus {
   align-items: center;
   justify-content: space-between;
   gap: 20px;
-  min-height: 112px;
   margin-top: 0;
 }
 .moodle-management .management-shortcut.is-app .moodle-app-identity {
@@ -243,6 +239,7 @@ input[type=search]:focus {
 .moodle-management #plugin-update-alert {
   margin-top: 14px;
 }
+
 @media (max-width: 760px) {
   .moodle-management .management-shortcut.is-app {
     flex-direction: column;
