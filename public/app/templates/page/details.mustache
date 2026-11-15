@@ -19,7 +19,91 @@
 {{/has_flash}}
 
 
- <div class="card hero-card inverse">
+<section class="server-overview" aria-labelledby="moodle-data-overview-heading">
+    <h2 id="moodle-data-overview-heading">{{{i18n.details.data_heading}}}</h2>
+    {{^stats_warning}}
+        <div class="server-overview-grid">
+            {{#stat_boxes}}
+                <article class="server-stat-card {{card_class}}">
+                    <div class="server-stat-heading">
+                        <span class="server-stat-icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24"><use href="#{{icon}}"></use></svg>
+                        </span>
+                        <span>{{label}}</span>
+                    </div>
+                    <strong class="server-stat-value">{{value}}</strong>
+                    <span class="server-stat-caption">{{description}}</span>
+                </article>
+            {{/stat_boxes}}
+        </div>
+    {{/stats_warning}}
+    {{#stats_warning}}
+        <div class="alert warning compact-alert">{{{i18n.details.mysql_error}}} {{stats_error}}</div>
+    {{/stats_warning}}
+</section>
+
+<section class="server-overview" aria-labelledby="moodle-resource-overview-heading">
+    <header class="section-heading-actions">
+        <div>
+            <h2 id="moodle-resource-overview-heading">{{{i18n.resources.heading}}}</h2>
+            <p class="card-subtitle">{{{i18n.resources.intro}}}</p>
+        </div>
+        {{#resources}}
+            <form method="post" class="inline-form">
+                <input type="hidden" name="csrf_token" value="{{csrf_token}}">
+                <input type="hidden" name="action" value="refresh_resources">
+                <button type="submit" class="button secondary" {{#has_active_job}}disabled{{/has_active_job}}>
+                    {{{i18n.resources.refresh}}}
+                </button>
+            </form>
+        {{/resources}}
+    </header>
+
+    {{#resources}}
+        {{#has_active_job}}
+            <div class="alert warning compact-alert">
+                {{{i18n.resources.collecting}}}
+                <a href="{{active_job_url}}">{{active_job_id}}</a>
+            </div>
+        {{/has_active_job}}
+        {{^has_snapshot}}
+            <div class="alert warning compact-alert">{{{i18n.resources.no_snapshot}}}</div>
+        {{/has_snapshot}}
+        {{#has_snapshot}}
+            {{#is_stale}}
+                <div class="alert warning compact-alert">{{{i18n.resources.stale}}}</div>
+            {{/is_stale}}
+            <div class="server-overview-grid">
+                {{#items}}
+                    <article class="server-stat-card {{card_class}}">
+                        <div class="server-stat-heading">
+                            <span class="server-stat-icon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24"><use href="#{{icon}}"></use></svg>
+                            </span>
+                            <span>{{label}}</span>
+                        </div>
+                        <strong class="server-stat-value">{{value}}</strong>
+                    </article>
+                {{/items}}
+            </div>
+            <div class="disk-progress" role="progressbar" aria-label="{{{i18n.resources.server_disk}}}"
+                 aria-valuenow="{{server_percent}}" aria-valuemin="0" aria-valuemax="100">
+                <div class="disk-progress-bar" style="{{server_percent_style}}"></div>
+            </div>
+            <div class="resource-meta">
+                <span>{{{i18n.resources.server_disk}}}: <strong>{{server_percent}}%</strong></span>
+                <span>{{{i18n.resources.database_tables}}}: <strong>{{database_tables}}</strong></span>
+                <span>{{{i18n.resources.collected_at}}}: <strong>{{collected_at}}</strong></span>
+                <span>{{{i18n.resources.duration}}}: <strong>{{duration}}s</strong></span>
+            </div>
+            {{#has_database_error}}
+                <div class="alert warning compact-alert">{{{i18n.resources.database_error}}} {{database_error}}</div>
+            {{/has_database_error}}
+        {{/has_snapshot}}
+    {{/resources}}
+</section>
+
+<div class="card hero-card inverse">
     <div>
         <div class="flag-header">
             <h2>{{{i18n.details.shortcuts_heading}}}</h2>
@@ -110,22 +194,7 @@
 
 <div class="details-grid">
     <div class="card">
-        <h2>{{{i18n.details.data_heading}}}</h2>
-        {{^stats_warning}}
-            <div class="stat-grid">
-                {{#stat_boxes}}
-                    <div class="stat-box">
-                        <h3>{{label}}</h3>
-                        <strong>{{value}}</strong>
-                        <small>{{description}}</small>
-                    </div>
-                {{/stat_boxes}}
-            </div>
-        {{/stats_warning}}
-        {{#stats_warning}}
-            <div class="alert warning compact-alert">{{{i18n.details.mysql_error}}} {{stats_error}}</div>
-        {{/stats_warning}}
-
+        <h2>{{{i18n.details.management_heading}}}</h2>
         <div class="management-shortcuts">
             <a class="management-shortcut" href="{{moodle_users_url}}" style="width: 100%">
                 <span class="management-shortcut-icon" >
@@ -156,61 +225,6 @@
             </a>
             <div class="alert warning compact-alert" id="plugin-update-alert" hidden></div>
         </div>
-    </div>
-
-    <div class="card resource-card">
-        <div class="section-heading-actions">
-            <div>
-                <h2>{{{i18n.resources.heading}}}</h2>
-                <p class="card-subtitle">{{{i18n.resources.intro}}}</p>
-            </div>
-            {{#resources}}
-                <form method="post" class="inline-form">
-                    <input type="hidden" name="csrf_token" value="{{csrf_token}}">
-                    <input type="hidden" name="action" value="refresh_resources">
-                    <button type="submit" class="button secondary" {{#has_active_job}}disabled{{/has_active_job}}>
-                        {{{i18n.resources.refresh}}}
-                    </button>
-                </form>
-            {{/resources}}
-        </div>
-
-        {{#resources}}
-            {{#has_active_job}}
-                <div class="alert warning compact-alert">
-                    {{{i18n.resources.collecting}}}
-                    <a href="{{active_job_url}}">{{active_job_id}}</a>
-                </div>
-            {{/has_active_job}}
-            {{^has_snapshot}}
-                <div class="alert warning compact-alert">{{{i18n.resources.no_snapshot}}}</div>
-            {{/has_snapshot}}
-            {{#has_snapshot}}
-                {{#is_stale}}
-                    <div class="alert warning compact-alert">{{{i18n.resources.stale}}}</div>
-                {{/is_stale}}
-                <div class="resource-grid">
-                    {{#items}}
-                        <div class="resource-item">
-                            <span>{{label}}</span>
-                            <strong>{{value}}</strong>
-                        </div>
-                    {{/items}}
-                </div>
-                <div class="disk-progress" aria-label="{{{i18n.resources.server_disk}}} {{server_percent}}%">
-                    <div class="disk-progress-bar" style="{{server_percent_style}}"></div>
-                </div>
-                <div class="resource-meta">
-                    <span>{{{i18n.resources.server_disk}}}: <strong>{{server_percent}}%</strong></span>
-                    <span>{{{i18n.resources.database_tables}}}: <strong>{{database_tables}}</strong></span>
-                    <span>{{{i18n.resources.collected_at}}}: <strong>{{collected_at}}</strong></span>
-                    <span>{{{i18n.resources.duration}}}: <strong>{{duration}}s</strong></span>
-                </div>
-                {{#has_database_error}}
-                    <div class="alert warning compact-alert">{{{i18n.resources.database_error}}} {{database_error}}</div>
-                {{/has_database_error}}
-            {{/has_snapshot}}
-        {{/resources}}
     </div>
 
     <div class="card">
