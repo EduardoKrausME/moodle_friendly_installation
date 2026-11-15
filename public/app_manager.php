@@ -62,6 +62,7 @@ if ($site == null) {
 
 $domain = $site["domain"] ?? $domain;
 $settings = AppManager::getSettings($site);
+$branding = AppManager::moodleBranding($domain);
 $errors = [];
 $values = $settings;
 
@@ -69,6 +70,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     validate_csrf();
 
     $action = isset($_POST["action"]) && is_string($_POST["action"]) ? $_POST["action"] : "save_app";
+    if (!empty($_POST["theme_color_sync"]) && !empty($branding["available"])) {
+        $_POST["statusbarbackgroundcolor"] = $branding["brandcolor"];
+    }
     $settingsvalidation = AppManager::validateSettings($_POST, $domain, $settings);
     $values = array_merge($values, $settingsvalidation["data"]);
     $errors = $settingsvalidation["errors"];
@@ -76,7 +80,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $packageuid = $settingsvalidation["data"]["package_uid"] ?? $values["package_uid"] ?? AppManager::defaultPackageUid($domain);
     $uploadedicon = $_FILES["icon"] ?? null;
     $needsicon = !AppManager::hasIcon($packageuid);
-    $iconvalidation = AppManager::validateIconUpload(is_array($uploadedicon) ? $uploadedicon : null, $needsicon);
+    // If no icon was uploaded, saveSettings creates the branded 1024px PNG.
+    $iconvalidation = AppManager::validateIconUpload(is_array($uploadedicon) ? $uploadedicon : null, false);
     if (!$iconvalidation["valid"]) {
         $errors["icon"] = $iconvalidation["error"];
     }
@@ -122,7 +127,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         "package_name" => $settings["package_name"],
                         "statusbarbackgroundcolor" => $settings["statusbarbackgroundcolor"],
                         "icon_path" => $settings["icon_path"],
+                        "app_scss" => AppManager::buildAppScss($branding, $settings),
                         "app_version" => AppManager::appVersion(),
+    "has_theme_branding" => !empty($branding["available"]),
+    "theme_brandcolor" => $branding["brandcolor"],
                     ]);
 
                     $_SESSION["flash"] = t("app_manager.build_queued", ["id" => $job["id"]]);
@@ -142,6 +150,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 $flash = flash_message();
 $settings = AppManager::getSettings($site);
 $values = array_merge($settings, $values);
+if (!empty($branding["available"]) && !empty($values["theme_color_sync"])) {
+    $values["statusbarbackgroundcolor"] = $branding["brandcolor"];
+}
 $packageuid = $values["package_uid"] ?? AppManager::defaultPackageUid($domain);
 $values["resource_dir"] = AppManager::resourceDir($packageuid);
 $values["icon_path"] = AppManager::iconPath($packageuid);
@@ -195,6 +206,8 @@ echo render_app_template("page/app-manager", [
         "package_uid_locked" => !empty($values["package_uid_locked"]),
         "package_name" => $values["package_name"] ?? "",
         "statusbarbackgroundcolor" => $values["statusbarbackgroundcolor"] ?? "#08422a",
+        "theme_color_sync" => !empty($values["theme_color_sync"]),
+        "app_scss" => $values["app_scss"] ?? "",
         "has_icon" => !empty($values["has_icon"]),
         "icon_path" => $values["icon_path"],
         "resource_dir" => $values["resource_dir"] ?? AppManager::resourceDir($packageuid),
@@ -212,6 +225,7 @@ echo render_app_template("page/app-manager", [
         "package_uid" => $errors["package_uid"] ?? "",
         "package_name" => $errors["package_name"] ?? "",
         "statusbarbackgroundcolor" => $errors["statusbarbackgroundcolor"] ?? "",
+        "app_scss" => $errors["app_scss"] ?? "",
         "icon" => $errors["icon"] ?? "",
         "keystore_password" => $errors["keystore_password"] ?? "",
         "build" => $errors["build"] ?? "",

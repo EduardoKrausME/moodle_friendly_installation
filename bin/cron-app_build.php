@@ -68,6 +68,13 @@ function executeAppBuildJob(array $job): array {
         $buildconfig = createAndroidBuildConfig($resfolder, $workdir, $logfile);
 
         runBuildCommand("npm install --no-audit --fund=false", $workdir, $logfile);
+        $scssfile = "{$workdir}/app-branding.scss";
+        if (file_put_contents($scssfile, (string)($job["app_scss"] ?? "")) === false) {
+            throw new RuntimeException("Could not write app branding SCSS.");
+        }
+        runBuildCommand("npx --no-install sass --no-source-map --style=compressed " .
+            escapeshellarg($scssfile) . " " . escapeshellarg("{$workdir}/www/css/app-branding.css"),
+            $workdir, $logfile);
         runBuildCommand("npx cordova platform remove android || true", $workdir, $logfile);
         runBuildCommand("npx cordova platform add android@15.0.0", $workdir, $logfile);
         runBuildCommand("npx cordova requirements android", $workdir, $logfile);

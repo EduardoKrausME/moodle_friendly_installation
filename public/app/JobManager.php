@@ -85,6 +85,7 @@ class JobManager {
             "package_name" => $data["package_name"],
             "statusbarbackgroundcolor" => $data["statusbarbackgroundcolor"],
             "icon_path" => $data["icon_path"],
+            "app_scss" => $data["app_scss"] ?? "",
             "app_version" => $data["app_version"],
             "created_at" => now_iso(),
             "updated_at" => now_iso(),

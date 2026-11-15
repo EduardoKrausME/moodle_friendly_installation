@@ -23,6 +23,8 @@ class AppManager {
             "package_uid" => self::defaultPackageUid($domain),
             "package_name" => self::defaultPackageName($site),
             "statusbarbackgroundcolor" => "#08422a",
+            "theme_color_sync" => true,
+            "app_scss" => "",
             "icon_path" => "",
             "updated_at" => "",
             "updated_by" => "",
@@ -35,6 +37,10 @@ class AppManager {
         }
 
         $settings = array_merge($defaults, $stored);
+        // Respect colours manually selected before theme syncing was introduced.
+        if (!array_key_exists("theme_color_sync", $stored) && isset($stored["statusbarbackgroundcolor"])) {
+            $settings["theme_color_sync"] = false;
+        }
         if (empty($settings["package_uid"])) {
             $settings["package_uid"] = $defaults["package_uid"];
         }
@@ -94,6 +100,11 @@ class AppManager {
         }
 
         $color = strtoupper($input["statusbarbackgroundcolor"] ?? "");
+        $appscss = $input["app_scss"] ?? ($current["app_scss"] ?? "");
+        if (!is_string($appscss) || strlen($appscss) > 60000) {
+            $errors["app_scss"] = I18n::get("validation.app_scss_size");
+            $appscss = is_string($appscss) ? substr($appscss, 0, 60000) : "";
+        }
         if (!preg_match('/^#[0-9A-F]{6}$/', $color)) {
             $errors["statusbarbackgroundcolor"] = I18n::get("validation.color_invalid");
         }
@@ -105,6 +116,8 @@ class AppManager {
                 "package_uid" => $packageuid,
                 "package_name" => $packagename,
                 "statusbarbackgroundcolor" => $color,
+                "theme_color_sync" => !empty($input["theme_color_sync"]),
+                "app_scss" => $appscss,
             ],
         ];
     }
@@ -223,6 +236,9 @@ class AppManager {
             chmod($dest, 0640);
         }
 
+        if (!self::hasIcon($packageuid)) {
+            self::generateDefaultIcon($packageuid, $settings["package_name"], $settings["statusbarbackgroundcolor"]);
+        }
         if (self::hasIcon($packageuid)) {
             $settings["icon_path"] = self::iconPath($packageuid);
         }
@@ -241,6 +257,166 @@ class AppManager {
         $settings["has_keystore_password"] = self::hasAndroidKeystorePassword($packageuid);
         $settings["has_android_key_files"] = self::hasAndroidKeyFiles($packageuid);
         return $settings;
+    }
+
+
+    /**
+     * Get public branding from the Moodle domain already registered with the panel.
+     * A missing plugin or an unavailable domain never changes saved app settings.
+     *
+     * @param string $domain
+     * @return array
+     */
+    public static function moodleBranding(string $domain): array {
+        $fallback = [
+            "available" => false,
+            "brandcolor" => "#08422A",
+            "accentcolor" => "#08422A",
+            "canvascolor" => "#FFFFFF",
+            "textcolor" => "#263238",
+            "navbar_scss" => "",
+        ];
+        try {
+            $url = self::moodleConfigBaseUrl($domain) . "/local/kopere_mobile/index.php?action=app-branding";
+            $data = json_decode(self::fetchMoodleConfigTestUrl($url), true);
+        } catch (\Throwable $e) {
+            return $fallback;
+        }
+        if (!is_array($data) || ($data["source"] ?? "") !== "theme_learnlingo") {
+            return $fallback;
+        }
+        foreach (["brandcolor", "accentcolor", "canvascolor", "textcolor"] as $key) {
+            $value = $data[$key] ?? "";
+            if (!is_string($value) || !preg_match('/^#[0-9a-fA-F]{6}$/D', $value)) {
+                return $fallback;
+            }
+            $fallback[$key] = strtoupper($value);
+        }
+        $tokens = $data["navbar_scss"] ?? "";
+        if (is_string($tokens) && strlen($tokens) <= 12000 &&
+                str_contains($tokens, "--learnlingo-navbar-bg") &&
+                !preg_match('/@(?:import|use|forward)\b/i', $tokens)) {
+            $fallback["navbar_scss"] = $tokens;
+        }
+        $fallback["available"] = true;
+        return $fallback;
+    }
+
+    /**
+     * Compile this stylesheet for Cordova only, leaving the Moodle site SCSS untouched.
+     *
+     * @param array $branding
+     * @param array $settings
+     * @return string
+     */
+    public static function buildAppScss(array $branding, array $settings): string {
+        $colors = [];
+        foreach (["brandcolor", "accentcolor", "canvascolor", "textcolor"] as $key) {
+            $value = $branding[$key] ?? "#08422A";
+            $colors[$key] = is_string($value) && preg_match('/^#[0-9a-fA-F]{6}$/D', $value)
+                ? strtoupper($value) : "#08422A";
+        }
+        if (empty($settings["theme_color_sync"])) {
+            $color = $settings["statusbarbackgroundcolor"] ?? "";
+            if (is_string($color) && preg_match('/^#[0-9a-fA-F]{6}$/D', $color)) {
+                $colors["brandcolor"] = strtoupper($color);
+            }
+        }
+
+        $base = '$primary: ' . $colors["brandcolor"] . ";\n";
+        $base .= '$learnlingo-accent: ' . $colors["accentcolor"] . ";\n";
+        $base .= '$navbar-height: 60px;' . "\n";
+        $base .= '$app-canvas: ' . $colors["canvascolor"] . ";\n";
+        $base .= '$app-ink: ' . $colors["textcolor"] . ";\n";
+        $base .= <<<'SCSS'
+
+:root {
+    --primary-color: #{$primary};
+    --primary-color-2: #{$learnlingo-accent};
+    --ons-color-primary: #{$primary};
+    --page-material-background-color: #{$app-canvas};
+    --bs-primary: #{$primary};
+    --bs-accent: #{$learnlingo-accent};
+    --bs-ink: #{$app-ink};
+    --bs-canvas: #{$app-canvas};
+    --bs-navbar-border: #d8e0dc;
+    --bs-gray-200: #e9ecef;
+    --bs-gray-300: #dee2e6;
+    --bs-gray-700: #495057;
+    --kopere-mobile-primary: #{$primary};
+    --kopere-mobile-accent: #{$learnlingo-accent};
+    --kopere-mobile-canvas: #{$app-canvas};
+    --kopere-mobile-text: #{$app-ink};
+}
+
+SCSS;
+        $navbar = $branding["navbar_scss"] ?? "";
+        if (is_string($navbar) && strlen($navbar) <= 12000) {
+            $base .= "\n" . $navbar . "\n";
+        }
+        return $base . "\n" . (string)($settings["app_scss"] ?? "");
+    }
+
+    /**
+     * Automatically generate a 1024x1024 icon using the app name and primary colour.
+     * This fallback never overwrites an administrator-uploaded PNG.
+     *
+     * @param string $packageuid
+     * @param string $name
+     * @param string $color
+     * @return void
+     */
+    private static function generateDefaultIcon(string $packageuid, string $name, string $color): void {
+        if (!function_exists("imagecreatetruecolor")) {
+            throw new RuntimeException("PHP GD is required to generate an app icon automatically.");
+        }
+        $image = imagecreatetruecolor(1024, 1024);
+        if ($image === false) {
+            throw new RuntimeException("Could not allocate the app icon image.");
+        }
+        $r = hexdec(substr($color, 1, 2));
+        $g = hexdec(substr($color, 3, 2));
+        $b = hexdec(substr($color, 5, 2));
+        $background = imagecolorallocate($image, $r, $g, $b);
+        $white = imagecolorallocate($image, 255, 255, 255);
+        imagefill($image, 0, 0, $background);
+
+        $letter = mb_strtoupper(mb_substr(trim($name), 0, 1));
+        $fonts = [
+            "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
+            "/usr/share/fonts/dejavu-sans-fonts/DejaVuSans-Bold.ttf",
+            "/usr/share/fonts/truetype/liberation2/LiberationSans-Bold.ttf",
+        ];
+        $font = null;
+        foreach ($fonts as $candidate) {
+            if (is_readable($candidate)) {
+                $font = $candidate;
+                break;
+            }
+        }
+        if ($font !== null && $letter !== "" && function_exists("imagettfbbox")) {
+            $size = 560;
+            $bounds = imagettfbbox($size, 0, $font, $letter);
+            if (is_array($bounds)) {
+                $width = $bounds[2] - $bounds[0];
+                $height = $bounds[1] - $bounds[7];
+                imagettftext($image, $size, 0,
+                    (int)((1024 - $width) / 2 - $bounds[0]),
+                    (int)((1024 + $height) / 2 - $bounds[7]),
+                    $white, $font, $letter);
+            }
+        } else {
+            // A simple, recognizable open-book mark without external fonts.
+            imagefilledpolygon($image, [220, 290, 480, 360, 480, 770, 220, 700], $white);
+            imagefilledpolygon($image, [544, 360, 804, 290, 804, 700, 544, 770], $white);
+        }
+        $dest = self::iconPath($packageuid);
+        $written = imagepng($image, $dest);
+        imagedestroy($image);
+        if (!$written) {
+            throw new RuntimeException("Could not write the generated app icon.");
+        }
+        chmod($dest, 0640);
     }
 
     /**

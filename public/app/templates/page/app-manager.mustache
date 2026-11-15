@@ -125,9 +125,17 @@
             {{#errors.package_name}}<small class="alert alert-danger">{{.}}</small>{{/errors.package_name}}
         </label>
 
+        {{#has_theme_branding}}
+            <p class="card-subtitle">{{{i18n.app_manager.theme_connected}}} <strong>{{theme_brandcolor}}</strong></p>
+            <label>
+                <input type="checkbox" name="theme_color_sync" value="1" {{#values.theme_color_sync}}checked{{/values.theme_color_sync}}>
+                {{{i18n.app_manager.theme_color_sync}}}
+            </label>
+        {{/has_theme_branding}}
+
         <label>
             {{{i18n.app_manager.color}}}
-            <input type="text" name="statusbarbackgroundcolor" value="{{values.statusbarbackgroundcolor}}"
+            <input type="color" name="statusbarbackgroundcolor" value="{{values.statusbarbackgroundcolor}}"
                    placeholder="#08422a" required>
             {{#errors.statusbarbackgroundcolor}}
                 <small class="alert alert-danger">{{.}}</small>{{/errors.statusbarbackgroundcolor}}
@@ -135,7 +143,8 @@
 
         <label>
             {{{i18n.app_manager.icon}}}
-            <input type="file" name="icon" accept="image/png" {{^values.has_icon}}required{{/values.has_icon}}>
+            <input type="file" name="icon" accept="image/png">
+            <small>{{{i18n.app_manager.icon_auto}}}</small>
             {{#values.has_icon}}
                 <small>{{{i18n.app_manager.current_icon}}}
                     <code>{{values.icon_path}}</code>. {{{i18n.app_manager.replace_icon_help}}}</small>
@@ -144,6 +153,14 @@
                 <small>{{{i18n.app_manager.icon_required_help}}}</small>
             {{/values.has_icon}}
             {{#errors.icon}}<small class="alert alert-danger">{{.}}</small>{{/errors.icon}}
+        </label>
+
+        <label>
+            {{{i18n.app_manager.app_scss}}}
+            <textarea name="app_scss" rows="12" spellcheck="false"
+                      placeholder=":root { --primary-color: #58CC02; }">{{values.app_scss}}</textarea>
+            <small>{{{i18n.app_manager.app_scss_help}}}</small>
+            {{#errors.app_scss}}<small class="alert alert-danger">{{.}}</small>{{/errors.app_scss}}
         </label>
 
         {{^build_ready}}
