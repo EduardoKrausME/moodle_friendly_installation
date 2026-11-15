@@ -5,6 +5,7 @@ use app\I18n;
 use app\JobManager;
 use app\MoodleBranchProvider;
 use app\PanelConfigManager;
+use app\InstallDefaults;
 use app\Validator;
 
 require_once __DIR__ . "/app/bootstrap.php";
@@ -19,7 +20,7 @@ $defaultvalues = [
     "domain" => "",
     "site_fullname" => "",
     "admin_user" => "admin",
-    "admin_email" => "admin@moodle.com",
+    "admin_email" => InstallDefaults::adminEmail(),
     "moodle_branch" => "",
     "issue_cert" => "1",
 ];
@@ -46,6 +47,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 
     if ($validation["valid"]) {
+        InstallDefaults::saveAdminEmail($validation["data"]["admin_email"]);
         $job = JobManager::createInstallJob($validation["data"]);
         $job = JobManager::updateJob($job["id"], static function(array $job) use ($validation): array {
             return $job;
