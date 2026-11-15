@@ -1,0 +1,47 @@
+name: App branding integration
+
+on:
+  push:
+    paths:
+      - "public/app/AppManager.php"
+      - "public/app_manager.php"
+      - "public/app/JobManager.php"
+      - "public/app/templates/page/app-manager.mustache"
+      - "public/app/lang/*.php"
+      - "bin/cron-app_build.php"
+      - "app-MoodleMobile-V2/**"
+      - "tests/app-branding.test.php"
+      - ".github/workflows/app-branding-ci.yml"
+  pull_request:
+    paths:
+      - "public/app/AppManager.php"
+      - "public/app_manager.php"
+      - "public/app/JobManager.php"
+      - "public/app/templates/page/app-manager.mustache"
+      - "public/app/lang/*.php"
+      - "bin/cron-app_build.php"
+      - "app-MoodleMobile-V2/**"
+      - "tests/app-branding.test.php"
+      - ".github/workflows/app-branding-ci.yml"
+
+jobs:
+  app-branding:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Lint modified PHP components
+        run: |
+          php -l public/app/AppManager.php
+          php -l public/app_manager.php
+          php -l public/app/JobManager.php
+          php -l bin/cron-app_build.php
+          php -l public/app/lang/pt_br.php
+          php -l public/app/lang/en.php
+          php -l public/app/lang/es.php
+          php -l tests/app-branding.test.php
+      - name: Build SCSS fixture with Dart Sass
+        run: |
+          php tests/app-branding.test.php /tmp/app-branding.scss
+          npx --yes sass@1.93.0 --no-source-map --style=compressed /tmp/app-branding.scss /tmp/app-branding.css
+          grep -q -- '--learnlingo-navbar-bg' /tmp/app-branding.css
+          grep -q -- '.app-custom' /tmp/app-branding.css
