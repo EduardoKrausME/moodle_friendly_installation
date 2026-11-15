@@ -7,6 +7,7 @@ use Throwable;
 
 class MoodlePluginManager {
     private const WEEK_SECONDS = 604800;
+    private const REMOTE_VERSION_CACHE_SECONDS = 3600;
     private const MARKETPLACE_JSON_URL = "https://raw.githubusercontent.com/EduardoKrausME/marketplace-plugins/master/plugins.json";
     private const MARKETPLACE_RAW_BASE = "https://raw.githubusercontent.com/EduardoKrausME/marketplace-plugins/master";
 
@@ -18,7 +19,7 @@ class MoodlePluginManager {
      * @param bool $checkremote
      * @return array
      */
-    public static function installed(array $site, bool $checkremote = true): array {
+    public static function installed(array $site, bool $checkremote = true, bool $forcerefresh = false): array {
         $webroot = self::webroot($site);
         $plugins = [];
 
@@ -55,7 +56,7 @@ class MoodlePluginManager {
             ];
 
             if ($checkremote) {
-                $plugin = array_merge($plugin, self::remoteStatus($plugin));
+                $plugin = array_merge($plugin, self::remoteStatus($plugin, $forcerefresh));
             }
 
             $plugins[] = $plugin;
@@ -136,7 +137,7 @@ class MoodlePluginManager {
      * @return array
      */
     public static function update(array $site, string $component): array {
-        $plugin = self::findInstalledPlugin($site, $component, true);
+        $plugin = self::findInstalledPlugin($site, $component, true, true);
         $path = $plugin["path"];
         $remote = trim((string) ($plugin["remote"] ?? ""));
         $branch = trim((string) ($plugin["branch"] ?? ""));
@@ -171,7 +172,7 @@ class MoodlePluginManager {
         }
 
         self::grantWebServerWriteAccess($path);
-        $updated = self::findInstalledPlugin($site, $component, true);
+        $updated = self::findInstalledPlugin($site, $component, true, true);
 
         return [
             "component" => $component,
@@ -382,12 +383,13 @@ class MoodlePluginManager {
      * @param bool $checkremote
      * @return array
      */
-    private static function findInstalledPlugin(array $site, string $component, bool $checkremote = false): array {
+    private static function findInstalledPlugin(array $site, string $component, bool $checkremote = false,
+        bool $forcerefresh = false): array {
         if (!preg_match('/^[a-z][a-z0-9_]*_[a-z][a-z0-9_]*$/', $component)) {
             throw new RuntimeException("Componente de plugin inválido.");
         }
 
-        foreach (self::installed($site, $checkremote) as $plugin) {
+        foreach (self::installed($site, $checkremote, $forcerefresh) as $plugin) {
             if ($plugin["component"] === $component) {
                 return $plugin;
             }
@@ -399,7 +401,7 @@ class MoodlePluginManager {
      * @param array $plugin
      * @return array
      */
-    private static function remoteStatus(array $plugin): array {
+    private static function remoteStatus(array $plugin, bool $forcerefresh = false): array {
         $remote = trim((string) ($plugin["remote"] ?? ""));
         $branch = trim((string) ($plugin["branch"] ?? ""));
         $path = trim((string) ($plugin["path"] ?? ""));
@@ -418,9 +420,112 @@ class MoodlePluginManager {
             return $empty;
         }
         if ($localversion === "") {
-            $empty["check_error"] = "O version.php local não possui um \$plugin->version numérico.";
+            $empty["check_error"] = "O version.php local não possui um \\$plugin->version numérico.";
             return $empty;
         }
+
+        $cachefile = self::remoteVersionCacheFile($remote, $branch, (string) ($plugin["component"] ?? ""));
+        $cachedir = dirname($cachefile);
+
+        // A lock per repository/branch/component prevents simultaneous domains
+        // from fetching the same remote version and protects JSON readers/writers.
+        if (!is_dir($cachedir) && !@mkdir($cachedir, 0775, true) && !is_dir($cachedir)) {
+            return self::fetchRemoteStatus($plugin, $empty);
+        }
+
+        $lock = @fopen($cachefile . ".lock", "c");
+        if ($lock === false) {
+            return self::fetchRemoteStatus($plugin, $empty);
+        }
+
+        try {
+            if (!@flock($lock, LOCK_EX)) {
+                return self::fetchRemoteStatus($plugin, $empty);
+            }
+
+            if (!$forcerefresh) {
+                $cached = JsonStorage::read($cachefile);
+                if (self::remoteVersionCacheValid($cached, (string) ($plugin["component"] ?? ""))) {
+                    return self::remoteStatusFromCache($cached, $localversion);
+                }
+            }
+
+            $result = self::fetchRemoteStatus($plugin, $empty);
+            if ($result["check_error"] === "" && $result["remote_version"] !== ""
+                && $result["remote_commit"] !== "") {
+                // Never persist failed checks or site-specific update_available.
+                try {
+                    JsonStorage::write($cachefile, [
+                        "checked_at" => time(),
+                        "component" => (string) ($plugin["component"] ?? ""),
+                        "remote_commit" => $result["remote_commit"],
+                        "remote_version" => $result["remote_version"],
+                        "remote_release" => $result["remote_release"],
+                    ]);
+                } catch (Throwable) {
+                    // An unwritable cache must not turn a successful Git check into an error.
+                }
+            }
+            return $result;
+        } finally {
+            @flock($lock, LOCK_UN);
+            fclose($lock);
+        }
+    }
+
+    /**
+     * Cache is global to the panel, not to a Moodle site or local Git directory.
+     */
+    private static function remoteVersionCacheFile(string $remote, string $branch, string $component): string {
+        try {
+            $github = self::parseGithubRepository($remote);
+            $remote = "github.com/" . strtolower($github["owner"] . "/" . $github["repo"]);
+        } catch (Throwable) {
+            $remote = trim($remote);
+        }
+
+        return app_config_path("/data/update/plugin-remote-versions/" .
+            hash("sha256", $remote . "\\0" . $branch . "\\0" . $component) . ".json");
+    }
+
+    /**
+     * Only a successful, complete response less than one hour old is reusable.
+     */
+    private static function remoteVersionCacheValid(mixed $cached, string $component): bool {
+        return is_array($cached)
+            && ($cached["component"] ?? null) === $component
+            && is_int($cached["checked_at"] ?? null)
+            && ($cached["checked_at"] > 0)
+            && ($cached["checked_at"] <= time())
+            && (time() - $cached["checked_at"]) < self::REMOTE_VERSION_CACHE_SECONDS
+            && is_string($cached["remote_commit"] ?? null)
+            && preg_match('/^[0-9a-f]{40,64}$/i', $cached["remote_commit"]) === 1
+            && is_string($cached["remote_version"] ?? null)
+            && preg_match('/^[0-9]+$/', $cached["remote_version"]) === 1
+            && is_string($cached["remote_release"] ?? null);
+    }
+
+    /**
+     * Recalculate availability using this site's own locally installed version.
+     */
+    private static function remoteStatusFromCache(array $cached, string $localversion): array {
+        return [
+            "remote_commit" => $cached["remote_commit"],
+            "remote_version" => $cached["remote_version"],
+            "remote_release" => $cached["remote_release"],
+            "update_available" => $localversion !== $cached["remote_version"],
+            "check_error" => "",
+        ];
+    }
+
+    /**
+     * Fetch and validate the remote version; failures are returned but never cached.
+     */
+    private static function fetchRemoteStatus(array $plugin, array $empty): array {
+        $path = (string) $plugin["path"];
+        $remote = (string) $plugin["remote"];
+        $branch = (string) $plugin["branch"];
+        $localversion = (string) $plugin["version"];
 
         // Fetch only the remote branch into FETCH_HEAD. This updates Git metadata,
         // but never changes the plugin working tree while checking for updates.
@@ -466,7 +571,6 @@ class MoodlePluginManager {
             "update_available" => $localversion !== $remoteversion,
             "check_error" => "",
         ];
-    }
 
     /**
      * @param string $domain
