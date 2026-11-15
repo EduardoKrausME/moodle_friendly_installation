@@ -252,7 +252,7 @@ final class Moodle262Migration {
         $mode = fileperms($path) & 0777;
         $owner = fileowner($path);
         $group = filegroup($path);
-        $temp = tempnam(dirname($path), '.mfi-2.6.1-');
+        $temp = tempnam(dirname($path), '.mfi-2.6.2-');
         if ($temp === false) {
             throw new RuntimeException('Cannot create staged file: ' . $path);
         }
