@@ -855,6 +855,15 @@ return [
         "scorm_summary" => "SCORM summary by course",
         "scorm_summary_desc" => "SCORM activity access and progress.",
     ],
+    "app_preview" => [
+        "missing_heading" => "Preview unavailable: configuration incomplete",
+        "missing_intro" => "Configure the following Moodle settings to open the app:",
+        "missing_item" => "Missing configuration:",
+        "test_failed_heading" => "Could not verify the configuration",
+        "test_failed_intro" => "The Moodle configuration check could not be completed. Review the issue below and open the app settings to resolve it.",
+        "edit_in_moodle" => "Edit in Moodle",
+        "open_settings" => "Open app settings",
+    ],
     "app_errors" => [
         "icon_save_failed" => "Could not save the uploaded icon.",
         "keystore_password_missing" => "Android key password not found.",
