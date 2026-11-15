@@ -55,15 +55,6 @@
                 <button type="submit" class="button">{{{i18n.actions.enable_moodle}}}</button>
             </form>
         {{/moodle_is_disabled}}
-        {{#app_exist}}
-            <a class="button" href="{{app_manage_url}}">{{{i18n.actions.manage_app}}}</a>
-            <a class="button" href="{{app_preview_url}}" target="_blank">{{{i18n.actions.preview_app}}}</a>
-            {{#app_has_files}}
-                {{#app_files}}
-                    <a class="button secondary" href="{{download_url}}">{{{i18n.actions.download}}} {{label}}</a>
-                {{/app_files}}
-            {{/app_has_files}}
-        {{/app_exist}}
         {{#moodle_is_enabled}}
             <form action="/phpmyadmin-signon.php" method="post" target="_blank"
                   style="margin-left:auto;">
@@ -77,6 +68,17 @@
             </button>
         {{/moodle_is_enabled}}
     </div>
+    {{#app_exist}}
+        <div class="hero-actions">
+            <a class="button" href="{{app_manage_url}}">{{{i18n.actions.manage_app}}}</a>
+            <a class="button" href="{{app_preview_url}}" target="_blank" rel="noopener">{{{i18n.actions.preview_app}}}</a>
+            {{#app_has_files}}
+                {{#app_files}}
+                    <a class="button secondary" href="{{download_url}}">{{{i18n.actions.download}}} {{label}}</a>
+                {{/app_files}}
+            {{/app_has_files}}
+        </div>
+    {{/app_exist}}
 </div>
 
 {{#moodle_is_enabled}}
