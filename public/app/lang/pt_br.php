@@ -857,6 +857,15 @@ return [
         "scorm_summary" => "Resumo SCORM por curso",
         "scorm_summary_desc" => "Acessos e progresso nas atividades SCORM.",
     ],
+    "app_preview" => [
+        "missing_heading" => "Prévia indisponível: configuração incompleta",
+        "missing_intro" => "Falta configurar os seguintes itens no Moodle para abrir o aplicativo:",
+        "missing_item" => "Falta configurar",
+        "test_failed_heading" => "Não foi possível verificar a configuração",
+        "test_failed_intro" => "O teste de configuração do Moodle não pôde ser concluído. Confira o motivo abaixo e abra o gerenciamento para corrigir.",
+        "edit_in_moodle" => "Corrigir no Moodle",
+        "open_settings" => "Abrir configuração do aplicativo",
+    ],
     "app_errors" => [
         "icon_save_failed" => "Não foi possível salvar o ícone enviado.",
         "keystore_password_missing" => "Senha da chave Android não encontrada.",
