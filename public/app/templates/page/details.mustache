@@ -177,7 +177,8 @@
             </a>
         </div>
         {{#app_exist}}
-            <div class="management-shortcut is-app">
+            <div class="management-shortcuts moodle-app-shortcuts">
+                <div class="management-shortcut is-app">
                 <div class="moodle-app-identity">
                     <span class="management-shortcut-icon" aria-hidden="true">
                         <svg><use href="#icon-mobile"></use></svg>
@@ -195,6 +196,7 @@
                             <a class="button secondary" href="{{download_url}}">{{{i18n.actions.download}}} {{label}}</a>
                         {{/app_files}}
                     {{/app_has_files}}
+                </div>
                 </div>
             </div>
         {{/app_exist}}
