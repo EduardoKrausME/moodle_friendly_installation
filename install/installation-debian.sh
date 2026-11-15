@@ -1297,6 +1297,12 @@ install_bundled_nginx_files() {
     else
         warn "Bundled NGINX file was not found: ${source_dir}/util/cache.conf"
     fi
+
+    if [[ -f "${source_dir}/util/moodle-blocked-files.conf" ]]; then
+        install -D -m 0644 "${source_dir}/util/moodle-blocked-files.conf" /etc/nginx/util/moodle-blocked-files.conf
+    else
+        warn "Bundled NGINX file was not found: ${source_dir}/util/moodle-blocked-files.conf"
+    fi
 }
 
 ensure_sites_enabled_includes() {
