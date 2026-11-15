@@ -331,6 +331,7 @@ return [
         "app_heading" => "APP deste Moodle",
         "app_intro" => "Configure e gere APK/AAB.",
         "data_heading" => "Dados do Moodle",
+        "management_heading" => "Gerenciamento do Moodle",
         "mysql_error" => "Não foi possível conectar ao MySQL:",
         "diagnostics_heading" => "Diagnóstico rápido",
         "dns" => "DNS",
