@@ -3,7 +3,7 @@
  * Apply initial configuration for a new Moodle site.
  *
  * Installed temporarily in admin/cli and invoked by install-moodle.sh.
- * Usage: php moodle-end-install.php <moodle-lang> <hub-lang>
+ * Usage: php moodle-end-install.php <moodle-lang> <hub-lang> <admin-email>
  *
  * The parent installer deletes the temporary copy after execution, including on failure.
  */
@@ -15,10 +15,11 @@ if (PHP_SAPI !== 'cli') {
     exit(1);
 }
 
-if ($argc !== 3 ||
+if ($argc !== 4 ||
         !preg_match('/^[a-z]{2,3}(?:_[a-z]{2})?$/', $argv[1]) ||
-        !preg_match('/^[a-z]{2,3}(?:_[a-z]{2})?$/', $argv[2])) {
-    fwrite(STDERR, "Usage: php moodle-end-install.php <moodle-lang> <hub-lang>\n");
+        !preg_match('/^[a-z]{2,3}(?:_[a-z]{2})?$/', $argv[2]) ||
+        !filter_var($argv[3], FILTER_VALIDATE_EMAIL)) {
+    fwrite(STDERR, "Usage: php moodle-end-install.php <moodle-lang> <hub-lang> <admin-email>\n");
     exit(2);
 }
 
@@ -80,7 +81,7 @@ $hubsettings = [
     'site_language' => $argv[2],
     'site_countrycode' => 'BR',
     'site_privacy' => 'notdisplayed',
-    'site_contactemail' => 'kraus@eduardokraus.com',
+    'site_contactemail' => $argv[3],
     'site_contactable' => '0',
     'site_emailalert' => '0',
     'site_commnews' => '0',
