@@ -11,6 +11,7 @@ on:
       - "bin/cron-app_build.php"
       - "app-MoodleMobile-V2/**"
       - "tests/app-branding.test.php"
+      - "tests/app-manager-template.test.php"
       - ".github/workflows/app-branding-ci.yml"
   pull_request:
     paths:
@@ -39,6 +40,9 @@ jobs:
           php -l public/app/lang/en.php
           php -l public/app/lang/es.php
           php -l tests/app-branding.test.php
+          php -l tests/app-manager-template.test.php
+      - name: Validate strict Mustache variables
+        run: php tests/app-manager-template.test.php
       - name: Build SCSS fixture with Dart Sass
         run: |
           php tests/app-branding.test.php /tmp/app-branding.scss

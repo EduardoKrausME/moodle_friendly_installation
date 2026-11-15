@@ -129,8 +129,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         "icon_path" => $settings["icon_path"],
                         "app_scss" => AppManager::buildAppScss($branding, $settings),
                         "app_version" => AppManager::appVersion(),
-    "has_theme_branding" => !empty($branding["available"]),
-    "theme_brandcolor" => $branding["brandcolor"],
                     ]);
 
                     $_SESSION["flash"] = t("app_manager.build_queued", ["id" => $job["id"]]);
@@ -214,6 +212,8 @@ echo render_app_template("page/app-manager", [
         "has_android_key_files" => AppManager::hasAndroidKeyFiles($packageuid),
     ],
     "app_version" => AppManager::appVersion(),
+    "has_theme_branding" => !empty($branding["available"]),
+    "theme_brandcolor" => $branding["brandcolor"] ?? "#08422A",
     "moodle_config_test" => $moodleconfigtest,
     "plugin_install_action_url" => "/moodle_plugins.php?domain=" . rawurlencode($domain),
     "plugin_install_repository_url" => "https://github.com/EduardoKrausME/moodle-local_kopere_mobile",
