@@ -69,7 +69,7 @@
         {{/moodle_is_enabled}}
     </div>
     {{#app_exist}}
-        <div class="hero-actions">
+        <div class="hero-actions" style="justify-content: flex-end;">
             <a class="button" href="{{app_manage_url}}">{{{i18n.actions.manage_app}}}</a>
             <a class="button" href="{{app_preview_url}}" target="_blank" rel="noopener">{{{i18n.actions.preview_app}}}</a>
             {{#app_has_files}}
