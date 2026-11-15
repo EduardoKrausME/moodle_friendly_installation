@@ -19,8 +19,14 @@
         <div class="alert danger compact-alert">
             {{moodle_config_test.error}}
             {{#moodle_config_test.has_install_url}}
-                <a href="{{moodle_config_test.install_url}}" target="_blank"
-                   rel="noopener">{{{i18n.app_manager.moodle_config_install_plugin}}}</a>
+                <div class="hero-actions" style="margin-top: 12px;">
+                    <form method="post" action="{{plugin_install_action_url}}" class="inline-form">
+                        <input type="hidden" name="csrf_token" value="{{csrf_token}}">
+                        <input type="hidden" name="action" value="install_plugin">
+                        <input type="hidden" name="git_url" value="{{plugin_install_repository_url}}">
+                        <button type="submit" class="button">{{{i18n.app_manager.moodle_config_install_plugin}}}</button>
+                    </form>
+                </div>
             {{/moodle_config_test.has_install_url}}
         </div>
     {{/has_moodle_config_test_error}}
