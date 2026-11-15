@@ -162,21 +162,29 @@ function details_page_context(
         "csrf_token" => csrf_token(),
         "stat_boxes" => [
             [
+                "card_class" => "is-users",
+                "icon" => "icon-users",
                 "label" => t("details.users"),
                 "value" => $statsconnected ? details_format_count($statsitems["users"] ?? 0) : "-",
                 "description" => t("details.users_description"),
             ],
             [
+                "card_class" => "is-sites",
+                "icon" => "icon-layers",
                 "label" => t("details.courses"),
                 "value" => $statsconnected ? details_format_count($statsitems["courses"] ?? 0) : "-",
                 "description" => t("details.courses_description"),
             ],
             [
+                "card_class" => "is-active",
+                "icon" => "icon-activity",
                 "label" => t("details.enrolments"),
                 "value" => $statsconnected ? details_format_count($statsitems["enrolments"] ?? 0) : "-",
                 "description" => t("details.enrolments_description"),
             ],
             [
+                "card_class" => "is-online",
+                "icon" => "icon-check",
                 "label" => t("details.active_enrolments"),
                 "value" => $statsconnected ? details_format_count($statsitems["active_enrolments"] ?? 0) : "-",
                 "description" => t("details.active_enrolments_description"),
@@ -230,28 +238,28 @@ function details_resource_usage(array $snapshot, ?array $activejob): array {
 
     $items = [
         [
-            "label" => t("resources.moodle_code"), "value" =>
-            ResourceUsageManager::formatBytes((int) ($snapshot["moodle_code_bytes"] ?? 0)),
+            "card_class" => "is-storage",
+            "icon" => "icon-storage",
+            "label" => t("resources.moodle_code"),
+            "value" => ResourceUsageManager::formatBytes((int) ($snapshot["moodle_code_bytes"] ?? 0)),
         ],
         [
-            "label" => t("resources.moodledata"), "value" =>
-            ResourceUsageManager::formatBytes((int) ($snapshot["moodledata_bytes"] ?? 0)),
+            "card_class" => "is-memory",
+            "icon" => "icon-layers",
+            "label" => t("resources.moodledata"),
+            "value" => ResourceUsageManager::formatBytes((int) ($snapshot["moodledata_bytes"] ?? 0)),
         ],
         [
-            "label" => t("resources.database"), "value" =>
-            ResourceUsageManager::formatBytes((int) ($snapshot["database_bytes"] ?? 0)),
+            "card_class" => "is-load",
+            "icon" => "icon-database",
+            "label" => t("resources.database"),
+            "value" => ResourceUsageManager::formatBytes((int) ($snapshot["database_bytes"] ?? 0)),
         ],
         [
-            "label" => t("resources.site_total"), "value" =>
-            ResourceUsageManager::formatBytes((int) ($snapshot["total_bytes"] ?? 0)),
-        ],
-        [
-            "label" => t("resources.server_used"), "value" =>
-            ResourceUsageManager::formatBytes((int) ($snapshot["filesystem_used_bytes"] ?? 0)),
-        ],
-        [
-            "label" => t("resources.server_free"), "value" =>
-            ResourceUsageManager::formatBytes((int) ($snapshot["filesystem_free_bytes"] ?? 0)),
+            "card_class" => "is-environment",
+            "icon" => "icon-check",
+            "label" => t("resources.site_total"),
+            "value" => ResourceUsageManager::formatBytes((int) ($snapshot["total_bytes"] ?? 0)),
         ],
     ];
 
