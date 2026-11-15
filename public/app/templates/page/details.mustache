@@ -146,24 +146,13 @@
             </button>
         {{/moodle_is_enabled}}
     </div>
-    {{#app_exist}}
-        <div class="hero-actions" style="justify-content: flex-end;">
-            <a class="button" href="{{app_manage_url}}">{{{i18n.actions.manage_app}}}</a>
-            <a class="button" href="{{app_preview_url}}" target="_blank" rel="noopener">{{{i18n.actions.preview_app}}}</a>
-            {{#app_has_files}}
-                {{#app_files}}
-                    <a class="button secondary" href="{{download_url}}">{{{i18n.actions.download}}} {{label}}</a>
-                {{/app_files}}
-            {{/app_has_files}}
-        </div>
-    {{/app_exist}}
     <section class="moodle-management" aria-labelledby="moodle-management-heading">
         <div class="management-shortcuts moodle-management-grid">
             <a class="management-shortcut is-users" href="{{moodle_users_url}}">
                 <span class="management-shortcut-icon" aria-hidden="true">
                     <svg><use href="#icon-users"></use></svg>
                 </span>
-                <span class="management-shortcut-content" style="display: flex;justify-content: space-between;width: 100%;">
+                <span class="management-shortcut-content">
                     <strong>{{{i18n.moodle_users.heading}}}</strong>
                     <b>{{{i18n.details.open_management}}} <span aria-hidden="true">→</span></b>
                 </span>
@@ -172,7 +161,7 @@
                 <span class="management-shortcut-icon" aria-hidden="true">
                     <svg><use href="#icon-layers"></use></svg>
                 </span>
-                <span class="management-shortcut-content" style="display: flex;justify-content: space-between;width: 100%;">
+                <span class="management-shortcut-content">
                     <strong>{{{i18n.moodle_courses.heading}}}</strong>
                     <b>{{{i18n.details.open_management}}} <span aria-hidden="true">→</span></b>
                 </span>
@@ -181,12 +170,34 @@
                 <span class="management-shortcut-icon" aria-hidden="true">
                     <svg><use href="#icon-settings"></use></svg>
                 </span>
-                <span class="management-shortcut-content" style="display: flex;justify-content: space-between;width: 100%;">
+                <span class="management-shortcut-content">
                     <strong>{{{i18n.moodle_plugins.heading}}}</strong>
                     <b>{{{i18n.details.open_management}}} <span aria-hidden="true">→</span></b>
                 </span>
             </a>
         </div>
+        {{#app_exist}}
+            <div class="management-shortcut is-app">
+                <div class="moodle-app-identity">
+                    <span class="management-shortcut-icon" aria-hidden="true">
+                        <svg><use href="#icon-mobile"></use></svg>
+                    </span>
+                    <span class="moodle-app-description">
+                        <strong>{{{i18n.details.app_heading}}}</strong>
+                        <span>{{{i18n.details.app_intro}}}</span>
+                    </span>
+                </div>
+                <div class="moodle-app-actions">
+                    <a class="button" href="{{app_manage_url}}">{{{i18n.actions.manage_app}}}</a>
+                    <a class="button secondary" href="{{app_preview_url}}" target="_blank" rel="noopener">{{{i18n.actions.preview_app}}}</a>
+                    {{#app_has_files}}
+                        {{#app_files}}
+                            <a class="button secondary" href="{{download_url}}">{{{i18n.actions.download}}} {{label}}</a>
+                        {{/app_files}}
+                    {{/app_has_files}}
+                </div>
+            </div>
+        {{/app_exist}}
         <div class="alert warning compact-alert" id="plugin-update-alert" hidden></div>
     </section>
 </div>
