@@ -122,7 +122,7 @@ if [ "{{INSTALL_MODE}}" = "install" ]; then
     trap 'rm -f -- "$MOODLE_END_INSTALL"' EXIT
     install -m 0640 -o "{{APACHE_USER}}" -g "{{APACHE_GROUP}}" \
         "{{TEMPLATES_DIR}}/moodle-end-install.php" "$MOODLE_END_INSTALL"
-    sudo -u "{{APACHE_USER}}" "{{PHP_BIN}}" "$MOODLE_END_INSTALL" "{{MOODLE_LANG}}" "{{MOODLE_HUB_LANG}}"
+    sudo -u "{{APACHE_USER}}" "{{PHP_BIN}}" "$MOODLE_END_INSTALL" "{{MOODLE_LANG}}" "{{MOODLE_HUB_LANG}}" "{{ADMIN_EMAIL}}"
     rm -f -- "$MOODLE_END_INSTALL"
     trap - EXIT
 else
