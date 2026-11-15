@@ -53,7 +53,8 @@ $installedcomponent = isset($_SESSION["plugin_install_component"]) && is_string(
     ? $_SESSION["plugin_install_component"] : "";
 unset($_SESSION["plugin_install_component"]);
 
-$plugins = MoodlePluginManager::installed($site, true);
+$forcerefresh = isset($_GET["refresh"]) && $_GET["refresh"] === "1";
+$plugins = MoodlePluginManager::installed($site, true, $forcerefresh);
 $updatecount = 0;
 foreach ($plugins as $index => &$plugin) {
     $plugin["row_id"] = "plugin-details-" . $index;
