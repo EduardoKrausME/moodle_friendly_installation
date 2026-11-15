@@ -43,6 +43,115 @@ function replaceDataAttribute(
 }
 
 /**
+ * Display the failing Moodle app configuration inside the preview iframe.
+ *
+ * @param array $configtest
+ * @param string $domain
+ * @return never
+ */
+function previewConfigurationError(array $configtest, string $domain): never {
+    $escape = static fn(mixed $value): string =>
+        htmlspecialchars((string) $value, ENT_QUOTES | ENT_SUBSTITUTE, "UTF-8");
+    $haserror = !empty($configtest["has_error"]);
+    $warnings = is_array($configtest["warnings"] ?? null) ? $configtest["warnings"] : [];
+    $title = t($haserror ? "app_preview.test_failed_heading" : "app_preview.missing_heading");
+    $intro = t($haserror ? "app_preview.test_failed_intro" : "app_preview.missing_intro");
+    $managerurl = "/app_manager.php?domain=" . rawurlencode($domain);
+
+    http_response_code($haserror ? 503 : 422);
+    header("Content-Type: text/html; charset=UTF-8");
+    header("Cache-Control: no-store, no-cache, must-revalidate");
+    header("X-Content-Type-Options: nosniff");
+    header("Referrer-Policy: no-referrer");
+    header("Content-Security-Policy: default-src 'none'; style-src 'unsafe-inline'; base-uri 'none'; form-action 'none'");
+
+    ?>
+    <!doctype html>
+    <html lang="<?php echo $escape(\app\I18n::htmlLang()); ?>">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title><?php echo $escape($title); ?></title>
+        <style>
+            * { box-sizing: border-box; }
+            body {
+                margin: 0;
+                padding: 22px 14px;
+                min-height: 100vh;
+                background: #f1f5f9;
+                color: #172033;
+                font: 14px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif;
+            }
+            main {
+                width: 100%;
+                max-width: 540px;
+                margin: auto;
+                padding: 20px;
+                border: 1px solid #fcd34d;
+                border-radius: 18px;
+                background: #fff;
+                box-shadow: 0 8px 25px rgba(15, 23, 42, .08);
+                overflow-wrap: anywhere;
+            }
+            h1 { margin: 0 0 10px; font-size: 21px; line-height: 1.25; }
+            p { margin: 0 0 16px; color: #475569; }
+            ul { padding: 0; margin: 0 0 18px; list-style: none; }
+            li { padding: 12px 0; border-top: 1px solid #e2e8f0; }
+            li strong { display: block; margin-bottom: 4px; }
+            li span { display: block; color: #475569; }
+            code { color: #9a3412; overflow-wrap: anywhere; }
+            a { color: #1d4ed8; font-weight: 650; }
+            li a { display: inline-block; margin-top: 7px; }
+            .action {
+                display: block;
+                padding: 12px;
+                border-radius: 10px;
+                background: #2563eb;
+                color: #fff;
+                text-align: center;
+                text-decoration: none;
+            }
+        </style>
+    </head>
+    <body>
+    <main role="alert">
+        <h1><?php echo $escape($title); ?></h1>
+        <p><?php echo $escape($intro); ?></p>
+        <?php if ($haserror): ?>
+            <p><?php echo $escape($configtest["error"] ?? ""); ?></p>
+        <?php elseif ($warnings !== []): ?>
+            <ul>
+                <?php foreach ($warnings as $warning): ?>
+                    <?php if (!is_array($warning)) { continue; } ?>
+                    <li>
+                        <strong>
+                            <?php echo $escape(t("app_preview.missing_item")); ?>
+                            <code><?php echo $escape($warning["key"] ?? ""); ?></code>
+                        </strong>
+                        <span><?php echo $escape($warning["description"] ?? ""); ?></span>
+                        <span><?php echo $escape($warning["message"] ?? ""); ?></span>
+                        <?php if (!empty($warning["has_edit_url"]) && !empty($warning["edit_url"])): ?>
+                            <a href="<?php echo $escape($warning["edit_url"]); ?>"
+                               target="_blank" rel="noopener noreferrer">
+                                <?php echo $escape(t("app_preview.edit_in_moodle")); ?>
+                            </a>
+                        <?php endif; ?>
+                    </li>
+                <?php endforeach; ?>
+            </ul>
+        <?php endif; ?>
+        <a class="action" href="<?php echo $escape($managerurl); ?>"
+           target="_blank" rel="noopener noreferrer">
+            <?php echo $escape(t("app_preview.open_settings")); ?>
+        </a>
+    </main>
+    </body>
+    </html>
+    <?php
+    exit;
+}
+
+/**
  * Load the package name and Moodle URL for the preview.
  *
  * @return array{package_name: string, wwwroot_web: string}
@@ -63,7 +172,7 @@ function previewSettings(): array {
 
         $moodleconfigtest = \app\AppManager::moodleConfigTest($domain);
         if (empty($moodleconfigtest["valid"])) {
-            redirect_to("/app_manager.php?domain=" . rawurlencode($domain));
+            previewConfigurationError($moodleconfigtest, $domain);
         }
 
         $settings = \app\AppManager::getSettings($site);
