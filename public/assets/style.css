@@ -122,6 +122,83 @@ input[type=search]:focus {
   text-align: right;
 }
 
+
+.moodle-management {
+  width: 100%;
+  border-top: 1px solid rgba(148, 163, 184, 0.25);
+  padding-top: 20px;
+}
+.moodle-management h3 {
+  margin: 0 0 14px;
+  color: #0F172A;
+  font-size: 17px;
+  letter-spacing: -0.02em;
+}
+.moodle-management .moodle-management-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+  gap: 14px;
+  margin: 0;
+}
+.moodle-management .management-shortcut {
+  --shortcut-accent: #2563EB;
+  --shortcut-soft: #EFF6FF;
+  --shortcut-border: #BFDBFE;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  min-width: 0;
+  min-height: 174px;
+  border-color: var(--shortcut-border);
+  background: linear-gradient(135deg, #FFF 18%, var(--shortcut-soft) 110%);
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
+}
+.moodle-management .management-shortcut:hover {
+  border-color: var(--shortcut-accent);
+  box-shadow: 0 16px 30px rgba(15, 23, 42, 0.1);
+}
+.moodle-management .management-shortcut:focus-visible {
+  outline: 3px solid var(--shortcut-accent);
+  outline-offset: 3px;
+}
+.moodle-management .management-shortcut.is-courses {
+  --shortcut-accent: #7C3AED;
+  --shortcut-soft: #F5F3FF;
+  --shortcut-border: #DDD6FE;
+}
+.moodle-management .management-shortcut.is-plugins {
+  --shortcut-accent: #0F766E;
+  --shortcut-soft: #F0FDFA;
+  --shortcut-border: #99F6E4;
+}
+.moodle-management .management-shortcut .management-shortcut-icon {
+  background: linear-gradient(135deg, var(--shortcut-accent), color-mix(in srgb, var(--shortcut-accent), white 22%));
+}
+.moodle-management .management-shortcut .management-shortcut-content {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  min-width: 0;
+  width: 100%;
+}
+.moodle-management .management-shortcut strong {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.35;
+}
+.moodle-management .management-shortcut b {
+  margin-top: auto;
+  color: var(--shortcut-accent);
+  font-size: 13px;
+  text-align: left;
+}
+.moodle-management #plugin-update-alert {
+  margin-top: 14px;
+}
 .management-stats {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
