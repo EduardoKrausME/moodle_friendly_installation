@@ -97,7 +97,7 @@ CONF;
     check(file_get_contents($apache . '/admin.moodle.conf') === '<VirtualHost *:8080>Admin panel</VirtualHost>', 'panel virtual host was untouched');
     foreach (['good.example.org', 'bad.example.org', 'legacy.example.org'] as $domain) {
         $content = file_get_contents($apache . '/' . $domain . '.conf');
-        check(substr_count($content, 'FallbackResource /r.php') === 1, $domain . ': one fallback present');
+        check(!str_contains($content, 'FallbackResource /r.php'), $domain . ': no legacy routing fallback');
         check(substr_count($content, 'DirectoryIndex index.php') === 1, $domain . ': DirectoryIndex present');
         check(str_contains($content, '/run/php/php8.4-fpm.sock'), $domain . ': PHP-FPM socket set');
     }
@@ -139,7 +139,7 @@ CONF;
     check(file_get_contents($apache . '/bad.example.org.conf') === $badOriginal, 'validation failure rolls back prior config');
     check(file_get_contents($available . '/good.example.org.conf') === $original, 'validation failure leaves other config unchanged');
     $restore = Moodle260Migration::run($options);
-    check($restore['apache_updated'] === 1, 'retry safely restores missing fallback after prior failure');
+    check($restore['apache_updated'] === 1, 'retry safely regenerates Apache vhost after prior failure');
 
     file_put_contents($apache . '/bad.example.org.conf', $badOriginal);
     $reloadCount = 0;
