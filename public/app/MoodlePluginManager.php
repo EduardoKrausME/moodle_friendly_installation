@@ -420,7 +420,7 @@ class MoodlePluginManager {
             return $empty;
         }
         if ($localversion === "") {
-            $empty["check_error"] = "O version.php local não possui um \\$plugin->version numérico.";
+            $empty["check_error"] = "O version.php local não possui um \$plugin->version numérico.";
             return $empty;
         }
 
@@ -444,7 +444,11 @@ class MoodlePluginManager {
             }
 
             if (!$forcerefresh) {
-                $cached = JsonStorage::read($cachefile);
+                try {
+                    $cached = JsonStorage::read($cachefile);
+                } catch (Throwable) {
+                    $cached = [];
+                }
                 if (self::remoteVersionCacheValid($cached, (string) ($plugin["component"] ?? ""))) {
                     return self::remoteStatusFromCache($cached, $localversion);
                 }
@@ -539,6 +543,10 @@ class MoodlePluginManager {
         }
 
         $remotecommit = self::gitValue($path, "rev-parse FETCH_HEAD");
+        if (!preg_match('/^[0-9a-f]{40,64}$/i', $remotecommit)) {
+            $empty["check_error"] = "Não foi possível identificar o commit remoto.";
+            return $empty;
+        }
         $showcommand = "GIT_TERMINAL_PROMPT=0 timeout 15s git -c safe.directory=" . escapeshellarg($path) .
             " -C " . escapeshellarg($path) . " show FETCH_HEAD:version.php 2>&1";
         [$showexitcode, $remoteversionphp] = self::run($showcommand);
