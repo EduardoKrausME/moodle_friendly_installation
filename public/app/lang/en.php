@@ -331,6 +331,7 @@ return [
         "app_heading" => "APP for this Moodle",
         "app_intro" => "Configure and build APK/AAB.",
         "data_heading" => "Moodle data",
+        "management_heading" => "Moodle management",
         "mysql_error" => "Could not connect to MySQL:",
         "diagnostics_heading" => "Quick diagnostics",
         "dns" => "DNS",
