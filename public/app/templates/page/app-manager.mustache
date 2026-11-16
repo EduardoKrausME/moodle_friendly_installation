@@ -83,9 +83,6 @@
         {{#errors.package_name}}
             <small class="alert alert-danger">{{.}}</small>
         {{/errors.package_name}}
-        {{#errors.statusbarbackgroundcolor}}
-            <small class="alert alert-danger">{{.}}</small>
-        {{/errors.statusbarbackgroundcolor}}
         {{#errors.icon}}
             <small class="alert alert-danger">{{.}}</small>
         {{/errors.icon}}
@@ -126,25 +123,48 @@
         </label>
 
         {{#has_theme_branding}}
-            <p class="card-subtitle">{{{i18n.app_manager.theme_connected}}} <strong>{{theme_brandcolor}}</strong></p>
-            <label>
-                <input type="checkbox" name="theme_color_sync" value="1" {{#values.theme_color_sync}}checked{{/values.theme_color_sync}}>
-                {{{i18n.app_manager.theme_color_sync}}}
-            </label>
+            <div class="alert ok compact-alert">
+                <strong>{{{i18n.app_manager.theme_connected}}}</strong>
+                <div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:10px;">
+                    <span><span style="display:inline-block;width:18px;height:18px;vertical-align:middle;border:1px solid #999;background:{{theme_brandcolor}}"></span>
+                        {{{i18n.app_manager.theme_brandcolor}}}: <code>{{theme_brandcolor}}</code></span>
+                    <span><span style="display:inline-block;width:18px;height:18px;vertical-align:middle;border:1px solid #999;background:{{theme_accentcolor}}"></span>
+                        {{{i18n.app_manager.theme_accentcolor}}}: <code>{{theme_accentcolor}}</code></span>
+                    <span><span style="display:inline-block;width:18px;height:18px;vertical-align:middle;border:1px solid #999;background:{{theme_canvascolor}}"></span>
+                        {{{i18n.app_manager.theme_canvascolor}}}: <code>{{theme_canvascolor}}</code></span>
+                    <span><span style="display:inline-block;width:18px;height:18px;vertical-align:middle;border:1px solid #999;background:{{theme_textcolor}}"></span>
+                        {{{i18n.app_manager.theme_textcolor}}}: <code>{{theme_textcolor}}</code></span>
+                </div>
+                {{#has_theme_logo}}
+                    <div style="margin-top:12px;">
+                        <strong>{{{i18n.app_manager.theme_logo}}}</strong>
+                        <img src="{{theme_logo_url}}" alt="" loading="lazy"
+                             style="display:block;max-width:220px;max-height:90px;object-fit:contain;margin-top:8px;">
+                    </div>
+                {{/has_theme_logo}}
+                {{^has_theme_logo}}
+                    <small>{{{i18n.app_manager.theme_logo_missing}}}</small>
+                {{/has_theme_logo}}
+            </div>
         {{/has_theme_branding}}
-
-        <label>
-            {{{i18n.app_manager.color}}}
-            <input type="color" name="statusbarbackgroundcolor" value="{{values.statusbarbackgroundcolor}}"
-                   placeholder="#08422a" required>
-            {{#errors.statusbarbackgroundcolor}}
-                <small class="alert alert-danger">{{.}}</small>{{/errors.statusbarbackgroundcolor}}
-        </label>
+        {{^has_theme_branding}}
+            <div class="alert warning compact-alert">{{{i18n.app_manager.theme_unavailable}}}</div>
+        {{/has_theme_branding}}
 
         <label>
             {{{i18n.app_manager.icon}}}
             <input type="file" name="icon" accept="image/png">
             <small>{{{i18n.app_manager.icon_auto}}}</small>
+            {{#has_theme_logo}}
+                {{#values.has_icon}}
+                    {{^values.icon_from_theme}}
+                        <label style="display:flex;gap:8px;align-items:center;">
+                            <input type="checkbox" name="use_theme_logo" value="1">
+                            {{{i18n.app_manager.use_theme_logo}}}
+                        </label>
+                    {{/values.icon_from_theme}}
+                {{/values.has_icon}}
+            {{/has_theme_logo}}
             {{#values.has_icon}}
                 <small>{{{i18n.app_manager.current_icon}}}
                     <code>{{values.icon_path}}</code>. {{{i18n.app_manager.replace_icon_help}}}</small>

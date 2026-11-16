@@ -23,6 +23,7 @@ on:
       - "bin/cron-app_build.php"
       - "app-MoodleMobile-V2/**"
       - "tests/app-branding.test.php"
+      - "tests/app-manager-template.test.php"
       - ".github/workflows/app-branding-ci.yml"
 
 jobs:

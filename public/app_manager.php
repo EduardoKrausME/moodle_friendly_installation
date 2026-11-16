@@ -70,17 +70,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     validate_csrf();
 
     $action = isset($_POST["action"]) && is_string($_POST["action"]) ? $_POST["action"] : "save_app";
-    if (!empty($_POST["theme_color_sync"]) && !empty($branding["available"])) {
-        $_POST["statusbarbackgroundcolor"] = $branding["brandcolor"];
-    }
-    $settingsvalidation = AppManager::validateSettings($_POST, $domain, $settings);
+    $settingsvalidation = AppManager::validateSettings($_POST, $domain, $settings, $branding);
     $values = array_merge($values, $settingsvalidation["data"]);
     $errors = $settingsvalidation["errors"];
 
     $packageuid = $settingsvalidation["data"]["package_uid"] ?? $values["package_uid"] ?? AppManager::defaultPackageUid($domain);
     $uploadedicon = $_FILES["icon"] ?? null;
-    $needsicon = !AppManager::hasIcon($packageuid);
-    // If no icon was uploaded, saveSettings creates the branded 1024px PNG.
+    // An uploaded icon remains a manual override; otherwise the public site logo
+    // is used for new or panel-generated icons.
     $iconvalidation = AppManager::validateIconUpload(is_array($uploadedicon) ? $uploadedicon : null, false);
     if (!$iconvalidation["valid"]) {
         $errors["icon"] = $iconvalidation["error"];
@@ -100,7 +97,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $settings = AppManager::saveSettings(
                 $domain,
                 $settingsvalidation["data"],
-                is_array($uploadedicon) ? $uploadedicon : null
+                is_array($uploadedicon) ? $uploadedicon : null,
+                $branding,
+                !empty($_POST["use_theme_logo"])
             );
 
             if (!AppManager::hasAndroidKeyFiles($settings["package_uid"])) {
@@ -148,7 +147,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 $flash = flash_message();
 $settings = AppManager::getSettings($site);
 $values = array_merge($settings, $values);
-if (!empty($branding["available"]) && !empty($values["theme_color_sync"])) {
+if (!empty($branding["available"])) {
     $values["statusbarbackgroundcolor"] = $branding["brandcolor"];
 }
 $packageuid = $values["package_uid"] ?? AppManager::defaultPackageUid($domain);
@@ -204,7 +203,7 @@ echo render_app_template("page/app-manager", [
         "package_uid_locked" => !empty($values["package_uid_locked"]),
         "package_name" => $values["package_name"] ?? "",
         "statusbarbackgroundcolor" => $values["statusbarbackgroundcolor"] ?? "#08422a",
-        "theme_color_sync" => !empty($values["theme_color_sync"]),
+        "icon_from_theme" => ($values["icon_source"] ?? "") === "theme",
         "app_scss" => $values["app_scss"] ?? "",
         "has_icon" => !empty($values["has_icon"]),
         "icon_path" => $values["icon_path"],
@@ -214,6 +213,11 @@ echo render_app_template("page/app-manager", [
     "app_version" => AppManager::appVersion(),
     "has_theme_branding" => !empty($branding["available"]),
     "theme_brandcolor" => $branding["brandcolor"] ?? "#08422A",
+    "theme_accentcolor" => $branding["accentcolor"] ?? "#08422A",
+    "theme_canvascolor" => $branding["canvascolor"] ?? "#FFFFFF",
+    "theme_textcolor" => $branding["textcolor"] ?? "#263238",
+    "has_theme_logo" => !empty($branding["logo_url"]),
+    "theme_logo_url" => $branding["logo_url"] ?? "",
     "moodle_config_test" => $moodleconfigtest,
     "plugin_install_action_url" => "/moodle_plugins.php?domain=" . rawurlencode($domain),
     "plugin_install_repository_url" => "https://github.com/EduardoKrausME/moodle-local_kopere_mobile",

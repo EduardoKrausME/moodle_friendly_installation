@@ -15,9 +15,11 @@ if ($start === false) {
     throw new RuntimeException("App-manager render context not found.");
 }
 $context = substr($controller, $start);
-foreach (["has_theme_branding", "theme_brandcolor"] as $key) {
+foreach (["has_theme_branding", "theme_brandcolor", "theme_accentcolor",
+    "theme_canvascolor", "theme_textcolor", "has_theme_logo", "theme_logo_url"] as $key) {
     if (!str_contains($template, "{{" . $key . "}}")
-            && !str_contains($template, "{{#" . $key . "}}")) {
+            && !str_contains($template, "{{#" . $key . "}}")
+            && !str_contains($template, "{{^" . $key . "}}")) {
         throw new RuntimeException("Missing expected template reference: {$key}");
     }
     if (!preg_match('/"' . preg_quote($key, '/') . '"\\s*=>/', $context)) {
@@ -27,10 +29,14 @@ foreach (["has_theme_branding", "theme_brandcolor"] as $key) {
 $jobpos = strpos($controller, 'JobManager::createAppBuildJob([');
 if ($jobpos !== false) {
     $jobsegment = substr($controller, $jobpos, $start - $jobpos);
-    foreach (["has_theme_branding", "theme_brandcolor"] as $key) {
+    foreach (["has_theme_branding", "theme_brandcolor", "theme_accentcolor",
+        "theme_canvascolor", "theme_textcolor", "has_theme_logo", "theme_logo_url"] as $key) {
         if (str_contains($jobsegment, '"' . $key . '" =>')) {
             throw new RuntimeException("UI variable leaked into build job: {$key}");
         }
     }
+}
+if (str_contains($template, 'type="color"') || str_contains($template, 'name="theme_color_sync"')) {
+    throw new RuntimeException("Manual colour selector or sync checkbox was not removed.");
 }
 echo "App manager Mustache context OK\n";
