@@ -44,11 +44,9 @@
                 <div class="site-card-header">
                     <div>
                         {{#has_site_identity}}
-                            {{#site_shortname}}
-                                <span class="eyebrow"
-                                      style="word-break: break-all;">{{site_fullname}}</span>
-                            {{/site_shortname}}
-                            <h2>{{site_shortname}}</h2>
+                            <span class="eyebrow"
+                                  style="word-break: break-all;">{{site_fullname}}</span>
+                            <h2>{{domain}}</h2>
                         {{/has_site_identity}}
                         {{^has_site_identity}}
                             <h2>{{domain}}</h2>
