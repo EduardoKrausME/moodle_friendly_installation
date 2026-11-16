@@ -1,0 +1,308 @@
+#page-mod-scicalc {
+  font-family: "Gotham Rounded A", "Gotham Rounded B", "Gotham Rounded", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  color: #111827;
+}
+
+#page-mod-scicalc .page__background,
+#page-mod-scicalc .content {
+  background: #f6f7f8;
+}
+
+#page-mod-scicalc .scicalc-page {
+  width: min(100% - 28px, 760px);
+  box-sizing: border-box;
+  margin: 0 auto;
+  padding: 16px 0 calc(28px + env(safe-area-inset-bottom, 0px));
+}
+
+#page-mod-scicalc .scicalc-description {
+  margin-bottom: 14px;
+  color: #52606d;
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+#page-mod-scicalc .scicalc-description:empty {
+  display: none;
+}
+
+#page-mod-scicalc .scicalc-description img,
+#page-mod-scicalc .scicalc-description video,
+#page-mod-scicalc .scicalc-description iframe {
+  max-width: 100%;
+}
+
+#page-mod-scicalc .scicalc-card,
+#page-mod-scicalc .scicalc-history-card {
+  box-sizing: border-box;
+  border: 1px solid #e3e7e9;
+  border-radius: 16px;
+  background: #ffffff;
+  box-shadow: 0 4px 18px rgba(20, 37, 44, 0.05);
+}
+
+#page-mod-scicalc .scicalc-card {
+  padding: 15px;
+}
+
+#page-mod-scicalc .scicalc-display-row {
+  display: flex;
+  align-items: stretch;
+  gap: 9px;
+}
+
+#page-mod-scicalc .scicalc-display {
+  min-width: 0;
+  height: 52px;
+  box-sizing: border-box;
+  flex: 1 1 auto;
+  padding: 0 14px;
+  border: 1px solid #d8e0e3;
+  border-radius: 12px;
+  outline: 0;
+  background: #f9fbfb;
+  color: #111827;
+  font: inherit;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+#page-mod-scicalc .scicalc-display:focus {
+  border-color: var(--primary-color, #0b8f95);
+  box-shadow: 0 0 0 3px rgba(11, 143, 149, 0.1);
+}
+
+#page-mod-scicalc .scicalc-display::placeholder {
+  color: #9aa4ac;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+#page-mod-scicalc .scicalc-angle-mode {
+  display: grid;
+  width: 58px;
+  flex: 0 0 58px;
+  grid-template-rows: 1fr 1fr;
+  overflow: hidden;
+  border: 1px solid #d8e0e3;
+  border-radius: 12px;
+  background: #ffffff;
+}
+
+#page-mod-scicalc .scicalc-angle-mode button {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #75808a;
+  font: inherit;
+  font-size: 9px;
+  font-weight: 800;
+}
+
+#page-mod-scicalc .scicalc-angle-mode button + button {
+  border-top: 1px solid #e6eaec;
+}
+
+#page-mod-scicalc .scicalc-angle-mode button.is-active {
+  background: var(--primary-color, #0b8f95);
+  color: #ffffff;
+}
+
+#page-mod-scicalc .scicalc-error {
+  display: none;
+  margin-top: 10px;
+  padding: 9px 11px;
+  border-radius: 9px;
+  background: #fff0ee;
+  color: #9b3d33;
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+#page-mod-scicalc .scicalc-error.is-visible {
+  display: block;
+}
+
+#page-mod-scicalc .scicalc-actions {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 6px;
+  margin-top: 12px;
+}
+
+#page-mod-scicalc .scicalc-keypad {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+  gap: 10px;
+  margin-top: 10px;
+}
+
+#page-mod-scicalc .scicalc-number-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 7px;
+}
+
+#page-mod-scicalc .scicalc-function-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-content: start;
+  gap: 7px;
+}
+
+#page-mod-scicalc .scicalc-key {
+  min-width: 0;
+  min-height: 44px;
+  box-sizing: border-box;
+  padding: 7px 4px;
+  border: 1px solid #e1e6e8;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #182026;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 750;
+  -webkit-tap-highlight-color: transparent;
+}
+
+#page-mod-scicalc .scicalc-key:active {
+  transform: translateY(1px);
+  background: #f2f6f6;
+}
+
+#page-mod-scicalc .scicalc-key--action {
+  min-height: 38px;
+  background: #f4f7f8;
+  color: #52606d;
+  font-size: 12px;
+}
+
+#page-mod-scicalc .scicalc-key--operator,
+#page-mod-scicalc .scicalc-key--function {
+  border-color: #d5e9e9;
+  background: #f2fafa;
+  color: var(--primary-color, #0b8f95);
+}
+
+#page-mod-scicalc .scicalc-key--function {
+  font-size: 11px;
+  font-weight: 700;
+}
+
+#page-mod-scicalc .scicalc-key--equals {
+  border-color: var(--primary-color, #0b8f95);
+  background: var(--primary-color, #0b8f95);
+  color: #ffffff;
+  font-size: 18px;
+}
+
+#page-mod-scicalc .scicalc-history-card {
+  margin-top: 14px;
+  padding: 13px 14px;
+}
+
+#page-mod-scicalc .scicalc-section-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+#page-mod-scicalc .scicalc-section-title strong {
+  font-size: 13px;
+  font-weight: 800;
+}
+
+#page-mod-scicalc .scicalc-section-title button {
+  padding: 6px 9px;
+  border: 0;
+  border-radius: 8px;
+  background: #f1f4f5;
+  color: #68737d;
+  font: inherit;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+#page-mod-scicalc .scicalc-history {
+  margin-top: 10px;
+}
+
+#page-mod-scicalc .scicalc-history-empty {
+  padding: 9px 0 3px;
+  color: #8a949c;
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+#page-mod-scicalc .scicalc-history-item {
+  display: flex;
+  width: 100%;
+  box-sizing: border-box;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 0;
+  border: 0;
+  border-top: 1px solid #edf0f2;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+}
+
+#page-mod-scicalc .scicalc-history-item:first-child {
+  border-top: 0;
+}
+
+#page-mod-scicalc .scicalc-history-expression {
+  min-width: 0;
+  overflow: hidden;
+  color: #5f6b75;
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#page-mod-scicalc .scicalc-history-result {
+  flex: 0 0 auto;
+  color: #111827;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+#page-mod-scicalc .scicalc-help {
+  margin: 12px 4px 0;
+  color: #7b858e;
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+@media (max-width: 520px) {
+  #page-mod-scicalc .scicalc-keypad {
+    grid-template-columns: 1fr;
+  }
+  #page-mod-scicalc .scicalc-function-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+@media (max-width: 360px) {
+  #page-mod-scicalc .scicalc-page {
+    width: min(100% - 18px, 760px);
+  }
+  #page-mod-scicalc .scicalc-card {
+    padding: 11px;
+    border-radius: 13px;
+  }
+  #page-mod-scicalc .scicalc-actions {
+    gap: 4px;
+  }
+  #page-mod-scicalc .scicalc-key {
+    min-height: 41px;
+  }
+  #page-mod-scicalc .scicalc-function-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+/*# sourceMappingURL=style.css.map */

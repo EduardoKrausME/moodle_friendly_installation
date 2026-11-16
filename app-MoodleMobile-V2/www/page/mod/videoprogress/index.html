@@ -1,0 +1,36 @@
+<ons-page id="page-mod-videoprogress">
+    <ons-toolbar>
+        <div class="left">
+            <ons-back-button>
+                <span data-i18n-html="course.course"></span>
+            </ons-back-button>
+        </div>
+        <div class="center"></div>
+    </ons-toolbar>
+
+    <div id="page-mod-videoprogress-content" class="content">
+        <div id="page-mod-videoprogress-spinner" class="videoprogress-loading">
+            <ons-icon icon="md-spinner" spin></ons-icon>
+            <span>Carregando vídeo...</span>
+        </div>
+        <div id="page-mod-videoprogress-iframe-content"></div>
+    </div>
+
+    <script>
+        (function () {
+            var page = document.getElementById("page-mod-videoprogress");
+            if (!page) {
+                return;
+            }
+
+            page.addEventListener("hide", function () {
+                ModVideoProgress.destroy_page();
+            });
+            page.addEventListener("destroy", function () {
+                ModVideoProgress.destroy_page();
+            });
+        })();
+    </script>
+
+    <link href="page/mod/videoprogress/style.css" rel="stylesheet"/>
+</ons-page>

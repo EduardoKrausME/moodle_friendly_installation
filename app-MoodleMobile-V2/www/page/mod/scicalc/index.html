@@ -1,0 +1,118 @@
+<ons-page id="page-mod-scicalc">
+    <ons-toolbar>
+        <div class="left">
+            <ons-back-button>
+                <span data-i18n-html="course.course"></span>
+            </ons-back-button>
+        </div>
+        <div class="center"></div>
+    </ons-toolbar>
+
+    <div class="content">
+        <div class="scicalc-page">
+            <div id="page-mod-scicalc-description" class="scicalc-description"></div>
+
+            <section class="scicalc-card" aria-label="Calculadora científica">
+                <div class="scicalc-display-row">
+                    <input id="scicalc-display"
+                           class="scicalc-display"
+                           type="text"
+                           inputmode="text"
+                           autocomplete="off"
+                           autocapitalize="off"
+                           spellcheck="false"
+                           aria-label="Expressão da calculadora"
+                           placeholder="Ex.: sin(90)+sqrt(9)*2">
+
+                    <div class="scicalc-angle-mode" aria-label="Unidade angular">
+                        <button type="button" class="is-active" data-scicalc-angle="DEG">DEG</button>
+                        <button type="button" data-scicalc-angle="RAD">RAD</button>
+                    </div>
+                </div>
+
+                <div id="scicalc-error" class="scicalc-error" role="alert" aria-live="polite"></div>
+
+                <div class="scicalc-actions">
+                    <button type="button" class="scicalc-key scicalc-key--action" data-action="clear">C</button>
+                    <button type="button" class="scicalc-key scicalc-key--action" data-action="backspace">⌫</button>
+                    <button type="button" class="scicalc-key scicalc-key--action" data-action="insert" data-value="(">(</button>
+                    <button type="button" class="scicalc-key scicalc-key--action" data-action="insert" data-value=")">)</button>
+                    <button type="button" class="scicalc-key scicalc-key--action" data-action="insert" data-value="pi">π</button>
+                    <button type="button" class="scicalc-key scicalc-key--action" data-action="insert" data-value="e">e</button>
+                    <button type="button" class="scicalc-key scicalc-key--action" data-action="toggle-sign">±</button>
+                </div>
+
+                <div class="scicalc-keypad">
+                    <div class="scicalc-number-grid">
+                        <button type="button" class="scicalc-key" data-action="insert" data-value="7">7</button>
+                        <button type="button" class="scicalc-key" data-action="insert" data-value="8">8</button>
+                        <button type="button" class="scicalc-key" data-action="insert" data-value="9">9</button>
+                        <button type="button" class="scicalc-key scicalc-key--operator" data-action="insert" data-value="/">÷</button>
+
+                        <button type="button" class="scicalc-key" data-action="insert" data-value="4">4</button>
+                        <button type="button" class="scicalc-key" data-action="insert" data-value="5">5</button>
+                        <button type="button" class="scicalc-key" data-action="insert" data-value="6">6</button>
+                        <button type="button" class="scicalc-key scicalc-key--operator" data-action="insert" data-value="*">×</button>
+
+                        <button type="button" class="scicalc-key" data-action="insert" data-value="1">1</button>
+                        <button type="button" class="scicalc-key" data-action="insert" data-value="2">2</button>
+                        <button type="button" class="scicalc-key" data-action="insert" data-value="3">3</button>
+                        <button type="button" class="scicalc-key scicalc-key--operator" data-action="insert" data-value="-">−</button>
+
+                        <button type="button" class="scicalc-key" data-action="insert" data-value="0">0</button>
+                        <button type="button" class="scicalc-key" data-action="insert" data-value=".">.</button>
+                        <button type="button" class="scicalc-key scicalc-key--operator" data-action="insert" data-value="^">^</button>
+                        <button type="button" class="scicalc-key scicalc-key--operator" data-action="insert" data-value="+">+</button>
+
+                        <button type="button" class="scicalc-key scicalc-key--operator" data-action="insert" data-value="!">!</button>
+                        <button type="button" class="scicalc-key scicalc-key--operator" data-action="insert" data-value="%">%</button>
+                        <button type="button" class="scicalc-key scicalc-key--operator" data-action="insert" data-value=",">,</button>
+                        <button type="button" class="scicalc-key scicalc-key--equals" data-action="equals">=</button>
+                    </div>
+
+                    <div class="scicalc-function-grid">
+                        <button type="button" class="scicalc-key scicalc-key--function" data-action="func" data-func="sin">sin</button>
+                        <button type="button" class="scicalc-key scicalc-key--function" data-action="func" data-func="cos">cos</button>
+                        <button type="button" class="scicalc-key scicalc-key--function" data-action="func" data-func="tan">tan</button>
+
+                        <button type="button" class="scicalc-key scicalc-key--function" data-action="func" data-func="asin">asin</button>
+                        <button type="button" class="scicalc-key scicalc-key--function" data-action="func" data-func="acos">acos</button>
+                        <button type="button" class="scicalc-key scicalc-key--function" data-action="func" data-func="atan">atan</button>
+
+                        <button type="button" class="scicalc-key scicalc-key--function" data-action="func" data-func="sqrt">sqrt</button>
+                        <button type="button" class="scicalc-key scicalc-key--function" data-action="func" data-func="abs">abs</button>
+                        <button type="button" class="scicalc-key scicalc-key--function" data-action="func" data-func="exp">exp</button>
+
+                        <button type="button" class="scicalc-key scicalc-key--function" data-action="func" data-func="ln">ln</button>
+                        <button type="button" class="scicalc-key scicalc-key--function" data-action="func" data-func="log">log</button>
+                        <button type="button" class="scicalc-key scicalc-key--function" data-action="func" data-func="pow">pow</button>
+
+                        <button type="button" class="scicalc-key scicalc-key--function" data-action="func" data-func="min">min</button>
+                        <button type="button" class="scicalc-key scicalc-key--function" data-action="func" data-func="max">max</button>
+                        <button type="button" class="scicalc-key scicalc-key--function" data-action="func" data-func="round">round</button>
+
+                        <button type="button" class="scicalc-key scicalc-key--function" data-action="func" data-func="floor">floor</button>
+                        <button type="button" class="scicalc-key scicalc-key--function" data-action="func" data-func="ceil">ceil</button>
+                    </div>
+                </div>
+            </section>
+
+            <section class="scicalc-history-card">
+                <div class="scicalc-section-title">
+                    <strong>Histórico</strong>
+                    <button type="button" id="scicalc-clear-history">Limpar</button>
+                </div>
+                <div id="scicalc-history" class="scicalc-history" aria-live="polite">
+                    <div class="scicalc-history-empty">Os cálculos realizados nesta tela aparecem aqui.</div>
+                </div>
+            </section>
+
+            <div class="scicalc-help">
+                Use <strong>Enter</strong> para calcular. Funções disponíveis: sin, cos, tan, asin, acos, atan,
+                sqrt, abs, ln, log, exp, pow, min, max, floor, ceil e round.
+            </div>
+        </div>
+    </div>
+
+    <link href="page/mod/scicalc/style.css" rel="stylesheet"/>
+</ons-page>

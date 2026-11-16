@@ -27,7 +27,6 @@
         "cordova-plugin-file-transfer": "^2.0.0",
         "cordova-plugin-inappbrowser": "^6.0.0",
         "cordova-plugin-ionic-webview": "^5.0.1",
-        "cordova-plugin-zip": "github:EduardoKrausME/cordova-plugin-zip",
-        "sass": "^1.93.0"
+        "cordova-plugin-zip": "github:EduardoKrausME/cordova-plugin-zip"
     }
 }
