@@ -16,6 +16,7 @@ class JobManager {
         usort(
             $jobs,
             static fn(array $a, array $b): int => strcmp(($b["created_at"] ?? ""), ($a["created_at"] ?? ""))
+                ?: strcmp(($b["id"] ?? ""), ($a["id"] ?? ""))
         );
         return $jobs;
     }
