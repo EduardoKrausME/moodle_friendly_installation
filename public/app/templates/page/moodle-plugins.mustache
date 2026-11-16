@@ -13,6 +13,29 @@
     <div class="alert {{flash_class}}">{{flash}}</div>
 {{/has_flash}}
 
+{{#show_git_link_confirmation}}
+    <div class="card hero-card">
+        <h2>{{{i18n.moodle_plugins.link_confirm_heading}}}</h2>
+        <p>{{{i18n.moodle_plugins.link_confirm_intro}}} <strong>{{git_link_component}}</strong></p>
+        <p><code>{{git_link_path}}</code></p>
+        <p><strong>{{{i18n.moodle_plugins.link_repository}}}</strong> <code>{{git_link_url}}</code></p>
+        <div class="alert warning">{{{i18n.moodle_plugins.link_preserve_warning}}}</div>
+        <div class="hero-actions">
+            <form method="post" class="inline-form">
+                <input type="hidden" name="csrf_token" value="{{csrf_token}}">
+                <input type="hidden" name="action" value="confirm_git_link">
+                <input type="hidden" name="link_nonce" value="{{git_link_nonce}}">
+                <button type="submit" class="button">{{{i18n.moodle_plugins.link_confirm_button}}}</button>
+            </form>
+            <form method="post" class="inline-form">
+                <input type="hidden" name="csrf_token" value="{{csrf_token}}">
+                <input type="hidden" name="action" value="cancel_git_link">
+                <button type="submit" class="button secondary">{{{i18n.moodle_plugins.link_cancel_button}}}</button>
+            </form>
+        </div>
+    </div>
+{{/show_git_link_confirmation}}
+
 <div class="card hero-card">
     <div>
         <h2>{{{i18n.moodle_plugins.upgrade_heading}}}</h2>
@@ -99,6 +122,16 @@
                                 </div>
                                 {{#has_check_error}}
                                     <div class="alert warning compact-alert">{{check_error}}</div>
+                                    <form method="post" class="form">
+                                        <input type="hidden" name="csrf_token" value="{{csrf_token}}">
+                                        <input type="hidden" name="action" value="request_git_link">
+                                        <label>
+                                            {{{i18n.moodle_plugins.link_repository}}}
+                                            <input type="url" name="git_url" value="{{git_link_url}}"
+                                                   placeholder="{{{i18n.moodle_plugins.repository_placeholder}}}" required>
+                                        </label>
+                                        <button type="submit" class="button secondary">{{{i18n.moodle_plugins.link_repair_action}}}</button>
+                                    </form>
                                 {{/has_check_error}}
                             </td>
                         </tr>
@@ -108,6 +141,40 @@
             </div>
         {{/has_plugins}}
     </div>
+
+    {{#has_unmanaged_plugins}}
+        <div class="card full-card">
+            <h2>{{{i18n.moodle_plugins.unmanaged_heading}}}</h2>
+            <p class="card-subtitle">{{{i18n.moodle_plugins.unmanaged_intro}}}</p>
+            <div style="overflow-x:auto;">
+                <table class="details-table" style="width:100%;">
+                    <thead><tr>
+                        <th>{{{i18n.moodle_plugins.column_plugin}}}</th>
+                        <th>{{{i18n.moodle_plugins.column_local_version}}}</th>
+                        <th>{{{i18n.moodle_plugins.column_action}}}</th>
+                    </tr></thead>
+                    <tbody>
+                        {{#unmanaged_plugins}}
+                            <tr>
+                                <td><strong>{{component}}</strong><p><code>{{relative_path}}</code></p></td>
+                                <td><code>{{version}}</code></td>
+                                <td>
+                                    <form method="post" class="inline-form">
+                                        <input type="hidden" name="csrf_token" value="{{csrf_token}}">
+                                        <input type="hidden" name="action" value="request_git_link">
+                                        <input type="hidden" name="git_url" value="{{git_url}}">
+                                        <button type="submit" class="button" {{#upgrade_busy}}disabled{{/upgrade_busy}}>
+                                            {{{i18n.moodle_plugins.link_action}}}
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        {{/unmanaged_plugins}}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    {{/has_unmanaged_plugins}}
 
     <div class="card full-card marketplace-card">
         <div class="section-heading-actions marketplace-heading">

@@ -1,0 +1,39 @@
+name: Moodle Git plugin linking
+
+on:
+  push:
+    paths:
+      - 'public/app/MoodlePluginManager.php'
+      - 'public/app/MoodlePluginGitLinker.php'
+      - 'public/moodle_plugins.php'
+      - 'public/app/templates/page/moodle-plugins.mustache'
+      - 'public/app/lang/**'
+      - 'tests/moodle-plugin-git-link.test.php'
+      - '.github/workflows/moodle-plugin-git-link-ci.yml'
+  pull_request:
+    paths:
+      - 'public/app/MoodlePluginManager.php'
+      - 'public/app/MoodlePluginGitLinker.php'
+      - 'public/moodle_plugins.php'
+      - 'public/app/templates/page/moodle-plugins.mustache'
+      - 'public/app/lang/**'
+      - 'tests/moodle-plugin-git-link.test.php'
+      - '.github/workflows/moodle-plugin-git-link-ci.yml'
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: PHP lint
+        run: |
+          php -l public/app/MoodlePluginManager.php
+          php -l public/app/MoodlePluginGitLinker.php
+          php -l public/moodle_plugins.php
+          php -l public/app/lang/pt_br.php
+          php -l public/app/lang/en.php
+          php -l public/app/lang/es.php
+          php -l tests/moodle-plugin-git-link.test.php
+      - name: Test linking existing plugins without overwriting FTP files
+        run: php tests/moodle-plugin-git-link.test.php
+      - name: Recheck existing upgrade tests
+        run: php tests/moodle-plugin-upgrade.test.php

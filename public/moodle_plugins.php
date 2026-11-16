@@ -25,18 +25,56 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $action = isset($_POST["action"]) && is_string($_POST["action"]) ? $_POST["action"] : "";
 
     try {
-        if (in_array($action, ["install_plugin", "update_plugin"], true)
+        if (in_array($action, ["install_plugin", "update_plugin", "request_git_link", "confirm_git_link"], true)
             && JobManager::activeJob("plugin_upgrade", $domain) !== null) {
             throw new RuntimeException(t("moodle_plugins.upgrade_busy"));
         }
-        if ($action === "install_plugin") {
+        if ($action === "install_plugin" || $action === "request_git_link") {
             $giturl = isset($_POST["git_url"]) && is_string($_POST["git_url"]) ? trim($_POST["git_url"]) : "";
             if ($giturl === "") {
                 throw new RuntimeException(t("moodle_plugins.git_url_required"));
             }
-            $result = MoodlePluginManager::install($site, $giturl);
-            JobManager::createPluginUpgradeJob($site, $result["component"]);
-            $_SESSION["flash"] = t("moodle_plugins.install_success", ["component" => $result["component"]]);
+            $remote = MoodlePluginManager::inspectRemoteVersion($giturl);
+            $existing = MoodlePluginManager::localInstallation($site, $remote["component"]);
+            if ($existing !== null) {
+                // Confirmation is server-side and scoped to this exact Moodle site and repository.
+                $_SESSION["plugin_git_link_request"] = [
+                    "domain" => $domain,
+                    "component" => $remote["component"],
+                    "git_url" => $giturl,
+                    "path" => $existing["path"],
+                    "nonce" => bin2hex(random_bytes(16)),
+                ];
+                $_SESSION["flash"] = t("moodle_plugins.link_existing_found", ["component" => $remote["component"]]);
+            } else if ($action === "request_git_link") {
+                throw new RuntimeException(t("moodle_plugins.link_existing_missing"));
+            } else {
+                $result = MoodlePluginManager::install($site, $giturl);
+                JobManager::createPluginUpgradeJob($site, $result["component"]);
+                $_SESSION["flash"] = t("moodle_plugins.install_success", ["component" => $result["component"]]);
+            }
+        } else if ($action === "confirm_git_link") {
+            $pending = $_SESSION["plugin_git_link_request"] ?? null;
+            $nonce = isset($_POST["link_nonce"]) && is_string($_POST["link_nonce"]) ? $_POST["link_nonce"] : "";
+            if (!is_array($pending) || ($pending["domain"] ?? "") !== $domain
+                || !is_string($pending["nonce"] ?? null)
+                || !hash_equals($pending["nonce"], $nonce)) {
+                throw new RuntimeException(t("moodle_plugins.link_confirmation_expired"));
+            }
+            $current = MoodlePluginManager::localInstallation($site, (string)$pending["component"]);
+            if ($current === null || $current["path"] !== $pending["path"]) {
+                throw new RuntimeException(t("moodle_plugins.link_confirmation_expired"));
+            }
+            $result = MoodlePluginManager::linkExisting($site, (string)$pending["git_url"], (string)$pending["component"]);
+            unset($_SESSION["plugin_git_link_request"]);
+            $_SESSION["flash"] = t("moodle_plugins.link_success", ["component" => $result["component"]])
+                . (!empty($result["tracked_changes"]) ? " " . t("moodle_plugins.link_local_changes") : "");
+        } else if ($action === "cancel_git_link") {
+            $pending = $_SESSION["plugin_git_link_request"] ?? null;
+            if (is_array($pending) && ($pending["domain"] ?? "") === $domain) {
+                unset($_SESSION["plugin_git_link_request"]);
+            }
+            $_SESSION["flash"] = t("moodle_plugins.link_cancelled");
         } else if ($action === "update_plugin") {
             $component = isset($_POST["component"]) && is_string($_POST["component"]) ? $_POST["component"] : "";
             $result = MoodlePluginManager::update($site, $component);
@@ -65,6 +103,10 @@ $upgradestatus = (string)($upgradejob["status"] ?? "");
 $upgradestatuskey = in_array($upgradestatus, ["pending", "running", "done", "failed"], true)
     ? $upgradestatus : "pending";
 
+$linkpending = $_SESSION["plugin_git_link_request"] ?? null;
+if (!is_array($linkpending) || ($linkpending["domain"] ?? "") !== $domain) {
+    $linkpending = null;
+}
 $forcerefresh = isset($_GET["refresh"]) && $_GET["refresh"] === "1";
 $plugins = MoodlePluginManager::installed($site, true, $forcerefresh);
 $updatecount = 0;
@@ -125,6 +167,8 @@ $marketplacetypeorder = array_flip([
 ]);
 $marketplacetypecounts = [];
 $marketplaceplugins = [];
+$unmanagedplugins = [];
+$marketplacerepositories = [];
 $marketplaceerror = "";
 try {
     $marketplaceplugins = MoodlePluginManager::marketplaceCatalog();
@@ -136,10 +180,28 @@ try {
             $marketplacetypecounts[$marketplacetype] = ($marketplacetypecounts[$marketplacetype] ?? 0) + 1;
         }
         $marketplaceplugin["is_installed"] = isset($installedcomponents[$marketplaceplugin["component"]]);
+        $marketplacerepositories[$marketplaceplugin["component"]] = $marketplaceplugin["repository_url"];
+        $local = null;
+        try {
+            $local = MoodlePluginManager::localInstallation($site, $marketplaceplugin["component"]);
+        } catch (Throwable $e) {
+            $marketplaceplugin["local_error"] = $e->getMessage();
+        }
+        $marketplaceplugin["is_local_without_git"] = $local !== null && !$marketplaceplugin["is_installed"];
         $marketplaceplugin["can_install"] = !$marketplaceplugin["is_installed"] && !$upgradebusy;
         $marketplaceplugin["install_button_label"] = $marketplaceplugin["is_installed"]
             ? t("moodle_plugins.marketplace_installed")
-            : t("moodle_plugins.marketplace_install");
+            : ($marketplaceplugin["is_local_without_git"]
+                ? t("moodle_plugins.link_action") : t("moodle_plugins.marketplace_install"));
+        if ($marketplaceplugin["is_local_without_git"]) {
+            $unmanagedplugins[] = [
+                "component" => $local["component"],
+                "version" => $local["version"] !== "" ? $local["version"] : "-",
+                "relative_path" => $local["relative_path"],
+                "git_url" => $marketplaceplugin["repository_url"],
+                "csrf_token" => csrf_token(),
+            ];
+        }
         $marketplaceplugin["category_display"] = $marketplaceplugin["category"] !== ""
             ? ucfirst($marketplaceplugin["category"])
             : t("moodle_plugins.marketplace_category_plugin");
@@ -150,6 +212,12 @@ try {
 } catch (Throwable $e) {
     $marketplaceerror = $e->getMessage();
 }
+foreach ($plugins as &$plugin) {
+    if (!empty($plugin["check_error"])) {
+        $plugin["git_link_url"] = $marketplacerepositories[$plugin["component"]] ?? "";
+    }
+}
+unset($plugin);
 
 $marketplacetypefilters = [];
 if (!empty($marketplaceplugins)) {
@@ -190,6 +258,13 @@ $context = [
     "flash_class" => $actionerror ? "danger" : "ok",
     "has_plugins" => !empty($plugins),
     "plugins" => $plugins,
+    "has_unmanaged_plugins" => !empty($unmanagedplugins),
+    "unmanaged_plugins" => $unmanagedplugins,
+    "show_git_link_confirmation" => $linkpending !== null,
+    "git_link_component" => $linkpending["component"] ?? "",
+    "git_link_path" => $linkpending["path"] ?? "",
+    "git_link_url" => $linkpending["git_url"] ?? "",
+    "git_link_nonce" => $linkpending["nonce"] ?? "",
     "marketplace_plugins" => $marketplaceplugins,
     "marketplace_type_filters" => $marketplacetypefilters,
     "marketplace_count" => count($marketplaceplugins),

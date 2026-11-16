@@ -126,6 +126,52 @@ class MoodlePluginManager {
     }
 
     /**
+     * Inspect an existing plugin directory, including those uploaded through FTP.
+     * Does not execute config.php or the plugin's version.php.
+     */
+    public static function localInstallation(array $site, string $component): ?array {
+        $webroot = self::webroot($site);
+        $target = self::componentTarget($webroot, $component);
+        if (!file_exists($target) && !is_link($target)) {
+            return null;
+        }
+        if (is_link($target) || !is_dir($target) || !is_file($target . '/version.php')) {
+            throw new RuntimeException("O diretório {$target} existe, mas não é um plugin Moodle válido.");
+        }
+        $version = self::readVersionFile($target . '/version.php');
+        if (($version['component'] ?? '') !== $component) {
+            throw new RuntimeException("O componente do version.php local não corresponde a {$component}.");
+        }
+        return [
+            'component' => $component,
+            'path' => $target,
+            'relative_path' => ltrim(substr($target, strlen($webroot)), '/'),
+            'version' => $version['version'] ?? '',
+            'release' => $version['release'] ?? '',
+            'has_git' => is_dir($target . '/.git'),
+        ];
+    }
+
+    /**
+     * Link a previously installed plugin to a validated GitHub repository.
+     * The working tree remains untouched and no Moodle database upgrade is needed.
+     */
+    public static function linkExisting(array $site, string $giturl, ?string $expectedcomponent = null): array {
+        $remote = self::inspectRemoteVersion($giturl);
+        $component = $remote['component'];
+        if ($expectedcomponent !== null && $component !== $expectedcomponent) {
+            throw new RuntimeException('O componente remoto mudou desde a confirmação.');
+        }
+        $local = self::localInstallation($site, $component);
+        if ($local === null) {
+            throw new RuntimeException('O diretório do plugin não existe mais.');
+        }
+        require_once __DIR__ . '/MoodlePluginGitLinker.php';
+        $result = MoodlePluginGitLinker::attach($local['path'], $remote);
+        return ['component' => $component, 'path' => $local['path'], 'tracked_changes' => $result['tracked_changes']];
+    }
+
+    /**
      * Updates one installed Git plugin by making the local checkout match the remote branch.
      *
      * A normal git pull --ff-only fails when the remote branch was force-pushed and the
@@ -154,6 +200,18 @@ class MoodlePluginManager {
 
         if (!is_writable($path)) {
             throw new RuntimeException("O Apache não possui permissão de escrita no plugin: {$path}");
+        }
+        // A Git link to an FTP installation must never silently discard local changes.
+        $statuscommand = "git -c safe.directory=" . escapeshellarg($path) .
+            " -C " . escapeshellarg($path) . " status --porcelain --untracked-files=all 2>&1";
+        [$statuscode, $statusoutput] = self::run($statuscommand);
+        if ($statuscode !== 0) {
+            throw new RuntimeException("Não foi possível verificar alterações locais no Git: " . trim($statusoutput));
+        }
+        if (trim($statusoutput) !== "") {
+            throw new RuntimeException("O plugin possui arquivos locais diferentes do repositório Git. " .
+                "A atualização foi bloqueada para não sobrescrever arquivos instalados por FTP; " .
+                "revise e preserve essas alterações antes de continuar.");
         }
 
         $fetchcommand = "GIT_TERMINAL_PROMPT=0 timeout 180s git -c safe.directory=" . escapeshellarg($path) .
