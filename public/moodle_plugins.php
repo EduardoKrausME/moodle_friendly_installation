@@ -1,6 +1,7 @@
 <?php
 
 use app\Auth;
+use app\JobManager;
 use app\MoodlePluginManager;
 use app\SiteManager;
 
@@ -24,19 +25,26 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $action = isset($_POST["action"]) && is_string($_POST["action"]) ? $_POST["action"] : "";
 
     try {
+        if (in_array($action, ["install_plugin", "update_plugin"], true)
+            && JobManager::activeJob("plugin_upgrade", $domain) !== null) {
+            throw new RuntimeException(t("moodle_plugins.upgrade_busy"));
+        }
         if ($action === "install_plugin") {
             $giturl = isset($_POST["git_url"]) && is_string($_POST["git_url"]) ? trim($_POST["git_url"]) : "";
             if ($giturl === "") {
                 throw new RuntimeException(t("moodle_plugins.git_url_required"));
             }
             $result = MoodlePluginManager::install($site, $giturl);
+            JobManager::createPluginUpgradeJob($site, $result["component"]);
             $_SESSION["flash"] = t("moodle_plugins.install_success", ["component" => $result["component"]]);
-            $_SESSION["plugin_install_component"] = $result["component"];
         } else if ($action === "update_plugin") {
             $component = isset($_POST["component"]) && is_string($_POST["component"]) ? $_POST["component"] : "";
             $result = MoodlePluginManager::update($site, $component);
+            JobManager::createPluginUpgradeJob($site, $result["component"]);
             $_SESSION["flash"] = t("moodle_plugins.update_success", ["component" => $result["component"]]);
-            $_SESSION["plugin_install_component"] = $result["component"];
+        } else if ($action === "run_plugin_upgrade") {
+            JobManager::createPluginUpgradeJob($site, "core");
+            $_SESSION["flash"] = t("moodle_plugins.upgrade_queued");
         }
     } catch (Throwable $e) {
         $_SESSION["flash"] = t("moodle_plugins.error_prefix") . $e->getMessage();
@@ -49,9 +57,13 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 $flash = flash_message();
 $actionerror = !empty($_SESSION["plugin_action_error"]);
 unset($_SESSION["plugin_action_error"]);
-$installedcomponent = isset($_SESSION["plugin_install_component"]) && is_string($_SESSION["plugin_install_component"])
-    ? $_SESSION["plugin_install_component"] : "";
+// Legacy session state from the former manual Site administration flow.
 unset($_SESSION["plugin_install_component"]);
+$upgradejob = JobManager::latestPluginUpgradeJob($domain);
+$upgradebusy = JobManager::activeJob("plugin_upgrade", $domain) !== null;
+$upgradestatus = (string)($upgradejob["status"] ?? "");
+$upgradestatuskey = in_array($upgradestatus, ["pending", "running", "done", "failed"], true)
+    ? $upgradestatus : "pending";
 
 $forcerefresh = isset($_GET["refresh"]) && $_GET["refresh"] === "1";
 $plugins = MoodlePluginManager::installed($site, true, $forcerefresh);
@@ -70,7 +82,7 @@ foreach ($plugins as $index => &$plugin) {
         $updatecount++;
         $plugin["status_badge_html"] = status_badge("warning", t("moodle_plugins.status_version_different"));
         $plugin["update_button_label"] = t("moodle_plugins.action_update_now");
-        $plugin["can_update"] = true;
+        $plugin["can_update"] = !$upgradebusy;
     } else if ($plugin["check_error"] !== "") {
         $plugin["status_badge_html"] = status_badge("muted", t("moodle_plugins.status_check_failed"));
         $plugin["update_button_label"] = t("moodle_plugins.action_unavailable");
@@ -124,7 +136,7 @@ try {
             $marketplacetypecounts[$marketplacetype] = ($marketplacetypecounts[$marketplacetype] ?? 0) + 1;
         }
         $marketplaceplugin["is_installed"] = isset($installedcomponents[$marketplaceplugin["component"]]);
-        $marketplaceplugin["can_install"] = !$marketplaceplugin["is_installed"];
+        $marketplaceplugin["can_install"] = !$marketplaceplugin["is_installed"] && !$upgradebusy;
         $marketplaceplugin["install_button_label"] = $marketplaceplugin["is_installed"]
             ? t("moodle_plugins.marketplace_installed")
             : t("moodle_plugins.marketplace_install");
@@ -186,9 +198,13 @@ $context = [
     "marketplace_error" => $marketplaceerror,
     "has_updates" => $updatecount > 0,
     "update_count" => $updatecount,
-    "show_finish_install" => $installedcomponent !== "",
-    "admin_url" => MoodlePluginManager::siteAdminUrl($site),
-    "installed_component" => $installedcomponent,
+    "has_upgrade_job" => $upgradejob !== null,
+    "upgrade_busy" => $upgradebusy,
+    "can_queue_upgrade" => !$upgradebusy,
+    "upgrade_job_url" => $upgradejob !== null ? "/jobs.php?job=" . rawurlencode((string)$upgradejob["id"]) : "",
+    "upgrade_status" => $upgradejob !== null ? t("moodle_plugins.upgrade_status_" . $upgradestatuskey) : "",
+    "upgrade_status_error" => (string)($upgradejob["error"] ?? ""),
+    "has_upgrade_error" => $upgradestatus === "failed",
 ];
 
 render_header(t("moodle_plugins.title"));

@@ -1,0 +1,37 @@
+name: Moodle plugin CLI upgrade tests
+
+on:
+  push:
+    paths:
+      - 'public/moodle_plugins.php'
+      - 'public/app/MoodlePluginUpgrade.php'
+      - 'public/app/JobManager.php'
+      - 'bin/cron-plugin_upgrade.php'
+      - 'bin/cron-root-runner.php'
+      - 'tests/moodle-plugin-upgrade.test.php'
+      - '.github/workflows/moodle-plugin-upgrade-ci.yml'
+  pull_request:
+    paths:
+      - 'public/moodle_plugins.php'
+      - 'public/app/MoodlePluginUpgrade.php'
+      - 'public/app/JobManager.php'
+      - 'bin/cron-plugin_upgrade.php'
+      - 'bin/cron-root-runner.php'
+      - 'tests/moodle-plugin-upgrade.test.php'
+      - '.github/workflows/moodle-plugin-upgrade-ci.yml'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: PHP syntax checks
+        run: |
+          php -l public/app/MoodlePluginUpgrade.php
+          php -l public/app/JobManager.php
+          php -l public/moodle_plugins.php
+          php -l bin/cron-plugin_upgrade.php
+          php -l bin/cron-root-runner.php
+          php -l tests/moodle-plugin-upgrade.test.php
+      - name: Test plugin upgrade workflow
+        run: php tests/moodle-plugin-upgrade.test.php

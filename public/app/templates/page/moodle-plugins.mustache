@@ -13,17 +13,24 @@
     <div class="alert {{flash_class}}">{{flash}}</div>
 {{/has_flash}}
 
-{{#show_finish_install}}
-    <div class="card hero-card">
-        <div>
-            <h2>{{{i18n.moodle_plugins.finish_heading}}}</h2>
-            <p>{{{i18n.moodle_plugins.finish_intro_before}}} <strong>{{installed_component}}</strong> {{{i18n.moodle_plugins.finish_intro_after}}}</p>
-        </div>
-        <div class="hero-actions">
-            <a class="button" href="{{admin_url}}" target="_blank" rel="noopener">{{{i18n.moodle_plugins.open_site_admin}}}</a>
-        </div>
+<div class="card hero-card">
+    <div>
+        <h2>{{{i18n.moodle_plugins.upgrade_heading}}}</h2>
+        <p>{{{i18n.moodle_plugins.upgrade_intro}}}</p>
+        {{#has_upgrade_job}}
+            <p><strong>{{upgrade_status}}</strong></p>
+            {{#has_upgrade_error}}<div class="alert danger">{{upgrade_status_error}}</div>{{/has_upgrade_error}}
+        {{/has_upgrade_job}}
     </div>
-{{/show_finish_install}}
+    <div class="hero-actions">
+        {{#has_upgrade_job}}<a class="button secondary" href="{{upgrade_job_url}}">{{{i18n.moodle_plugins.view_upgrade_job}}}</a>{{/has_upgrade_job}}
+        <form method="post" class="inline-form">
+            <input type="hidden" name="csrf_token" value="{{csrf_token}}">
+            <input type="hidden" name="action" value="run_plugin_upgrade">
+            <button class="button" type="submit" {{^can_queue_upgrade}}disabled{{/can_queue_upgrade}}>{{{i18n.moodle_plugins.run_upgrade}}}</button>
+        </form>
+    </div>
+</div>
 
 {{#has_updates}}
     <div class="alert warning">
@@ -211,7 +218,7 @@
                 <input type="url" name="git_url" placeholder="{{{i18n.moodle_plugins.repository_placeholder}}}" required>
             </label>
             <div class="hero-actions">
-                <button type="submit" class="button">{{{i18n.moodle_plugins.install_button}}}</button>
+                <button type="submit" class="button" {{#upgrade_busy}}disabled{{/upgrade_busy}}>{{{i18n.moodle_plugins.install_button}}}</button>
             </div>
         </form>
         <p class="card-subtitle">{{{i18n.moodle_plugins.install_permissions}}}</p>

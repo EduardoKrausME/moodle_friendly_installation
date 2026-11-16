@@ -91,6 +91,7 @@ try {
             "app_build" => "cron-app_build.php",
             "resource_usage" => "cron-resource_usage.php",
             "server_control" => "cron-server_control.php",
+            "plugin_upgrade" => "cron-plugin_upgrade.php",
             "cleanup_failed_installation" => "cron-cleanup_failed_installation.php",
         ];
         $jobtype = $job["type"];

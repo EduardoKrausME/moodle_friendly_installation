@@ -178,6 +178,61 @@ class JobManager {
      * @param string $domain
      * @return array|null
      */
+    /**
+     * Queue a Moodle CLI upgrade after installing/updating plugin code.
+     * An upgrade is site-wide, so concurrent requests reuse the same pending job.
+     */
+    public static function createPluginUpgradeJob(array $site, string $component): array {
+        $domain = (string)($site["domain"] ?? "");
+        if (!preg_match('/^[a-z0-9][a-z0-9.-]*$/D', $domain)
+            || ($component !== "core" && !preg_match('/^[a-z][a-z0-9_]*_[a-z][a-z0-9_]*$/D', $component))) {
+            throw new \InvalidArgumentException("Invalid Moodle domain or plugin component.");
+        }
+        $jobsfile = app_config_path("/data/jobs.json");
+        $result = null;
+        $created = false;
+        self::withJobsLock(static function() use ($jobsfile, $domain, $component, &$result, &$created): void {
+            $jobs = JsonStorage::read($jobsfile);
+            foreach ($jobs as $existing) {
+                if (($existing["type"] ?? "") === "plugin_upgrade"
+                    && ($existing["domain"] ?? "") === $domain
+                    && in_array(($existing["status"] ?? ""), ["pending", "running"], true)) {
+                    $result = $existing;
+                    return;
+                }
+            }
+            $result = [
+                "id" => self::newId(),
+                "type" => "plugin_upgrade",
+                "status" => "pending",
+                "domain" => $domain,
+                "component" => $component,
+                "created_at" => now_iso(),
+                "updated_at" => now_iso(),
+                "created_by" => Auth::user()["username"] ?? "system",
+                "log_file" => app_config_path("/data/logs") . "/plugin-upgrade-{$domain}-" . date("Ymd-His") . ".log",
+            ];
+            $jobs[] = $result;
+            JsonStorage::write($jobsfile, $jobs);
+            self::fixSharedStoragePermissions($jobsfile);
+            $created = true;
+        });
+        if ($created) {
+            self::writeQueueFile($result);
+        }
+        return $result;
+    }
+
+    /** Most recent CLI upgrade request, including completed and failed jobs. */
+    public static function latestPluginUpgradeJob(string $domain): ?array {
+        foreach (self::all() as $job) {
+            if (($job["type"] ?? "") === "plugin_upgrade" && ($job["domain"] ?? "") === $domain) {
+                return $job;
+            }
+        }
+        return null;
+    }
+
     public static function activeJob(string $type, string $domain): ?array {
         foreach (self::all() as $job) {
             if (($job["type"] ?? "") === $type
@@ -462,7 +517,7 @@ class JobManager {
                 continue;
             }
 
-            if (in_array($type, ["app_build", "server_control"], true) && $status == "pending") {
+            if (in_array($type, ["app_build", "server_control", "plugin_upgrade"], true) && $status == "pending") {
                 $foregroundjobs[] = $job;
                 continue;
             }
