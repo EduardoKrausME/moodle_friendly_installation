@@ -106,7 +106,6 @@ try {
         }
         require_once __DIR__ . "/{$jobscripts[$jobtype]}";
     } else {
-        echo "No pending jobs.\n";
         runDailySelfUpdateCheck();
         runWeeklyPluginUpdateCheck();
     }
@@ -239,7 +238,7 @@ function runDailySelfUpdateCheck(): void {
 function runWeeklyPluginUpdateCheck(): void {
     try {
         $state = MoodlePluginManager::checkAllSitesForUpdates(false);
-        if (($state["last_weekly_status"] ?? "") !== "running") {
+        if (!empty($state["executed"])) {
             echo "Plugin update check: " . ($state["last_weekly_message"] ?? "OK") . "\n";
         }
     } catch (Throwable $e) {
