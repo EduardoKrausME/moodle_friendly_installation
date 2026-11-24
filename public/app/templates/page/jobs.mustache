@@ -27,6 +27,7 @@
                     {{domain}}
                 {{/has_done}}
             </div>
+            <div><strong>{{{i18n.jobs.operation}}}</strong>: {{operation}}</div>
             <div class="status-{{status_class}}"><strong>{{{i18n.jobs.status}}}</strong>: {{{status_badge}}}</div>
             <div class="nowrap"><strong>{{{i18n.jobs.created}}}</strong>: {{created_at}}</div>
             {{#can_cancel}}
@@ -90,6 +91,7 @@
                         {{domain}}
                     {{/has_done}}
                 </div>
+                <div><strong>{{{i18n.jobs.operation}}}</strong>: {{operation}}</div>
                 <div class="status-{{status_class}}"><strong>{{{i18n.jobs.status}}}</strong>: {{{status_badge}}}</div>
                 <div class="nowrap"><strong>{{{i18n.jobs.created}}}</strong>: {{created_at}}</div>
                 <div class="job-card-actions">

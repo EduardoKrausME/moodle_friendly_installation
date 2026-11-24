@@ -137,6 +137,7 @@ foreach ($alljobs as $job) {
         "id" => $jobid,
         "has_done" => $status == "done",
         "domain" => $job["domain"] ?? "",
+        "operation" => JobManager::operationLabel($job),
         "status_class" => $statusclass,
         "status_badge" => status_badge($status),
         "status" => $status,

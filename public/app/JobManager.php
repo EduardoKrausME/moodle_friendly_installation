@@ -7,6 +7,36 @@ namespace app;
  */
 class JobManager {
     /**
+     * Describe the queued operation using only non-sensitive job metadata.
+     * Plugin upgrades are site-wide; the component identifies the original request.
+     */
+    public static function operationLabel(array $job): string {
+        $type = $job["type"] ?? "";
+        $branch = $job["moodle_branch"] ?? "";
+        $component = $job["component"] ?? "";
+        $package = $job["package_name"] ?? "";
+
+        return match ($type) {
+            "install_moodle" => is_string($branch) && $branch !== ""
+                ? I18n::get("jobs.operation_install_branch", ["branch" => $branch])
+                : I18n::get("jobs.operation_install"),
+            "restore_moodle" => I18n::get("jobs.operation_restore"),
+            "app_build" => is_string($package) && $package !== ""
+                ? I18n::get("jobs.operation_app_package", ["package" => $package])
+                : I18n::get("jobs.operation_app"),
+            "resource_usage" => I18n::get("jobs.operation_resources"),
+            "server_control" => ($job["control"] ?? "") === "cache" && isset($job["enabled"])
+                ? I18n::get($job["enabled"] ? "jobs.operation_cache_enable" : "jobs.operation_cache_disable")
+                : I18n::get("jobs.operation_server"),
+            "plugin_upgrade" => is_string($component) && $component !== "" && $component !== "core"
+                ? I18n::get("jobs.operation_upgrade_component", ["component" => $component])
+                : I18n::get("jobs.operation_upgrade"),
+            "cleanup_failed_installation" => I18n::get("jobs.operation_cleanup"),
+            default => I18n::get("jobs.operation_unknown"),
+        };
+    }
+
+    /**
      * Function all
      *
      * @return array
