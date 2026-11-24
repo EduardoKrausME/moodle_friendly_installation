@@ -37,7 +37,11 @@ final class Moodle262Migration {
             ++$summary['sites'];
 
             $original = self::read($configpath);
-            $updated = self::patchMoodleConfig($original);
+            try {
+                $updated = self::patchMoodleConfig($original);
+            } catch (RuntimeException $e) {
+                throw new RuntimeException($configpath . ': ' . $e->getMessage(), 0, $e);
+            }
             if ($original === $updated) {
                 ++$summary['config_unchanged'];
             } else {
