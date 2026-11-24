@@ -14,11 +14,14 @@
 {{/has_flash}}
 
 {{#show_git_link_confirmation}}
-    <div class="card hero-card">
+    <div class="card hero-card inverse">
         <h2>{{{i18n.moodle_plugins.link_confirm_heading}}}</h2>
         <p>{{{i18n.moodle_plugins.link_confirm_intro}}} <strong>{{git_link_component}}</strong></p>
         <p><code>{{git_link_path}}</code></p>
-        <p><strong>{{{i18n.moodle_plugins.link_repository}}}</strong> <code>{{git_link_url}}</code></p>
+        <div>
+            <p><strong>{{{i18n.moodle_plugins.link_repository}}}</strong></p>
+            <p><code>{{git_link_url}}</code></p>
+        </div>
         <div class="alert warning">{{{i18n.moodle_plugins.link_preserve_warning}}}</div>
         <div class="hero-actions">
             <form method="post" class="inline-form">
