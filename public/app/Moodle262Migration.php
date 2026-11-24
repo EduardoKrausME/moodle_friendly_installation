@@ -22,10 +22,23 @@ final class Moodle262Migration {
         $reload = $options['reload'] ?? static fn() => self::command(['systemctl', 'reload', $debian ? 'apache2' : 'httpd']);
 
         $summary = ['sites' => 0, 'config_updated' => 0, 'config_unchanged' => 0,
-            'apache_updated' => 0, 'apache_unchanged' => 0, 'apache_missing' => 0, 'backups' => ''];
+            'apache_updated' => 0, 'apache_unchanged' => 0, 'apache_missing' => 0, 'config_skipped' => 0, 'backups' => ''];
         $changes = [];
         $domains = [];
         foreach (self::discoverConfigs($home) as $configpath) {
+            // Incomplete installations and placeholder configs are not migration targets.
+            // Never change their Apache routing independently of the Moodle config.
+            if (!is_file($configpath)) {
+                ++$summary['config_skipped'];
+                $log('WARNING: Skipping missing Moodle config.php: ' . $configpath);
+                continue;
+            }
+            $original = self::read($configpath);
+            if (!self::isRecognizedConfig($original)) {
+                ++$summary['config_skipped'];
+                $log('WARNING: Skipping unrecognized Moodle config.php: ' . $configpath);
+                continue;
+            }
             $domain = basename(dirname(dirname($configpath)));
             if (!preg_match('/^[A-Za-z0-9][A-Za-z0-9.-]*$/D', $domain)) {
                 throw new RuntimeException('Invalid Moodle site directory: ' . $configpath);
@@ -36,7 +49,6 @@ final class Moodle262Migration {
             $domains[$domain] = true;
             ++$summary['sites'];
 
-            $original = self::read($configpath);
             try {
                 $updated = self::patchMoodleConfig($original);
             } catch (RuntimeException $e) {
@@ -69,7 +81,7 @@ final class Moodle262Migration {
         }
 
         if ($changes === []) {
-            $log('Moodle 2.6.2: no routing changes required (' . $summary['sites'] . ' sites).');
+            $log('Moodle 2.6.2: no routing changes required (' . $summary['sites'] . ' sites, ' . $summary['config_skipped'] . ' skipped).');
             return $summary;
         }
 
@@ -102,7 +114,8 @@ final class Moodle262Migration {
             }
             $log('Moodle 2.6.2: ' . $summary['sites'] . ' sites, '
                 . $summary['config_updated'] . ' Moodle configs and '
-                . $summary['apache_updated'] . ' Apache configs updated.');
+                . $summary['apache_updated'] . ' Apache configs updated, '
+                . $summary['config_skipped'] . ' configs skipped.');
             return $summary;
         } catch (Throwable $error) {
             $failures = [];
@@ -154,9 +167,14 @@ final class Moodle262Migration {
         return $configs;
     }
 
+    /** Recognize the minimum configuration expected by the routing migration. */
+    private static function isRecognizedConfig(string $content): bool {
+        return str_contains($content, '<?php') && preg_match('/^[ \t]*\$CFG->wwwroot[ \t]*=/m', $content) === 1;
+    }
+
     /** Replace a recognized switch or insert it before Moodle setup; refuse ambiguous configs. */
     public static function patchMoodleConfig(string $content): string {
-        if (!str_contains($content, '<?php') || !preg_match('/^[ \t]*\$CFG->wwwroot[ \t]*=/m', $content)) {
+        if (!self::isRecognizedConfig($content)) {
             throw new RuntimeException('Unrecognized Moodle config.php; refusing to change routing.');
         }
         $matches = [];

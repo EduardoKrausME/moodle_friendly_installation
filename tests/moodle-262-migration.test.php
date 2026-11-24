@@ -96,7 +96,40 @@ try {
     }
     file_put_contents($enabled . '/admin.moodle.conf', 'Panel configuration');
 
+    // Incomplete installations must not abort valid migrations or change their vhosts.
+    $ignored = [
+        'a-empty.example.org' => '',
+        'b-placeholder.example.org' => "<?php\n",
+        'c-missing.example.org' => null,
+    ];
+    foreach ($ignored as $domain => $contents) {
+        $site = $home . '/' . $domain;
+        mkdir($site . '/moodle', 0755, true);
+        if ($contents !== null) {
+            file_put_contents($site . '/moodle/config.php', $contents);
+        }
+        file_put_contents($enabled . '/' . $domain . '.conf',
+            str_replace(['{{DOMAIN}}', '{{ROOT}}'], [$domain, $site], $host));
+    }
+    $messages = [];
+    $options['logger'] = static function(string $message) use (&$messages): void { $messages[] = $message; };
+
     $summary = Moodle262Migration::run($options);
+    check262($summary['config_skipped'] === 2, 'skips empty and unrecognized configs without aborting');
+    foreach ($ignored as $domain => $contents) {
+        $site = $home . '/' . $domain;
+        $path = $site . '/moodle/config.php';
+        check262($contents === null ? !file_exists($path) : file_get_contents($path) === $contents,
+            $domain . ': skipped config stays untouched');
+        check262(file_get_contents($enabled . '/' . $domain . '.conf') ===
+            str_replace(['{{DOMAIN}}', '{{ROOT}}'], [$domain, $site], $host),
+            $domain . ': skipped Apache vhost stays untouched');
+        if ($contents !== null) {
+            check262(in_array('WARNING: Skipping unrecognized Moodle config.php: ' . $path, $messages, true),
+                $domain . ': warning identifies skipped config');
+        }
+    }
+
     check262($summary['sites'] === 3, 'finds Moodle installations recursively under /home');
     check262($summary['config_updated'] === 3, 'updates explicit and missing router switches');
     check262($summary['apache_updated'] === 2 && $summary['apache_missing'] === 1, 'updates Apache only for installed managed sites');
