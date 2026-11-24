@@ -128,6 +128,23 @@ try {
         && str_contains($template, 'name="action" value="cancel_plugin_update"'), 'All three actions are present');
     verify(str_contains($controller, 'MoodlePluginManager::update($site, $component, $confirmation, $withoutbackup)')
         && str_contains($controller, 'JobManager::createPluginUpgradeJob($site, $result["component"])'), 'Both confirmation paths share upgrade scheduling');
+    verify(str_contains($controller, '$upgradejob = $activeupgradejob ?? JobManager::latestPluginUpgradeJob($domain);')
+        && str_contains($controller, '"upgrade_busy_message" => $upgradebusy ? t("moodle_plugins.upgrade_blocked_" . $upgradestatuskey)')
+        && str_contains($controller, '$upgradebusy ? "moodle_plugins.upgrade_wait_button" : "moodle_plugins.action_update_now"'),
+        'Blocked controls display the active upgrade job and waiting label');
+    verify(str_contains($template, '{{#upgrade_busy}}')
+        && str_contains($template, 'id="plugin-upgrade-blocked"')
+        && str_contains($template, 'href="{{upgrade_job_url}}"')
+        && str_contains($template, 'href="{{upgrade_refresh_url}}"')
+        && str_contains($template, 'aria-describedby="plugin-upgrade-blocked"'),
+        'Blocked upgrade warning includes job and refresh links and accessible button descriptions');
+    foreach (['pt_br', 'en', 'es'] as $locale) {
+        $lang = file_get_contents(__DIR__ . '/../public/app/lang/' . $locale . '.php');
+        foreach (['upgrade_blocked_heading', 'upgrade_blocked_pending', 'upgrade_blocked_running',
+            'upgrade_wait_button', 'upgrade_refresh_status'] as $key) {
+            verify(str_contains($lang, '"' . $key . '"'), 'Upgrade blocking translation: ' . $locale . '/' . $key);
+        }
+    }
     echo "ALL TESTS PASSED\n";
 } finally {
     exec('rm -rf -- ' . escapeshellarg($root));

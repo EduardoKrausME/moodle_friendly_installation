@@ -13,6 +13,17 @@
     <div class="alert {{flash_class}}" role="status">{{flash}}</div>
 {{/has_flash}}
 
+{{#upgrade_busy}}
+    <div class="alert warning" id="plugin-upgrade-blocked" role="status">
+        <strong>{{i18n.moodle_plugins.upgrade_blocked_heading}}</strong>
+        <p style="margin:8px 0;">{{upgrade_busy_message}}</p>
+        <div class="hero-actions">
+            <a class="button secondary" href="{{upgrade_job_url}}">{{i18n.moodle_plugins.view_upgrade_job}}</a>
+            <a class="button secondary" href="{{upgrade_refresh_url}}">{{i18n.moodle_plugins.upgrade_refresh_status}}</a>
+        </div>
+    </div>
+{{/upgrade_busy}}
+
 {{#show_update_confirmation}}
     <section class="card plugin-update-confirmation{{^has_update_changes}} plugin-update-confirmation-single{{/has_update_changes}}" aria-labelledby="plugin-update-heading">
         <div class="plugin-update-info">
@@ -32,13 +43,13 @@
                     <input type="hidden" name="csrf_token" value="{{csrf_token}}">
                     <input type="hidden" name="action" value="confirm_plugin_update_without_backup">
                     <input type="hidden" name="update_nonce" value="{{update_nonce}}">
-                    <button type="submit" class="button plugin-update-no-backup" aria-describedby="plugin-update-risk" {{#upgrade_busy}}disabled{{/upgrade_busy}}>{{i18n.moodle_plugins.update_without_backup}}</button>
+                    <button type="submit" class="button plugin-update-no-backup" aria-describedby="plugin-update-risk{{#upgrade_busy}} plugin-upgrade-blocked{{/upgrade_busy}}" {{#upgrade_busy}}disabled title="{{i18n.moodle_plugins.upgrade_busy}}"{{/upgrade_busy}}>{{i18n.moodle_plugins.update_without_backup}}</button>
                 </form>
                 <form method="post" class="inline-form">
                     <input type="hidden" name="csrf_token" value="{{csrf_token}}">
                     <input type="hidden" name="action" value="confirm_plugin_update">
                     <input type="hidden" name="update_nonce" value="{{update_nonce}}">
-                    <button type="submit" class="button" {{#upgrade_busy}}disabled{{/upgrade_busy}}>{{i18n.moodle_plugins.update_confirm_button}}</button>
+                    <button type="submit" class="button" {{#upgrade_busy}}disabled title="{{i18n.moodle_plugins.upgrade_busy}}" aria-describedby="plugin-upgrade-blocked"{{/upgrade_busy}}>{{i18n.moodle_plugins.update_confirm_button}}</button>
                 </form>
             </div>
             <p id="plugin-update-risk" class="plugin-update-risk">{{i18n.moodle_plugins.update_without_backup_warning}}</p>
@@ -74,7 +85,7 @@
                 <input type="hidden" name="csrf_token" value="{{csrf_token}}">
                 <input type="hidden" name="action" value="confirm_git_link">
                 <input type="hidden" name="link_nonce" value="{{git_link_nonce}}">
-                <button type="submit" class="button">{{{i18n.moodle_plugins.link_confirm_button}}}</button>
+                <button type="submit" class="button" {{#upgrade_busy}}disabled title="{{i18n.moodle_plugins.upgrade_busy}}" aria-describedby="plugin-upgrade-blocked"{{/upgrade_busy}}>{{{i18n.moodle_plugins.link_confirm_button}}}</button>
             </form>
             <form method="post" class="inline-form">
                 <input type="hidden" name="csrf_token" value="{{csrf_token}}">
@@ -91,7 +102,7 @@
         <p>{{{i18n.moodle_plugins.upgrade_intro}}}</p>
         {{#has_upgrade_job}}
             <p><strong>{{upgrade_status}}</strong></p>
-            {{#has_upgrade_error}}<div class="alert danger">{{upgrade_status_error}}</div>{{/has_upgrade_error}}
+            {{#has_upgrade_error}}<div class="alert alert-danger">{{upgrade_status_error}}</div>{{/has_upgrade_error}}
         {{/has_upgrade_job}}
     </div>
     <div class="hero-actions">
@@ -99,7 +110,7 @@
         <form method="post" class="inline-form">
             <input type="hidden" name="csrf_token" value="{{csrf_token}}">
             <input type="hidden" name="action" value="run_plugin_upgrade">
-            <button class="button" type="submit" {{^can_queue_upgrade}}disabled{{/can_queue_upgrade}}>{{{i18n.moodle_plugins.run_upgrade}}}</button>
+            <button class="button" type="submit" {{^can_queue_upgrade}}disabled title="{{i18n.moodle_plugins.upgrade_busy}}" aria-describedby="plugin-upgrade-blocked"{{/can_queue_upgrade}}>{{{i18n.moodle_plugins.run_upgrade}}}</button>
         </form>
     </div>
 </div>
@@ -146,7 +157,7 @@
                                     <input type="hidden" name="csrf_token" value="{{csrf_token}}">
                                     <input type="hidden" name="action" value="update_plugin">
                                     <input type="hidden" name="component" value="{{component}}">
-                                    <button type="submit" class="button" {{^can_update}}disabled{{/can_update}}>{{update_button_label}}</button>
+                                    <button type="submit" class="button" {{^can_update}}disabled{{#update_available}}{{#upgrade_busy}} title="{{i18n.moodle_plugins.upgrade_busy}}" aria-describedby="plugin-upgrade-blocked"{{/upgrade_busy}}{{/update_available}}{{/can_update}}>{{update_button_label}}</button>
                                 </form>
                             </td>
                         </tr>
@@ -179,7 +190,7 @@
                                             <input type="url" name="git_url" value="{{git_link_url}}"
                                                    placeholder="{{{i18n.moodle_plugins.repository_placeholder}}}" required>
                                         </label>
-                                        <button type="submit" class="button secondary">{{{i18n.moodle_plugins.link_repair_action}}}</button>
+                                        <button type="submit" class="button secondary" {{#upgrade_busy}}disabled title="{{i18n.moodle_plugins.upgrade_busy}}" aria-describedby="plugin-upgrade-blocked"{{/upgrade_busy}}>{{{i18n.moodle_plugins.link_repair_action}}}</button>
                                     </form>
                                 {{/has_check_error}}
                             </td>
@@ -212,7 +223,7 @@
                                         <input type="hidden" name="csrf_token" value="{{csrf_token}}">
                                         <input type="hidden" name="action" value="request_git_link">
                                         <input type="hidden" name="git_url" value="{{git_url}}">
-                                        <button type="submit" class="button" {{#upgrade_busy}}disabled{{/upgrade_busy}}>
+                                        <button type="submit" class="button" {{#upgrade_busy}}disabled title="{{i18n.moodle_plugins.upgrade_busy}}" aria-describedby="plugin-upgrade-blocked"{{/upgrade_busy}}>
                                             {{{i18n.moodle_plugins.link_action}}}
                                         </button>
                                     </form>
@@ -309,7 +320,7 @@
                                 <input type="hidden" name="csrf_token" value="{{csrf_token}}">
                                 <input type="hidden" name="action" value="install_plugin">
                                 <input type="hidden" name="git_url" value="{{repository_url}}">
-                                <button type="submit" class="button" {{^can_install}}disabled{{/can_install}}>
+                                <button type="submit" class="button" {{^can_install}}disabled{{^is_installed}}{{#upgrade_busy}} title="{{i18n.moodle_plugins.upgrade_busy}}" aria-describedby="plugin-upgrade-blocked"{{/upgrade_busy}}{{/is_installed}}{{/can_install}}>
                                     {{install_button_label}}
                                 </button>
                             </form>
@@ -334,7 +345,7 @@
                 <input type="url" name="git_url" placeholder="{{{i18n.moodle_plugins.repository_placeholder}}}" required>
             </label>
             <div class="hero-actions">
-                <button type="submit" class="button" {{#upgrade_busy}}disabled{{/upgrade_busy}}>{{{i18n.moodle_plugins.install_button}}}</button>
+                <button type="submit" class="button" {{#upgrade_busy}}disabled title="{{i18n.moodle_plugins.upgrade_busy}}" aria-describedby="plugin-upgrade-blocked"{{/upgrade_busy}}>{{{i18n.moodle_plugins.install_button}}}</button>
             </div>
         </form>
         <p class="card-subtitle">{{{i18n.moodle_plugins.install_permissions}}}</p>

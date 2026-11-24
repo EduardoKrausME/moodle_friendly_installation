@@ -135,8 +135,10 @@ $actionerror = !empty($_SESSION["plugin_action_error"]);
 unset($_SESSION["plugin_action_error"]);
 // Legacy session state from the former manual Site administration flow.
 unset($_SESSION["plugin_install_component"]);
-$upgradejob = JobManager::latestPluginUpgradeJob($domain);
-$upgradebusy = JobManager::activeJob("plugin_upgrade", $domain) !== null;
+$activeupgradejob = JobManager::activeJob("plugin_upgrade", $domain);
+$upgradebusy = $activeupgradejob !== null;
+// When blocked, show the same active job that is preventing operations.
+$upgradejob = $activeupgradejob ?? JobManager::latestPluginUpgradeJob($domain);
 $upgradestatus = (string)($upgradejob["status"] ?? "");
 $upgradestatuskey = in_array($upgradestatus, ["pending", "running", "done", "failed"], true)
     ? $upgradestatus : "pending";
@@ -166,7 +168,7 @@ foreach ($plugins as $index => &$plugin) {
     if (!empty($plugin["update_available"])) {
         $updatecount++;
         $plugin["status_badge_html"] = status_badge("warning", t("moodle_plugins.status_version_different"));
-        $plugin["update_button_label"] = t("moodle_plugins.action_update_now");
+        $plugin["update_button_label"] = t($upgradebusy ? "moodle_plugins.upgrade_wait_button" : "moodle_plugins.action_update_now");
         $plugin["can_update"] = !$upgradebusy;
     } else if ($plugin["check_error"] !== "") {
         $plugin["status_badge_html"] = status_badge("muted", t("moodle_plugins.status_check_failed"));
@@ -236,6 +238,9 @@ try {
             ? t("moodle_plugins.marketplace_installed")
             : ($marketplaceplugin["is_local_without_git"]
                 ? t("moodle_plugins.link_action") : t("moodle_plugins.marketplace_install"));
+        if (!$marketplaceplugin["is_installed"] && $upgradebusy) {
+            $marketplaceplugin["install_button_label"] = t("moodle_plugins.upgrade_wait_button");
+        }
         if ($marketplaceplugin["is_local_without_git"]) {
             $unmanagedplugins[] = [
                 "component" => $local["component"],
@@ -330,6 +335,8 @@ $context = [
     "update_count" => $updatecount,
     "has_upgrade_job" => $upgradejob !== null,
     "upgrade_busy" => $upgradebusy,
+    "upgrade_busy_message" => $upgradebusy ? t("moodle_plugins.upgrade_blocked_" . $upgradestatuskey) : "",
+    "upgrade_refresh_url" => "/moodle_plugins.php?domain=" . rawurlencode($domain),
     "can_queue_upgrade" => !$upgradebusy,
     "upgrade_job_url" => $upgradejob !== null ? "/jobs.php?job=" . rawurlencode((string)$upgradejob["id"]) : "",
     "upgrade_status" => $upgradejob !== null ? t("moodle_plugins.upgrade_status_" . $upgradestatuskey) : "",
