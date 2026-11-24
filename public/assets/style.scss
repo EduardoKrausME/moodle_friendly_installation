@@ -61,7 +61,6 @@ input[type="search"]:focus {
     flex-wrap: wrap;
     justify-content: flex-end;
     gap: 10px;
-
     @media (max-width: 760px) {
         align-items: stretch;
         flex-direction: column;
@@ -128,7 +127,6 @@ input[type="search"]:focus {
             text-align: right;
         }
     }
-
     @media (max-width: 760px) {
         grid-template-columns: 1fr;
     }
@@ -244,14 +242,12 @@ input[type="search"]:focus {
             gap: 10px;
             min-width: 0;
             margin-left: auto;
-        
             @media (max-width: 480px) {
                 .button {
                     width: 100%;
                 }
             }
         }
-    
         @media (max-width: 760px) {
             flex-direction: column;
             align-items: stretch;
@@ -318,7 +314,6 @@ input[type="search"]:focus {
             letter-spacing: -.04em;
         }
     }
-
     @media (max-width: 760px) {
         grid-template-columns: 1fr;
     }
@@ -328,7 +323,6 @@ input[type="search"]:focus {
     grid-template-columns: minmax(0, 1fr) minmax(400px, 520px);
     align-items: start;
     gap: 18px;
-
     @media (max-width: 1380px) {
         grid-template-columns: minmax(0, 1fr) minmax(360px, 460px);
     }
@@ -338,7 +332,6 @@ input[type="search"]:focus {
 }
 .course-management-layout {
     grid-template-columns: minmax(0, 1fr) minmax(520px, 680px);
-
     @media (max-width: 1380px) {
         grid-template-columns: minmax(0, 1fr) minmax(360px, 460px);
     }
@@ -364,7 +357,6 @@ input[type="search"]:focus {
     #course-page-length {
         text-align: center;
     }
-
     @media (max-width: 760px) {
         grid-template-columns: 1fr;
     }
@@ -386,7 +378,6 @@ input[type="search"]:focus {
 .management-table {
     width: 100%;
     border-collapse: collapse;
-
     @media (max-width: 760px) {
         min-width: 760px;
     }
@@ -497,7 +488,6 @@ input[type="search"]:focus {
     margin-top: 14px;
     color: var(--muted);
     font-size: 11px;
-
     @media (max-width: 760px) {
         align-items: stretch;
         flex-direction: column;
@@ -506,7 +496,6 @@ input[type="search"]:focus {
 .management-pagination > div {
     display: flex;
     gap: 7px;
-
     @media (max-width: 760px) {
         justify-content: space-between;
     }
@@ -520,7 +509,6 @@ input[type="search"]:focus {
     top: 22px;
     max-height: calc(100vh - 44px);
     overflow-y: auto;
-
     @media (max-width: 1120px) {
         position: static;
         max-height: none;
@@ -607,7 +595,6 @@ input[type="search"]:focus {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 8px;
     margin-bottom: 14px;
-
     @media (max-width: 760px) {
         grid-template-columns: 1fr;
     }
@@ -749,7 +736,6 @@ input[type="search"]:focus {
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 11px;
     margin-top: 17px;
-
     @media (max-width: 1380px) {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
@@ -821,7 +807,6 @@ input[type="search"]:focus {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 11px;
-
     @media (max-width: 760px) {
         grid-template-columns: 1fr;
     }
@@ -926,7 +911,6 @@ input[type="search"]:focus {
     grid-template-columns: 1fr 1fr;
     gap: 9px;
     padding: 12px;
-
     @media (max-width: 760px) {
         grid-template-columns: 1fr;
         > label {
@@ -970,7 +954,6 @@ input[type="search"]:focus {
     grid-column: 1 / -1;
     grid-template-columns: 1fr 1fr;
     gap: 8px;
-
     @media (max-width: 760px) {
         grid-template-columns: 1fr;
         > label {
@@ -1018,7 +1001,6 @@ body.auth-page {
     display: grid;
     place-items: center;
     padding: 24px;
-
     @media (max-width: 640px) {
         padding: 14px;
     }
@@ -1034,7 +1016,6 @@ a:hover {
     display: grid;
     grid-template-columns: 246px minmax(0, 1fr);
     min-height: 100vh;
-
     @media (max-width: 1100px) {
         grid-template-columns: 248px minmax(0, 1fr);
     }
@@ -1054,7 +1035,6 @@ a:hover {
     linear-gradient(180deg, #101827 0%, #0F172A 48%, #111827 100%);
     color: #FFF;
     box-shadow: 18px 0 45px rgba(15, 23, 42, 0.18);
-
     @media (max-width: 1100px) {
         padding: 20px;
     }
@@ -1071,7 +1051,6 @@ a:hover {
     gap: 14px;
     padding: 6px 7px 24px;
     color: #FFF;
-
     @media (max-width: 920px) {
         padding-bottom: 14px;
     }
@@ -1113,7 +1092,6 @@ a:hover {
 .side-nav {
     display: grid;
     gap: 8px;
-
     @media (max-width: 920px) {
         grid-template-columns: repeat(4, minmax(0, 1fr));
     }
@@ -1136,7 +1114,6 @@ a:hover {
         transform: translateX(3px);
         background: rgba(255, 255, 255, 0.08);
         color: #FFF;
-    
         @media (max-width: 920px) {
             transform: none;
         }
@@ -1184,7 +1161,6 @@ a:hover {
             background: rgba(245, 158, 11, 0.22);
         }
     }
-
     @media (max-width: 920px) {
         justify-content: center;
         min-height: 44px;
@@ -1207,7 +1183,6 @@ a:hover {
     stroke-width: 1.8;
     stroke-linecap: round;
     stroke-linejoin: round;
-
     @media (max-width: 920px) {
         display: none;
     }
@@ -1218,7 +1193,6 @@ a:hover {
     border: 1px solid rgba(255, 255, 255, 0.12);
     border-radius: 18px;
     background: rgba(255, 255, 255, 0.07);
-
     @media (max-width: 920px) {
         display: flex;
         align-items: center;
@@ -1242,7 +1216,6 @@ a:hover {
     align-items: center;
     gap: 10px;
     color: #FFF;
-
     @media (max-width: 920px) {
         min-width: 0;
         flex: 1;
@@ -1293,7 +1266,6 @@ a:hover {
     color: #FECACA;
     font-size: 12px;
     font-weight: 750;
-
     @media (max-width: 920px) {
         flex: 0 0 auto;
         margin-top: 0;
@@ -1314,7 +1286,6 @@ a:hover {
 .main-content {
     width: min(1660px, 100%);
     padding: 26px clamp(18px, 3vw, 42px) 46px;
-
     @media (max-width: 920px) {
         padding: 22px 16px 40px;
     }
@@ -1334,7 +1305,6 @@ a:hover {
     background: linear-gradient(135deg, rgba(255, 255, 255, 0.96), rgba(255, 255, 255, 0.84)),
     radial-gradient(circle at top right, rgba(37, 99, 235, 0.16), transparent 22rem);
     box-shadow: var(--shadow);
-
     @media (max-width: 920px) {
         align-items: flex-start;
         flex-direction: column;
@@ -1508,7 +1478,6 @@ button,
         justify-content: space-between;
         align-items: flex-start;
         gap: 14px;
-    
         @media (max-width: 640px) {
             align-items: stretch;
             flex-direction: column;
@@ -1701,7 +1670,6 @@ small {
         flex-direction: column;
         align-items: stretch;
     }
-
     @media (max-width: 920px) {
         align-items: flex-start;
         flex-direction: column;
@@ -1718,7 +1686,6 @@ small {
     display: flex;
     flex-wrap: wrap;
     gap: 10px;
-
     @media (max-width: 920px) {
         width: 100%;
         .button {
@@ -1754,7 +1721,6 @@ small {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 18px;
-
     @media (max-width: 920px) {
         grid-template-columns: 1fr;
     }
@@ -1772,7 +1738,6 @@ small {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 12px;
-
     @media (max-width: 640px) {
         grid-template-columns: 1fr;
     }
@@ -1815,7 +1780,6 @@ small {
     strong {
         margin-right: 8px;
     }
-
     @media (max-width: 920px) {
         align-items: flex-start;
         flex-direction: column;
@@ -1834,7 +1798,6 @@ small {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 14px;
-
     @media (max-width: 920px) {
         grid-template-columns: 1fr;
     }
@@ -1857,7 +1820,6 @@ small {
     justify-content: space-between;
     align-items: center;
     gap: 10px;
-
     @media (max-width: 640px) {
         align-items: stretch;
         flex-direction: column;
@@ -1870,7 +1832,6 @@ small {
     gap: 10px;
     flex-wrap: wrap;
     margin: 0;
-
     @media (max-width: 640px) {
         align-items: stretch;
         flex-direction: column;
@@ -1892,12 +1853,10 @@ small {
     flex: 1 1 360px;
     input[type="email"] {
         flex: 1 1 220px;
-    
         @media (max-width: 640px) {
             width: 100%;
         }
     }
-
     @media (max-width: 640px) {
         align-items: stretch;
         flex-direction: column;
@@ -1924,7 +1883,6 @@ body.auth-page.onboarding-page {
     padding: 28px 0;
     .card {
     }
-
     @media (max-width: 640px) {
         padding: 0;
     }
@@ -1954,7 +1912,6 @@ body.auth-page.onboarding-page {
     margin: 0;
     padding: 0;
     list-style: none;
-
     @media (max-width: 640px) {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
@@ -2002,7 +1959,6 @@ body.auth-page.onboarding-page {
             background: var(--primary);
         }
     }
-
     @media (max-width: 640px) {
         strong {
             font-size: 11px;
@@ -2014,7 +1970,6 @@ body.auth-page.onboarding-page {
     grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr);
     align-items: start;
     gap: 18px;
-
     @media (max-width: 920px) {
         grid-template-columns: 1fr;
     }
@@ -2035,7 +1990,6 @@ body.auth-page.onboarding-page {
     margin-top: 4px;
     border-top: 1px solid var(--line);
     padding-top: 18px;
-
     @media (max-width: 640px) {
         width: 100%;
         .button {
@@ -2119,7 +2073,6 @@ body.auth-page.onboarding-page {
     grid-template-columns: 72px minmax(0, 1fr) minmax(0, 1fr);
     gap: 8px;
     margin: 12px 0 0;
-
     @media (max-width: 640px) {
         grid-template-columns: 1fr;
     }
@@ -2208,7 +2161,6 @@ body.auth-page.onboarding-page {
     gap: 12px;
     width: 100%;
     margin: 24px 0 18px;
-
     @media (max-width: 640px) {
         grid-template-columns: 1fr;
     }
@@ -2282,7 +2234,6 @@ body.auth-page.onboarding-page {
 .sidebar-language-selector {
     border-top: 1px solid rgba(148, 163, 184, .3);
     padding-top: 12px;
-
     @media (max-width: 920px) {
         display: none;
     }
@@ -2301,7 +2252,6 @@ body.auth-page.onboarding-page {
     align-items: flex-start;
     justify-content: space-between;
     gap: 18px;
-
     @media (max-width: 900px) {
         align-items: stretch;
         flex-direction: column;
@@ -2312,7 +2262,6 @@ body.auth-page.onboarding-page {
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 12px;
     margin-top: 18px;
-
     @media (max-width: 900px) {
         grid-template-columns: 1fr;
     }
@@ -2360,7 +2309,6 @@ body.auth-page.onboarding-page {
     display: grid;
     //grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 14px;
-
     @media (max-width: 900px) {
         grid-template-columns: 1fr;
     }
@@ -2386,7 +2334,6 @@ body.auth-page.onboarding-page {
     grid-template-columns: minmax(250px, 320px) minmax(0, 1fr);
     align-items: start;
     gap: 18px;
-
     @media (max-width: 900px) {
         grid-template-columns: 1fr;
     }
@@ -2418,7 +2365,6 @@ body.auth-page.onboarding-page {
     .checkbox {
         min-height: 48px;
     }
-
     @media (max-width: 900px) {
         grid-template-columns: 1fr;
     }
@@ -2462,7 +2408,6 @@ body.auth-page.onboarding-page {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
     gap: 14px;
-
     @media (max-width: 640px) {
         grid-template-columns: 1fr;
     }
@@ -2644,7 +2589,6 @@ body.auth-page.onboarding-page {
     justify-content: space-between;
     gap: 18px;
     margin-bottom: 18px;
-
     @media (max-width: 640px) {
         align-items: stretch;
         flex-direction: column;
@@ -2680,7 +2624,6 @@ body.auth-page.onboarding-page {
     display: flex;
     align-items: center;
     gap: 10px;
-
     @media (max-width: 640px) {
         align-items: stretch;
         flex-direction: column;
@@ -2733,7 +2676,6 @@ body.auth-page.onboarding-page {
     grid-template-columns: minmax(0, 1.35fr) minmax(360px, .95fr);
     gap: 18px;
     margin-bottom: 18px;
-
     @media (max-width: 1240px) {
         grid-template-columns: 1fr;
     }
@@ -2743,7 +2685,6 @@ body.auth-page.onboarding-page {
     grid-template-columns: minmax(0, 1.55fr) minmax(340px, .85fr);
     gap: 18px;
     margin-bottom: 18px;
-
     @media (max-width: 1240px) {
         grid-template-columns: 1fr;
     }
@@ -2866,7 +2807,6 @@ body.auth-page.onboarding-page {
     align-items: center;
     gap: 10px;
     padding: 0 17px 7px;
-
     @media (max-width: 640px) {
         grid-template-columns: 1fr;
     }
@@ -2874,7 +2814,6 @@ body.auth-page.onboarding-page {
 .brazil-map {
     position: relative;
     min-height: 260px;
-
     @media (max-width: 640px) {
         min-height: 220px;
     }
@@ -2883,7 +2822,6 @@ body.auth-page.onboarding-page {
     display: block;
     width: 100%;
     height: 260px;
-
     @media (max-width: 640px) {
         height: 220px;
     }
@@ -3055,7 +2993,6 @@ body.auth-page.onboarding-page {
     gap: 10px;
     border-top: 1px solid var(--line);
     padding: 11px 16px;
-
     @media (max-width: 640px) {
         grid-template-columns: 30px minmax(0, 1fr);
     }
@@ -3113,7 +3050,6 @@ body.auth-page.onboarding-page {
     font-size: 10px;
     font-weight: 750;
     white-space: nowrap;
-
     @media (max-width: 640px) {
         grid-column: 2;
     }
@@ -3131,86 +3067,84 @@ body.auth-page.onboarding-page {
     border-radius: inherit;
     background: linear-gradient(90deg, #2563EB, #60A5FA);
 }
-
-
 /* Plugin update confirmation: a vertical form, not a horizontal summary. */
 .plugin-update-confirmation {
-  min-width: 0;
-  gap: 16px;
+    min-width: 0;
+    gap: 16px;
 }
 .plugin-update-confirmation .plugin-update-heading {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 10px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 10px;
 }
 .plugin-update-confirmation .plugin-update-heading h2,
 .plugin-update-confirmation .alert,
 .plugin-update-confirmation p {
-  margin: 0;
+    margin: 0;
 }
 .plugin-update-files h3 {
-  margin: 0 0 10px;
-  font-size: 15px;
+    margin: 0 0 10px;
+    font-size: 15px;
 }
 .plugin-update-file-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  max-height: 240px;
-  overflow: auto;
-  border: 1px solid var(--line);
-  border-radius: 12px;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    max-height: 240px;
+    overflow: auto;
+    border: 1px solid var(--line);
+    border-radius: 12px;
 }
 .plugin-update-file-list li {
-  display: grid;
-  grid-template-columns: 36px minmax(0, 1fr);
-  align-items: start;
-  gap: 10px;
-  padding: 8px 12px;
+    display: grid;
+    grid-template-columns: 36px minmax(0, 1fr);
+    align-items: start;
+    gap: 10px;
+    padding: 8px 12px;
 }
 .plugin-update-file-list li + li {
-  border-top: 1px solid var(--line);
+    border-top: 1px solid var(--line);
 }
 .plugin-update-file-list code {
-  background: transparent;
-  border: 0;
-  padding: 0;
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
+    background: transparent;
+    border: 0;
+    padding: 0;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
 }
 .plugin-update-file-status {
-  color: var(--warning);
-  font-weight: 700;
+    color: var(--warning);
+    font-weight: 700;
 }
 .plugin-update-actions {
-  justify-content: flex-end;
-  padding-top: 14px;
-  border-top: 1px solid var(--line);
+    justify-content: flex-end;
+    padding-top: 14px;
+    border-top: 1px solid var(--line);
 }
 .plugin-update-actions .plugin-update-no-backup {
-  background: #FEF2F2;
-  color: #991B1B;
-  border: 1px solid #FECACA;
-  box-shadow: none;
+    background: #FEF2F2;
+    color: #991B1B;
+    border: 1px solid #FECACA;
+    box-shadow: none;
 }
 .plugin-update-actions .plugin-update-no-backup:hover {
-  background: #FEE2E2;
+    background: #FEE2E2;
 }
 .plugin-update-confirmation .plugin-update-risk {
-  color: #991B1B;
-  font-size: 13px;
-  text-align: right;
+    color: #991B1B;
+    font-size: 13px;
+    text-align: right;
 }
 @media (max-width: 640px) {
-  .plugin-update-actions .inline-form {
-    width: 100%;
-  }
-  .plugin-update-actions .button {
-    width: 100%;
-    white-space: normal;
-  }
-  .plugin-update-confirmation .plugin-update-risk {
-    text-align: left;
-  }
+    .plugin-update-actions .inline-form {
+        width: 100%;
+    }
+    .plugin-update-actions .button {
+        width: 100%;
+        white-space: normal;
+    }
+    .plugin-update-confirmation .plugin-update-risk {
+        text-align: left;
+    }
 }
