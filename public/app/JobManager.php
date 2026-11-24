@@ -535,8 +535,9 @@ class JobManager {
             return null;
         }
 
-        usort($pendingjobs, static fn(array $a, array $b): int => strcmp(($a["created_at"] ?? ""), ($b["created_at"] ?? "")));
-        return $pendingjobs[0];
+        // Randomize within the selected priority tier so a waiting DNS job
+        // cannot monopolize every cron run merely because it is the oldest.
+        return $pendingjobs[array_rand($pendingjobs)];
     }
 
     /**

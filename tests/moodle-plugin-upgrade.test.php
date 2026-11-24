@@ -103,6 +103,32 @@ namespace {
         JobManager::markFailed($retry['id'], 'test failure');
         verifyUpgrade((JobManager::latestPluginUpgradeJob('example.org')['status'] ?? '') === 'failed',
             'Failure remains visible in latest job status');
+
+        // Exercise selection with controlled queue contents, independent of job creation.
+        $job = static fn(string $id, string $type, string $status, string $date): array => [
+            'id' => $id, 'type' => $type, 'status' => $status, 'created_at' => $date,
+        ];
+        $waiting = $job('old', 'install_moodle', 'waiting_dns', '2026-01-01');
+        $ready = $job('new', 'app_build', 'pending', '2026-01-02');
+        $background = $job('background', 'resource_usage', 'pending', '2025-01-01');
+        $running = $job('running', 'app_build', 'running', '2025-01-01');
+        $done = $job('done', 'app_build', 'done', '2025-01-01');
+        $queue = app_config_path('/data/jobs.json');
+        JsonStorage::write($queue, [$waiting, $ready, $background, $running, $done]);
+        $selected = [];
+        for ($i = 0; $i < 100; ++$i) {
+            $id = JobManager::nextPendingJob()['id'] ?? '';
+            $selected[$id] = true;
+        }
+        verifyUpgrade(count($selected) === 2 && isset($selected['old'], $selected['new']),
+            'Randomly selects both eligible foreground jobs without selecting lower priority or inactive jobs');
+        $cleanup = $job('cleanup', 'cleanup_failed_installation', 'pending', '2026-01-03');
+        JsonStorage::write($queue, [$waiting, $ready, $background, $cleanup]);
+        verifyUpgrade((JobManager::nextPendingJob()['id'] ?? '') === 'cleanup', 'Cleanup retains priority');
+        JsonStorage::write($queue, [$running, $done, $background]);
+        verifyUpgrade((JobManager::nextPendingJob()['id'] ?? '') === 'background', 'Background runs when foreground is empty');
+        JsonStorage::write($queue, [$running, $done]);
+        verifyUpgrade(JobManager::nextPendingJob() === null, 'No eligible jobs returns null');
         echo "ALL TESTS PASSED\n";
     } finally {
         cleanupUpgrade($root);
