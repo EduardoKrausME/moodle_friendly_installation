@@ -8,6 +8,8 @@ on:
       - 'public/moodle_plugins.php'
       - 'public/app/templates/page/moodle-plugins.mustache'
       - 'public/app/lang/**'
+      - 'public/app/JobManager.php'
+      - 'tests/moodle-plugin-upgrade.test.php'
       - 'tests/moodle-plugin-git-link.test.php'
       - '.github/workflows/moodle-plugin-git-link-ci.yml'
   pull_request:
@@ -17,6 +19,8 @@ on:
       - 'public/moodle_plugins.php'
       - 'public/app/templates/page/moodle-plugins.mustache'
       - 'public/app/lang/**'
+      - 'public/app/JobManager.php'
+      - 'tests/moodle-plugin-upgrade.test.php'
       - 'tests/moodle-plugin-git-link.test.php'
       - '.github/workflows/moodle-plugin-git-link-ci.yml'
 jobs:
@@ -32,6 +36,8 @@ jobs:
           php -l public/app/lang/pt_br.php
           php -l public/app/lang/en.php
           php -l public/app/lang/es.php
+          php -l public/app/JobManager.php
+          php -l tests/moodle-plugin-upgrade.test.php
           php -l tests/moodle-plugin-git-link.test.php
       - name: Test linking existing plugins without overwriting FTP files
         run: php tests/moodle-plugin-git-link.test.php
