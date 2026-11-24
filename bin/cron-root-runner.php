@@ -43,7 +43,13 @@ if (!flock($lock, LOCK_EX | LOCK_NB)) {
 $job = null;
 
 try {
-    runPendingPostUpdates();
+    try {
+        runPendingPostUpdates();
+    } catch (Throwable $e) {
+        // PostUpdateManager persists the failure and retries the pending migration.
+        // A failed migration must not starve independent jobs or block a corrective update.
+        fwrite(STDERR, $e->getMessage() . "\n");
+    }
 
     if (AppUpdater::isInstallRequested()) {
         runRequestedSelfUpdate();
