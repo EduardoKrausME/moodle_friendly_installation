@@ -10,8 +10,32 @@
 </section>
 
 {{#has_flash}}
-    <div class="alert {{flash_class}}">{{flash}}</div>
+    <div class="alert {{flash_class}}" role="status">{{flash}}</div>
 {{/has_flash}}
+
+{{#show_update_confirmation}}
+    <div class="card hero-card">
+        <h2>{{{i18n.moodle_plugins.update_confirm_heading}}} <code>{{update_component}}</code></h2>
+        <div class="alert warning">{{{i18n.moodle_plugins.update_confirm_intro}}}</div>
+        <ul style="max-height:240px;overflow:auto;overflow-wrap:anywhere;">
+            {{#update_changes}}<li><code>{{.}}</code></li>{{/update_changes}}
+        </ul>
+        <p>{{{i18n.moodle_plugins.update_preserved}}} <strong>{{update_preserved_count}}</strong></p>
+        <div class="hero-actions">
+            <form method="post" class="inline-form">
+                <input type="hidden" name="csrf_token" value="{{csrf_token}}">
+                <input type="hidden" name="action" value="confirm_plugin_update">
+                <input type="hidden" name="update_nonce" value="{{update_nonce}}">
+                <button type="submit" class="button" {{#upgrade_busy}}disabled{{/upgrade_busy}}>{{{i18n.moodle_plugins.update_confirm_button}}}</button>
+            </form>
+            <form method="post" class="inline-form">
+                <input type="hidden" name="csrf_token" value="{{csrf_token}}">
+                <input type="hidden" name="action" value="cancel_plugin_update">
+                <button type="submit" class="button secondary">{{{i18n.moodle_plugins.link_cancel_button}}}</button>
+            </form>
+        </div>
+    </div>
+{{/show_update_confirmation}}
 
 {{#show_git_link_confirmation}}
     <div class="card hero-card inverse">

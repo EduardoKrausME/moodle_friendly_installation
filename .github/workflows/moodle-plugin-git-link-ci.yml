@@ -5,23 +5,27 @@ on:
     paths:
       - 'public/app/MoodlePluginManager.php'
       - 'public/app/MoodlePluginGitLinker.php'
+      - 'public/app/MoodlePluginGitUpdater.php'
       - 'public/moodle_plugins.php'
       - 'public/app/templates/page/moodle-plugins.mustache'
       - 'public/app/lang/**'
       - 'public/app/JobManager.php'
       - 'tests/moodle-plugin-upgrade.test.php'
       - 'tests/moodle-plugin-git-link.test.php'
+      - 'tests/moodle-plugin-git-update.test.php'
       - '.github/workflows/moodle-plugin-git-link-ci.yml'
   pull_request:
     paths:
       - 'public/app/MoodlePluginManager.php'
       - 'public/app/MoodlePluginGitLinker.php'
+      - 'public/app/MoodlePluginGitUpdater.php'
       - 'public/moodle_plugins.php'
       - 'public/app/templates/page/moodle-plugins.mustache'
       - 'public/app/lang/**'
       - 'public/app/JobManager.php'
       - 'tests/moodle-plugin-upgrade.test.php'
       - 'tests/moodle-plugin-git-link.test.php'
+      - 'tests/moodle-plugin-git-update.test.php'
       - '.github/workflows/moodle-plugin-git-link-ci.yml'
 jobs:
   tests:
@@ -32,6 +36,8 @@ jobs:
         run: |
           php -l public/app/MoodlePluginManager.php
           php -l public/app/MoodlePluginGitLinker.php
+          php -l public/app/MoodlePluginGitUpdater.php
+          php -l tests/moodle-plugin-git-update.test.php
           php -l public/moodle_plugins.php
           php -l public/app/lang/pt_br.php
           php -l public/app/lang/en.php
@@ -41,5 +47,7 @@ jobs:
           php -l tests/moodle-plugin-git-link.test.php
       - name: Test linking existing plugins without overwriting FTP files
         run: php tests/moodle-plugin-git-link.test.php
+      - name: Test safe plugin updates and backups
+        run: php tests/moodle-plugin-git-update.test.php
       - name: Recheck existing upgrade tests
         run: php tests/moodle-plugin-upgrade.test.php

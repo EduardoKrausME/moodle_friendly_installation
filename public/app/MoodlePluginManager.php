@@ -175,14 +175,14 @@ class MoodlePluginManager {
      * Updates one installed Git plugin by making the local checkout match the remote branch.
      *
      * A normal git pull --ff-only fails when the remote branch was force-pushed and the
-     * histories diverged. Fetching with --force and resetting to FETCH_HEAD supports that
+     * histories diverged. Fetching and resetting to a validated, pinned remote commit supports that
      * case and is appropriate here because these directories are managed Git clones.
      *
      * @param array $site
      * @param string $component
      * @return array
      */
-    public static function update(array $site, string $component): array {
+    public static function update(array $site, string $component, ?string $confirmation = null): array {
         $plugin = self::findInstalledPlugin($site, $component, true, true);
         $path = $plugin["path"];
         $remote = trim((string) ($plugin["remote"] ?? ""));
@@ -201,32 +201,24 @@ class MoodlePluginManager {
         if (!is_writable($path)) {
             throw new RuntimeException("O Apache não possui permissão de escrita no plugin: {$path}");
         }
-        // A Git link to an FTP installation must never silently discard local changes.
-        $statuscommand = "git -c safe.directory=" . escapeshellarg($path) .
-            " -C " . escapeshellarg($path) . " status --porcelain --untracked-files=all 2>&1";
-        [$statuscode, $statusoutput] = self::run($statuscommand);
-        if ($statuscode !== 0) {
-            throw new RuntimeException("Não foi possível verificar alterações locais no Git: " . trim($statusoutput));
+        // remoteStatus already fetched the branch. Pin and revalidate the exact commit,
+        // rather than resetting to a mutable FETCH_HEAD shared with the update scanner.
+        $commit = (string)$plugin['remote_commit'];
+        if (!preg_match('/^[0-9a-f]{40,64}$/D', $commit)) {
+            throw new RuntimeException("Commit remoto inválido.");
         }
-        if (trim($statusoutput) !== "") {
-            throw new RuntimeException("O plugin possui arquivos locais diferentes do repositório Git. " .
-                "A atualização foi bloqueada para não sobrescrever arquivos instalados por FTP; " .
-                "revise e preserve essas alterações antes de continuar.");
-        }
-
-        $fetchcommand = "GIT_TERMINAL_PROMPT=0 timeout 180s git -c safe.directory=" . escapeshellarg($path) .
-            " -C " . escapeshellarg($path) . " fetch --force --prune --no-tags " .
-            escapeshellarg($remote) . " " . escapeshellarg($branch) . " 2>&1";
-        [$fetchexitcode, $fetchoutput] = self::run($fetchcommand);
-        if ($fetchexitcode !== 0) {
-            throw new RuntimeException("Falha no git fetch: " . trim($fetchoutput));
+        $versionphp = self::gitValue($path, "show " . $commit . ":version.php");
+        $version = self::parseVersionContents($versionphp);
+        if (($version['component'] ?? '') !== $component ||
+            ($version['version'] ?? '') !== $plugin['remote_version']) {
+            throw new RuntimeException("O commit remoto mudou ou não pertence ao plugin.");
         }
 
-        $resetcommand = "GIT_TERMINAL_PROMPT=0 timeout 60s git -c safe.directory=" . escapeshellarg($path) .
-            " -C " . escapeshellarg($path) . " reset --hard FETCH_HEAD 2>&1";
-        [$resetexitcode, $resetoutput] = self::run($resetcommand);
-        if ($resetexitcode !== 0) {
-            throw new RuntimeException("Falha ao aplicar a versão remota: " . trim($resetoutput));
+        require_once __DIR__ . '/MoodlePluginGitUpdater.php';
+        $result = MoodlePluginGitUpdater::update($path, $commit, app_config_path("/data/plugin-backups"),
+            [self::webroot($site), dirname(__DIR__)], $confirmation);
+        if ($result['confirmation_required']) {
+            return $result + ['component' => $component];
         }
 
         self::grantWebServerWriteAccess($path);
@@ -234,7 +226,9 @@ class MoodlePluginManager {
 
         return [
             "component" => $component,
-            "output" => trim($fetchoutput . "\n" . $resetoutput),
+            "output" => $result["output"],
+            "backup" => $result["backup"],
+            "confirmation_required" => false,
             "plugin" => $updated,
             "admin_url" => self::siteAdminUrl($site),
         ];

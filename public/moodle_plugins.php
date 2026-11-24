@@ -25,7 +25,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $action = isset($_POST["action"]) && is_string($_POST["action"]) ? $_POST["action"] : "";
 
     try {
-        if (in_array($action, ["install_plugin", "update_plugin", "request_git_link", "confirm_git_link"], true)
+        if (in_array($action, ["install_plugin", "update_plugin", "request_git_link", "confirm_git_link", "confirm_plugin_update"], true)
             && JobManager::activeJob("plugin_upgrade", $domain) !== null) {
             throw new RuntimeException(t("moodle_plugins.upgrade_busy"));
         }
@@ -75,11 +75,46 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 unset($_SESSION["plugin_git_link_request"]);
             }
             $_SESSION["flash"] = t("moodle_plugins.link_cancelled");
-        } else if ($action === "update_plugin") {
-            $component = isset($_POST["component"]) && is_string($_POST["component"]) ? $_POST["component"] : "";
-            $result = MoodlePluginManager::update($site, $component);
-            JobManager::createPluginUpgradeJob($site, $result["component"]);
-            $_SESSION["flash"] = t("moodle_plugins.update_success", ["component" => $result["component"]]);
+        } else if ($action === "update_plugin" || $action === "confirm_plugin_update") {
+            $confirmation = null;
+            if ($action === "confirm_plugin_update") {
+                $pending = $_SESSION["plugin_update_request"] ?? null;
+                $nonce = $_POST["update_nonce"] ?? "";
+                if (!is_array($pending) || ($pending["domain"] ?? "") !== $domain ||
+                    !is_string($nonce) || !hash_equals($pending["nonce"], $nonce) ||
+                    ($pending["expires"] ?? 0) < time()) {
+                    throw new RuntimeException(t("moodle_plugins.update_confirmation_expired"));
+                }
+                $component = $pending["component"];
+                $confirmation = $pending["fingerprint"];
+            } else {
+                $component = isset($_POST["component"]) && is_string($_POST["component"]) ? $_POST["component"] : "";
+            }
+            unset($_SESSION["plugin_update_request"]);
+            $result = MoodlePluginManager::update($site, $component, $confirmation);
+            if ($result["confirmation_required"]) {
+                $_SESSION["plugin_update_request"] = [
+                    "domain" => $domain, "component" => $component,
+                    "fingerprint" => $result["fingerprint"], "changes" => $result["changes"],
+                    "preserved" => $result["preserved"], "nonce" => bin2hex(random_bytes(16)),
+                    "expires" => time() + 900,
+                ];
+                if ($result["stale"]) {
+                    $_SESSION["flash"] = t("moodle_plugins.update_confirmation_expired");
+                    $_SESSION["plugin_action_error"] = true;
+                }
+            } else {
+                JobManager::createPluginUpgradeJob($site, $result["component"]);
+                $_SESSION["flash"] = t("moodle_plugins.update_success", ["component" => $result["component"]]);
+                if ($result["backup"] !== "") {
+                    $_SESSION["flash"] .= " " . t("moodle_plugins.update_backup_saved", ["path" => $result["backup"]]);
+                }
+            }
+        } else if ($action === "cancel_plugin_update") {
+            $pending = $_SESSION["plugin_update_request"] ?? null;
+            if (is_array($pending) && ($pending["domain"] ?? "") === $domain) {
+                unset($_SESSION["plugin_update_request"]);
+            }
         } else if ($action === "run_plugin_upgrade") {
             JobManager::createPluginUpgradeJob($site, "core");
             $_SESSION["flash"] = t("moodle_plugins.upgrade_queued");
@@ -106,6 +141,11 @@ $upgradestatuskey = in_array($upgradestatus, ["pending", "running", "done", "fai
 $linkpending = $_SESSION["plugin_git_link_request"] ?? null;
 if (!is_array($linkpending) || ($linkpending["domain"] ?? "") !== $domain) {
     $linkpending = null;
+}
+$updatepending = $_SESSION["plugin_update_request"] ?? null;
+if (!is_array($updatepending) || ($updatepending["domain"] ?? "") !== $domain ||
+    ($updatepending["expires"] ?? 0) < time()) {
+    $updatepending = null;
 }
 $forcerefresh = isset($_GET["refresh"]) && $_GET["refresh"] === "1";
 $plugins = MoodlePluginManager::installed($site, true, $forcerefresh);
@@ -255,7 +295,12 @@ $context = [
     "csrf_token" => csrf_token(),
     "has_flash" => $flash !== null && $flash !== "",
     "flash" => $flash,
-    "flash_class" => $actionerror ? "danger" : "ok",
+    "flash_class" => $actionerror ? "alert-danger" : "ok",
+    "show_update_confirmation" => $updatepending !== null,
+    "update_component" => $updatepending["component"] ?? "",
+    "update_nonce" => $updatepending["nonce"] ?? "",
+    "update_changes" => $updatepending["changes"] ?? [],
+    "update_preserved_count" => count($updatepending["preserved"] ?? []),
     "has_plugins" => !empty($plugins),
     "plugins" => $plugins,
     "has_unmanaged_plugins" => !empty($unmanagedplugins),

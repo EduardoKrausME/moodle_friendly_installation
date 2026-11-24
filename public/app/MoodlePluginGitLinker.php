@@ -8,7 +8,7 @@ use RuntimeException;
 
 /**
  * Attach a checked GitHub repository to existing Moodle plugin files without
- * replacing the FTP working tree. The first future update requires a clean tree.
+ * replacing the FTP working tree. Future updates preview and back up differences.
  */
 final class MoodlePluginGitLinker {
     /**
@@ -74,7 +74,7 @@ final class MoodlePluginGitLinker {
                     self::command(array_merge($base, ['switch', '-c', $branch]));
                 }
             }
-            $dirty = trim(self::command(array_merge($base, ['status', '--porcelain', '--untracked-files=no']))) !== '';
+            $dirty = trim(self::command(array_merge($base, ['-c', 'core.fileMode=false', 'status', '--porcelain', '--untracked-files=no']))) !== '';
             return ['branch' => $branch, 'tracked_changes' => $dirty, 'created' => $created];
         } catch (\Throwable $error) {
             // Only delete metadata that this operation created. Never remove files from FTP.
