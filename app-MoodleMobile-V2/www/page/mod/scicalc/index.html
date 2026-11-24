@@ -12,7 +12,7 @@
         <div class="scicalc-page">
             <div id="page-mod-scicalc-description" class="scicalc-description"></div>
 
-            <section class="scicalc-card" aria-label="Calculadora científica">
+            <section class="scicalc-card" data-i18n-aria-label="mod.scicalc.aria.calculator">
                 <div class="scicalc-display-row">
                     <input id="scicalc-display"
                            class="scicalc-display"
@@ -21,10 +21,10 @@
                            autocomplete="off"
                            autocapitalize="off"
                            spellcheck="false"
-                           aria-label="Expressão da calculadora"
-                           placeholder="Ex.: sin(90)+sqrt(9)*2">
+                           data-i18n-aria-label="mod.scicalc.aria.expression"
+                           data-i18n-placeholder="mod.scicalc.placeholder">
 
-                    <div class="scicalc-angle-mode" aria-label="Unidade angular">
+                    <div class="scicalc-angle-mode" data-i18n-aria-label="mod.scicalc.aria.angle">
                         <button type="button" class="is-active" data-scicalc-angle="DEG">DEG</button>
                         <button type="button" data-scicalc-angle="RAD">RAD</button>
                     </div>
@@ -99,18 +99,15 @@
 
             <section class="scicalc-history-card">
                 <div class="scicalc-section-title">
-                    <strong>Histórico</strong>
-                    <button type="button" id="scicalc-clear-history">Limpar</button>
+                    <strong data-i18n="mod.scicalc.history"></strong>
+                    <button type="button" id="scicalc-clear-history" data-i18n="mod.scicalc.clear"></button>
                 </div>
                 <div id="scicalc-history" class="scicalc-history" aria-live="polite">
-                    <div class="scicalc-history-empty">Os cálculos realizados nesta tela aparecem aqui.</div>
+                    <div class="scicalc-history-empty" data-i18n="mod.scicalc.history_empty"></div>
                 </div>
             </section>
 
-            <div class="scicalc-help">
-                Use <strong>Enter</strong> para calcular. Funções disponíveis: sin, cos, tan, asin, acos, atan,
-                sqrt, abs, ln, log, exp, pow, min, max, floor, ceil e round.
-            </div>
+            <div class="scicalc-help" data-i18n-html="mod.scicalc.help"></div>
         </div>
     </div>
 

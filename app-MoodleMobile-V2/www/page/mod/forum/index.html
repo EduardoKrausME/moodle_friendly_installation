@@ -19,7 +19,7 @@
             </div>
         </div>
 
-        <div id="page-mod-forum-content">
+        <div id="page-mod-forum-content" aria-live="polite">
             <ons-icon icon="md-spinner" spin></ons-icon>
         </div>
     </div>
@@ -27,7 +27,7 @@
     <script>
         $('#page-mod-forum .content').xpull({
             'callback': function () {
-                ModForum.show_module_load();
+                if (ModForum.view !== "editor") ModForum.show_module_load();
             }
         });
     </script>

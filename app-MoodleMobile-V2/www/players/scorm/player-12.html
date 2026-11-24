@@ -5,6 +5,10 @@
     <title>SCORM Player</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
+    <script src="../../lang/i18n.js"></script>
+    <script src="../../lang/pt_br.js"></script>
+    <script src="player-i18n.js"></script>
+
     <script src="scorm-again.js"></script>
     <script src="scorm12.js"></script>
 
@@ -60,7 +64,8 @@
 
 <div id="player-header">
     <div class="player-title">SCORM</div>
-    <div id="status" class="player-status">Inicializando...</div>
+    <div id="status" class="player-status"></div>
+    <div id="sync-status" class="player-status" aria-live="polite"></div>
 </div>
 
 <div id="error" class="player-error"></div>
@@ -77,14 +82,17 @@
         "use strict";
 
         var params = new URLSearchParams(window.location.search);
+        ScormPlayerI18n.init(params);
         var hashParams = new URLSearchParams((window.location.hash || "").replace(/^#/, ""));
         var scormUrl = params.get("file");
         var commitUrl = params.get("commit"); // opcional: endpoint para salvar no servidor.
 
         var playerHeader = document.getElementById("player-header");
         var statusEl = document.getElementById("status");
+        var syncEl = document.getElementById("sync-status");
         var errorEl = document.getElementById("error");
         var frameEl = document.getElementById("scorm-frame");
+        statusEl.textContent = I18n.t("scorm.player.initializing");
 
         var playerContext = {
             courseid: params.get("courseid") || "",
@@ -93,30 +101,98 @@
             scormid: params.get("scormid") || "",
             scoid: params.get("scoid") || "",
             attempt: params.get("attempt") || "1",
+            userid: params.get("userid") || "",
+            site: params.get("site") || "",
             launchurl: scormUrl || ""
         };
 
         function showError(message) {
             errorEl.style.display = "block";
             errorEl.textContent = message;
-            statusEl.textContent = "Erro";
+            statusEl.textContent = I18n.t("error.error");
             playerHeader.style.display = "flex";
         }
 
-        function sendOfflineMessage(action, payload) {
-            if (!window.parent || window.parent === window) {
-                return;
-            }
+        var playerSequence = Date.now();
+        var outboxKey = "scorm12-outbox:" +
+            [playerContext.site, playerContext.userid, playerContext.scormid,
+                playerContext.scoid, playerContext.attempt].join(":");
 
-            window.parent.postMessage({
+        function setSyncText(key) {
+            if (syncEl) syncEl.textContent = I18n.t(key);
+        }
+
+        function pendingMessages() {
+            try {
+                var data = JSON.parse(localStorage.getItem(outboxKey) || "[]");
+                return Array.isArray(data) ? data : [];
+            } catch (error) {
+                return [];
+            }
+        }
+
+        function sendOfflineMessage(action, payload) {
+            if (!window.parent || window.parent === window) return;
+            var message = {
                 type: "kopere-scorm-offline",
                 version: "SCORM_1.2",
                 action: action,
+                eventid: "scorm-" + Date.now() + "-" + (++playerSequence),
+                sequence: playerSequence,
                 context: playerContext,
                 payload: payload || {},
                 timecreated: Date.now()
-            }, "*");
+            };
+            // Synchronous local outbox closes the gap before the parent's IDB commit.
+            if (playerContext.userid &&
+                    ["setvalue", "commit", "finish"].indexOf(action) >= 0) {
+                try {
+                    var queued = pendingMessages();
+                    queued.push(message);
+                    localStorage.setItem(outboxKey, JSON.stringify(queued));
+                    setSyncText("scorm.sync.local");
+                } catch (error) {
+                    setSyncText("scorm.sync.localerror");
+                    return;
+                }
+            }
+            window.parent.postMessage(message, "*");
         }
+
+        window.addEventListener("message", function (event) {
+            if (event.source !== window.parent || !event.data) return;
+            if (event.data.type === "kopere-scorm-offline-ack") {
+                if (event.data.status !== "stored") {
+                    setSyncText("scorm.sync.localerror");
+                    return;
+                }
+                try {
+                    var remaining = pendingMessages().filter(function (message) {
+                        return message.eventid !== event.data.eventid;
+                    });
+                    localStorage.setItem(outboxKey, JSON.stringify(remaining));
+                    setSyncText("scorm.sync.stored");
+                } catch (error) {
+                    // A retained outbox entry is harmless: IDB deduplicates eventid.
+                    setSyncText("scorm.sync.localerror");
+                }
+            }
+            if (event.data.type === "kopere-scorm-sync-status") {
+                var status = event.data.status;
+                if (status === "confirmed") setSyncText("scorm.sync.confirmed");
+                if (status === "conflict") setSyncText("scorm.sync.conflict");
+                if (status === "rejected") setSyncText("scorm.sync.rejected");
+            }
+        });
+
+        function replayPendingMessages() {
+            if (!playerContext.userid || !window.parent || window.parent === window) return;
+            pendingMessages().forEach(function (message) {
+                window.parent.postMessage(message, "*");
+            });
+        }
+
+        replayPendingMessages();
 
         function normalizeLogLevel(messageLevel) {
             switch (messageLevel) {
@@ -183,7 +259,7 @@
         }
 
         if (!scormUrl) {
-            showError("Informe a URL do SCORM no parâmetro ?file=. Exemplo: player-12.html?file=/scorm/index_lms.html");
+            showError(I18n.t("scorm.player.missingfile", {example: "player-12.html?file=/scorm/index_lms.html"}));
             return;
         }
 
@@ -193,26 +269,38 @@
             launchUrl = new URL(scormUrl, window.location.href).toString();
             playerContext.launchurl = launchUrl;
         } catch (e) {
-            showError("URL inválida: " + scormUrl);
+            showError(I18n.t("scorm.player.invalidurl", {url: scormUrl}));
             return;
         }
 
         if (typeof Scorm12API === "undefined") {
-            showError("A biblioteca scorm-again não foi carregada.");
+            showError(I18n.t("scorm.player.missinglib12"));
             return;
         }
 
-        var storageKey = "scorm12:" + (playerContext.scormid || "0") + ":" + (playerContext.scoid || "0") + ":" + launchUrl;
+        var legacyStorageKey = "scorm12:" + (playerContext.scormid || "0") + ":" +
+            (playerContext.scoid || "0") + ":" + launchUrl;
+        var storageKey = "scorm12:" + (playerContext.scormid || "0") + ":" +
+            (playerContext.scoid || "0") + ":" + (playerContext.userid || "standalone") +
+            ":" + (playerContext.site || "standalone") + ":" +
+            playerContext.attempt + ":" + launchUrl;
 
         function loadPreviousData() {
             try {
                 var raw = localStorage.getItem(storageKey);
-
-                if (!raw) {
-                    return null;
+                if (!raw && playerContext.userid && playerContext.site &&
+                        String(playerContext.attempt) === "1") {
+                    // Import the old unscoped key only when the session owner matches.
+                    var owner = JSON.parse(localStorage.getItem("moodle-mobile-cache-owner") || "null");
+                    if (owner && String(owner.userid) === String(playerContext.userid) &&
+                            owner.site === playerContext.site) {
+                        raw = localStorage.getItem(legacyStorageKey);
+                        if (raw) {
+                            localStorage.setItem(storageKey, raw);
+                        }
+                    }
                 }
-
-                return JSON.parse(raw);
+                return raw ? JSON.parse(raw) : null;
             } catch (e) {
                 return null;
             }
@@ -228,7 +316,7 @@
 
                 return JSON.parse(raw);
             } catch (e) {
-                console.warn("Não foi possível ler os dados SCORM vindos do Moodle.", e);
+                console.warn(I18n.t("scorm.player.lmsdataerror"), e);
                 return null;
             }
         }
@@ -246,7 +334,7 @@
                 }
                 return true;
             } catch (e) {
-                console.warn("Não foi possível restaurar os dados SCORM salvos.", e);
+                console.warn(I18n.t("scorm.player.restoreerror", {version: "SCORM"}), e);
                 return false;
             }
         }
@@ -265,7 +353,7 @@
                 localStorage.setItem(storageKey, JSON.stringify(data));
                 return data;
             } catch (e) {
-                console.warn("Não foi possível salvar localmente os dados SCORM.", e);
+                console.warn(I18n.t("scorm.player.saveerror", {version: "SCORM"}), e);
                 return null;
             }
         }
@@ -316,7 +404,7 @@
         }
 
         window.API.on("LMSInitialize", function () {
-            statusEl.textContent = "SCORM iniciado";
+            statusEl.textContent = I18n.t("scorm.player.started", {version: "SCORM"});
             playerHeader.style.display = "flex";
             sendOfflineMessage("launch", {});
         });
@@ -332,7 +420,7 @@
 
         window.API.on("LMSCommit", function () {
             var currentData = saveLocalData();
-            statusEl.textContent = "Dados salvos";
+            statusEl.textContent = I18n.t("scorm.player.saved");
             playerHeader.style.display = "none";
             sendOfflineMessage("commit", {
                 currentData: currentData
@@ -341,7 +429,7 @@
 
         window.API.on("LMSFinish", function () {
             var currentData = saveLocalData();
-            statusEl.textContent = "SCORM finalizado";
+            statusEl.textContent = I18n.t("scorm.player.finished", {version: "SCORM"});
             playerHeader.style.display = "none";
             sendOfflineMessage("finish", {
                 currentData: currentData
@@ -360,7 +448,7 @@
         });
 
         frameEl.src = launchUrl;
-        statusEl.textContent = "Carregando SCORM...";
+        statusEl.textContent = I18n.t("scorm.player.loading", {version: "SCORM"});
         playerHeader.style.display = "flex";
     })();
 </script>

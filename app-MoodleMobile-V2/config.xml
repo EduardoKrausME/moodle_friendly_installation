@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='utf-8'?>
-<widget android-packageName="com.eduardokraus.aulaemvideo" ios-CFBundleIdentifier="com.eduardokraus.aulaemvideo" ios-CFBundleVersion="4.3.0" version="4.3.0" xmlns="http://www.w3.org/ns/widgets" xmlns:android="http://schemas.android.com/apk/res/android">
-    <preference name="AppendUserAgent" value=" AppMoodleMobileV2\/4.3.0" />
+<widget android-packageName="com.eduardokraus.aulaemvideo" ios-CFBundleIdentifier="com.eduardokraus.aulaemvideo" ios-CFBundleVersion="4.3.1" version="4.3.1" xmlns="http://www.w3.org/ns/widgets" xmlns:android="http://schemas.android.com/apk/res/android">
+    <preference name="AppendUserAgent" value=" AppMoodleMobileV2\/4.3.1" />
     <name>Aula em Vídeo</name>
     <description>Kraus Moodle™ Mobile</description>
     <author email="kraus@eduardokraus.com" href="https://eduardokraus.com">

@@ -1,32 +1,63 @@
 {
-    "dependencies": {
-        "cordova-plugin-kopere-media-notification": "github:EduardoKrausME/cordova-plugin-kopere-media-notification",
-        "xml": "^1.0.1",
-        "xml-js": "^1.6.11"
+  "dependencies": {
+    "cordova-plugin-kopere-media-notification": "github:EduardoKrausME/cordova-plugin-kopere-media-notification#49d37adf0ee6ad8c788a46d21e2f4826ac402b30",
+    "xml": "1.0.1",
+    "xml-js": "1.6.11"
+  },
+  "cordova": {
+    "plugins": {
+      "cordova-plugin-device": {},
+      "cordova-plugin-file": {
+        "ANDROIDX_WEBKIT_VERSION": "1.4.0"
+      },
+      "cordova-plugin-inappbrowser": {},
+      "cordova-plugin-ionic-webview": {},
+      "cordova-plugin-file-transfer": {},
+      "cordova-plugin-zip": {},
+      "cordova-plugin-kopere-media-notification": {
+        "ANDROIDX_CORE_VERSION": "1.13.1",
+        "ANDROIDX_MEDIA_VERSION": "1.7.0"
+      }
     },
-    "cordova": {
-        "plugins": {
-            "cordova-plugin-device": {},
-            "cordova-plugin-file": {
-                "ANDROIDX_WEBKIT_VERSION": "1.4.0"
-            },
-            "cordova-plugin-inappbrowser": {},
-            "cordova-plugin-ionic-webview": {},
-            "cordova-plugin-file-transfer": {},
-            "cordova-plugin-zip": {},
-            "cordova-plugin-kopere-media-notification": {
-                "ANDROIDX_CORE_VERSION": "1.13.1",
-                "ANDROIDX_MEDIA_VERSION": "1.7.0"
-            }
-        },
-        "platforms": []
-    },
-    "devDependencies": {
-        "cordova-plugin-device": "^3.0.0",
-        "cordova-plugin-file": "^8.1.3",
-        "cordova-plugin-file-transfer": "^2.0.0",
-        "cordova-plugin-inappbrowser": "^6.0.0",
-        "cordova-plugin-ionic-webview": "^5.0.1",
-        "cordova-plugin-zip": "github:EduardoKrausME/cordova-plugin-zip"
-    }
+    "platforms": []
+  },
+  "devDependencies": {
+    "cordova": "13.0.0",
+    "cordova-plugin-device": "3.0.0",
+    "cordova-plugin-file": "8.1.3",
+    "cordova-plugin-file-transfer": "2.0.1",
+    "cordova-plugin-inappbrowser": "6.0.1",
+    "cordova-plugin-ionic-webview": "5.0.1",
+    "cordova-plugin-zip": "github:EduardoKrausME/cordova-plugin-zip#173836f62dd5f2a7fa4e37a4d9cd7188b690b723"
+  },
+  "scripts": {
+    "test:i18n": "node scripts/check-i18n.js && node --test tests/i18n-keys.test.js tests/i18n-lifecycle.test.js tests/i18n-regression.test.js tests/i18n-scorm.test.js",
+    "test:session": "node --test tests/session-isolation.test.js",
+    "test:sync": "node --test tests/data-load-errors.test.js tests/api-retry-queue.test.js tests/offline-queue-transactions.test.js tests/mod-make-view-retry.test.js tests/sync-storage-panel.test.js",
+    "test:downloads": "node --test tests/course-offline-downloads.test.js tests/offline-file-cache.test.js tests/offline-module-contracts.test.js tests/offline-course-interface.test.js",
+    "test:offline-sync": "node --test tests/scorm-sync.test.js tests/scorm-sync-integration.test.js",
+    "test:regressions": "node --test tests/critical-flows.test.js tests/ci-infrastructure.test.js",
+    "test:all": "npm run test:i18n && npm run test:session && npm run test:sync && npm run test:downloads && npm run test:offline-sync && npm run test:regressions && npm run test:architecture && npm run test:build && npm run test:activities && npm run test:forum && npm run test:external-links && npm run test:mcp",
+    "validate:js": "node scripts/check-source.js",
+    "validate:assets": "node scripts/check-assets.js",
+    "validate:all": "npm run validate:js && npm run validate:assets && npm run validate:architecture && npm run validate:build",
+    "prepare:ci-www": "node scripts/prepare-ci-www.js",
+    "build:android:ci": "npm run prepare:ci-www && cordova platform add android@15.1.0 --no-save && cordova build android --debug",
+    "test:architecture": "node --test tests/app-runtime.test.js tests/course-navigation-architecture.test.js",
+    "validate:architecture": "node scripts/check-architecture.js",
+    "validate:build": "node scripts/check-build-dependencies.js",
+    "validate:plugins": "node scripts/check-native-plugins.js",
+    "test:build": "node --test tests/build-dependencies.test.js",
+    "audit:dependencies": "node scripts/audit-dependencies.js",
+    "build:ios:ci": "npm run prepare:ci-www && node scripts/prepare-ci-ios.js && cordova platform add ios@8.2.0 --no-save && cordova build ios --debug --emulator -- --buildFlag=CODE_SIGNING_ALLOWED=NO",
+    "test:activities": "node --test tests/native-activities.test.js",
+    "test:forum": "node --test tests/native-forum.test.js",
+    "test:external-links": "node --test tests/browser-link.test.js",
+    "test:mcp": "node --test tests/mod-mcp.test.js"
+  },
+  "engines": {
+    "node": ">=22.9.0 <23",
+    "npm": ">=10 <11"
+  },
+  "packageManager": "npm@10.9.2"
 }

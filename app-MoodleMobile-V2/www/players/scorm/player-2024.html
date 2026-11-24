@@ -5,6 +5,10 @@
     <title>SCORM 2004 Player</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
+    <script src="../../lang/i18n.js"></script>
+    <script src="../../lang/pt_br.js"></script>
+    <script src="player-i18n.js"></script>
+
     <script src="scorm-again.js"></script>
     <script src="scorm2004.js"></script>
 
@@ -60,7 +64,7 @@
 
 <div class="player-header">
     <div class="player-title">SCORM 2004</div>
-    <div id="status" class="player-status">Inicializando...</div>
+    <div id="status" class="player-status"></div>
 </div>
 
 <div id="error" class="player-error"></div>
@@ -77,22 +81,24 @@
         "use strict";
 
         var params = new URLSearchParams(window.location.search);
+        ScormPlayerI18n.init(params);
 
-        var scormUrl = params.get("file");
+        var scormUrl = params.get("file") || params.get("url");
         var commitUrl = params.get("commit"); // Optional endpoint to save data on your server.
 
         var statusEl = document.getElementById("status");
         var errorEl = document.getElementById("error");
         var frameEl = document.getElementById("scorm-frame");
+        statusEl.textContent = I18n.t("scorm.player.initializing");
 
         function showError(message) {
             errorEl.style.display = "block";
             errorEl.textContent = message;
-            statusEl.textContent = "Erro";
+            statusEl.textContent = I18n.t("error.error");
         }
 
         if (!scormUrl) {
-            showError("Informe a URL do SCORM no parâmetro ?url=. Exemplo: scorm2004-player.html?url=/scorm/index_lms.html");
+            showError(I18n.t("scorm.player.missingfile", {example: "player-2024.html?file=/scorm/index_lms.html"}));
             return;
         }
 
@@ -101,12 +107,12 @@
         try {
             launchUrl = new URL(scormUrl, window.location.href).toString();
         } catch (e) {
-            showError("URL inválida: " + scormUrl);
+            showError(I18n.t("scorm.player.invalidurl", {url: scormUrl}));
             return;
         }
 
         if (typeof Scorm2004API === "undefined") {
-            showError("A biblioteca scorm-again para SCORM 2004 não foi carregada.");
+            showError(I18n.t("scorm.player.missinglib2004"));
             return;
         }
 
@@ -132,7 +138,7 @@
                     localStorage.setItem(storageKey, JSON.stringify(commitObject));
                 }
             } catch (e) {
-                console.warn("Não foi possível salvar localmente os dados SCORM 2004.", e);
+                console.warn(I18n.t("scorm.player.saveerror", {version: "SCORM 2004"}), e);
             }
         }
 
@@ -149,7 +155,7 @@
                 body: JSON.stringify(commitObject),
                 credentials: "include"
             }).catch(function (e) {
-                console.warn("Falha ao enviar commit SCORM 2004 para o servidor.", e);
+                console.warn(I18n.t("scorm.player.servererror", {version: "SCORM 2004"}), e);
             });
         }
 
@@ -181,7 +187,7 @@
             try {
                 window.API_1484_11.loadFromFlattenedJSON(previousData);
             } catch (e) {
-                console.warn("Não foi possível restaurar os dados SCORM 2004 salvos.", e);
+                console.warn(I18n.t("scorm.player.restoreerror", {version: "SCORM 2004"}), e);
             }
         } else {
             window.API_1484_11.loadFromFlattenedJSON({
@@ -194,7 +200,7 @@
         }
 
         window.API_1484_11.on("Initialize", function () {
-            statusEl.textContent = "SCORM 2004 iniciado";
+            statusEl.textContent = I18n.t("scorm.player.started", {version: "SCORM 2004"});
         });
 
         window.API_1484_11.on("SetValue.*", function (element, value) {
@@ -202,15 +208,15 @@
         });
 
         window.API_1484_11.on("SetValue.cmi.completion_status", function (element, value) {
-            statusEl.textContent = "Status: " + value;
+            statusEl.textContent = I18n.t("scorm.player.status", {status: value});
         });
 
         window.API_1484_11.on("Commit", function () {
-            statusEl.textContent = "Dados salvos";
+            statusEl.textContent = I18n.t("scorm.player.saved");
         });
 
         window.API_1484_11.on("Terminate", function () {
-            statusEl.textContent = "SCORM 2004 finalizado";
+            statusEl.textContent = I18n.t("scorm.player.finished", {version: "SCORM 2004"});
         });
 
         window.addEventListener("beforeunload", function () {
@@ -229,7 +235,7 @@
         });
 
         frameEl.src = launchUrl;
-        statusEl.textContent = "Carregando SCORM 2004...";
+        statusEl.textContent = I18n.t("scorm.player.loading", {version: "SCORM 2004"});
     })();
 </script>
 

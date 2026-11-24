@@ -107,8 +107,24 @@
 #course-top .status-download .course-progress {
   display: none;
 }
-#course-top .status-download .course-done {
+#course-top .status-download .course-done,
+#course-top .status-download .course-partial,
+#course-top .status-download .course-error {
   display: none;
+}
+#course-top .status-download .course-partial,
+#course-top .status-download .course-error {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  padding: 0;
+  align-items: center;
+  gap: 4px;
+}
+#course-top .status-download.course-partial .course-partial,
+#course-top .status-download.course-error .course-error {
+  display: flex;
 }
 #course-top .status-download.download-course .download-course {
   display: block;
@@ -174,17 +190,23 @@
 }
 #page-format-topics #course-top .status-download .download-course,
 #page-format-topics #course-top .status-download .course-progress,
-#page-format-topics #course-top .status-download .course-done {
+#page-format-topics #course-top .status-download .course-done,
+#page-format-topics #course-top .status-download .course-partial,
+#page-format-topics #course-top .status-download .course-error {
   display: none;
 }
 #page-format-topics #course-top .status-download.download-course .download-course, #page-format-topics #course-top .status-download.course-progress .course-progress, #page-format-topics #course-top .status-download.course-done .course-done {
   display: block;
 }
+#page-format-topics #course-top .status-download.course-partial .course-partial,
+#page-format-topics #course-top .status-download.course-error .course-error {
+  display: flex;
+}
 #page-format-topics #course-top .status-download:not(.download-course) .download-course {
   display: none !important;
 }
-#page-format-topics #course-top .download-course {
-  display: flex !important;
+#page-format-topics #course-top .status-download.download-course .download-course {
+  display: flex;
   align-items: center;
   gap: 5px;
 }
