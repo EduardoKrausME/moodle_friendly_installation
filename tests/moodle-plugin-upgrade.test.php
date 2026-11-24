@@ -60,6 +60,27 @@ namespace {
         verifyUpgrade(in_array($legacy['webroot'] . '/admin/cli/upgrade.php',
             MoodlePluginUpgrade::command($legacy, PHP_BINARY, 'www-data'), true),
             'Legacy Moodle admin/cli path discovered');
+        // HTTP public/ can exist while the CLI entry point remains in the Moodle root.
+        $publiccli = $site['webroot'] . '/admin/cli/upgrade.php';
+        $rootcli = $site['moodle_dir'] . '/admin/cli/upgrade.php';
+        unlink($publiccli);
+        verifyUpgrade(in_array($rootcli, MoodlePluginUpgrade::command($site, PHP_BINARY, 'www-data'), true),
+            'Public webroot falls back to root admin/cli upgrade');
+        unlink($rootcli);
+        try {
+            MoodlePluginUpgrade::command($site, PHP_BINARY, 'www-data');
+            throw new \RuntimeException('Expected missing CLI failure.');
+        } catch (\RuntimeException $e) {
+            verifyUpgrade(str_contains($e->getMessage(), 'Moodle CLI upgrade.php not found:')
+                && str_contains($e->getMessage(), $rootcli)
+                && str_contains($e->getMessage(), $publiccli), 'Missing CLI reports both candidate paths');
+        }
+        file_put_contents($publiccli, "<?php\n");
+        verifyUpgrade(in_array($publiccli, MoodlePluginUpgrade::command($legacy, PHP_BINARY, 'www-data'), true),
+            'Legacy webroot falls back to public admin/cli upgrade');
+        file_put_contents($rootcli, "<?php\n");
+        verifyUpgrade(in_array($publiccli, MoodlePluginUpgrade::command($site, PHP_BINARY, 'www-data'), true),
+            'Configured webroot takes precedence when both CLI paths exist');
         $calls = 0;
         MoodlePluginUpgrade::run($site, $root . '/dummy.log',
             static function(array $argv, string $log) use (&$calls): int { ++$calls; return 0; });

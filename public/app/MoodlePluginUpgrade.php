@@ -24,9 +24,22 @@ final class MoodlePluginUpgrade {
             || !in_array($webroot, [$moodledir, $moodledir . '/public'], true)) {
             throw new RuntimeException('Moodle installation could not be verified for ' . $domain);
         }
-        $upgrade = $webroot . '/admin/cli/upgrade.php';
-        if (!is_file($upgrade) || !is_readable($upgrade)) {
-            throw new RuntimeException('Moodle CLI upgrade.php not found: ' . $upgrade);
+        // The CLI entry point does not necessarily live under the HTTP document root.
+        // Check both supported layouts, preferring the configured webroot.
+        $candidates = array_unique([
+            $webroot . '/admin/cli/upgrade.php',
+            $moodledir . '/admin/cli/upgrade.php',
+            $moodledir . '/public/admin/cli/upgrade.php',
+        ]);
+        $upgrade = null;
+        foreach ($candidates as $candidate) {
+            if (is_file($candidate) && is_readable($candidate)) {
+                $upgrade = $candidate;
+                break;
+            }
+        }
+        if ($upgrade === null) {
+            throw new RuntimeException('Moodle CLI upgrade.php not found: ' . implode(', ', $candidates));
         }
         if ($phpbin === '' || $phpbin[0] !== '/' || !is_executable($phpbin)) {
             throw new RuntimeException('Invalid configured PHP CLI binary.');
