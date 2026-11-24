@@ -244,12 +244,13 @@ class MoodlePluginManager {
      * Performs the weekly remote check for every discovered Moodle site.
      *
      * @param bool $force
-     * @return array
+     * @return array State with a transient executed flag indicating whether this call performed a check.
      */
     public static function checkAllSitesForUpdates(bool $force = false): array {
         $state = self::readState();
         $last = strtotime((string) ($state["last_weekly_check_at"] ?? ""));
         if (!$force && $last && (time() - $last) < self::WEEK_SECONDS) {
+            $state["executed"] = false;
             return $state;
         }
 
@@ -288,6 +289,7 @@ class MoodlePluginManager {
         $state["last_weekly_errors"] = $errors;
         self::writeState($state);
 
+        $state["executed"] = true;
         return $state;
     }
 
