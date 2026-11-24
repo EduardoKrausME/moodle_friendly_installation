@@ -113,7 +113,16 @@ try {
 
     $template = file_get_contents(__DIR__ . '/../public/app/templates/page/moodle-plugins.mustache');
     $controller = file_get_contents(__DIR__ . '/../public/moodle_plugins.php');
-    verify(str_contains($template, 'hero-card inverse plugin-update-confirmation'), 'Confirmation card uses vertical layout');
+    verify(str_contains($template, 'class="plugin-update-info"')
+        && strpos($template, 'class="plugin-update-info"') < strpos($template, 'class="plugin-update-files"')
+        && !str_contains($template, 'hero-card inverse plugin-update-confirmation'), 'Confirmation uses separate information and file columns');
+    foreach (['style.scss', 'style.css'] as $stylesheet) {
+        $css = file_get_contents(__DIR__ . '/../public/assets/' . $stylesheet);
+        verify(str_contains($css, 'grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr)')
+            && preg_match('/\\.plugin-update-file-list\\s*\\{[^}]*max-height:\\s*300px;[^}]*overflow-y:\\s*auto;/s', $css)
+            && preg_match('/@media \\(max-width: 920px\\)\\s*\\{\\s*\\.plugin-update-confirmation\\s*\\{\\s*grid-template-columns:\\s*minmax\\(0, 1fr\\)/', $css),
+            'Responsive columns and bounded scrolling in ' . $stylesheet);
+    }
     verify(str_contains($template, 'name="action" value="confirm_plugin_update_without_backup"')
         && str_contains($template, 'name="action" value="confirm_plugin_update"')
         && str_contains($template, 'name="action" value="cancel_plugin_update"'), 'All three actions are present');

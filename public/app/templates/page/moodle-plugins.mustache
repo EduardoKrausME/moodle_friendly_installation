@@ -14,12 +14,35 @@
 {{/has_flash}}
 
 {{#show_update_confirmation}}
-    <section class="card hero-card inverse plugin-update-confirmation" aria-labelledby="plugin-update-heading">
-        <header class="plugin-update-heading">
-            <h2 id="plugin-update-heading">{{i18n.moodle_plugins.update_confirm_heading}}</h2>
-            <code>{{update_component}}</code>
-        </header>
-        <div class="alert warning">{{i18n.moodle_plugins.update_confirm_intro}}</div>
+    <section class="card plugin-update-confirmation{{^has_update_changes}} plugin-update-confirmation-single{{/has_update_changes}}" aria-labelledby="plugin-update-heading">
+        <div class="plugin-update-info">
+            <header class="plugin-update-heading">
+                <h2 id="plugin-update-heading">{{i18n.moodle_plugins.update_confirm_heading}}</h2>
+                <code>{{update_component}}</code>
+            </header>
+            <div class="alert warning">{{i18n.moodle_plugins.update_confirm_intro}}</div>
+            <p class="plugin-update-preserved">{{update_preserved_summary}}</p>
+            <div class="hero-actions plugin-update-actions">
+                <form method="post" class="inline-form">
+                    <input type="hidden" name="csrf_token" value="{{csrf_token}}">
+                    <input type="hidden" name="action" value="cancel_plugin_update">
+                    <button type="submit" class="button secondary">{{i18n.moodle_plugins.link_cancel_button}}</button>
+                </form>
+                <form method="post" class="inline-form">
+                    <input type="hidden" name="csrf_token" value="{{csrf_token}}">
+                    <input type="hidden" name="action" value="confirm_plugin_update_without_backup">
+                    <input type="hidden" name="update_nonce" value="{{update_nonce}}">
+                    <button type="submit" class="button plugin-update-no-backup" aria-describedby="plugin-update-risk" {{#upgrade_busy}}disabled{{/upgrade_busy}}>{{i18n.moodle_plugins.update_without_backup}}</button>
+                </form>
+                <form method="post" class="inline-form">
+                    <input type="hidden" name="csrf_token" value="{{csrf_token}}">
+                    <input type="hidden" name="action" value="confirm_plugin_update">
+                    <input type="hidden" name="update_nonce" value="{{update_nonce}}">
+                    <button type="submit" class="button" {{#upgrade_busy}}disabled{{/upgrade_busy}}>{{i18n.moodle_plugins.update_confirm_button}}</button>
+                </form>
+            </div>
+            <p id="plugin-update-risk" class="plugin-update-risk">{{i18n.moodle_plugins.update_without_backup_warning}}</p>
+        </div>
         {{#has_update_changes}}
             <div class="plugin-update-files">
                 <h3>{{i18n.moodle_plugins.update_changed_files}} ({{update_change_count}})</h3>
@@ -33,27 +56,6 @@
                 </ul>
             </div>
         {{/has_update_changes}}
-        <p class="plugin-update-preserved">{{update_preserved_summary}}</p>
-        <div class="hero-actions plugin-update-actions">
-            <form method="post" class="inline-form">
-                <input type="hidden" name="csrf_token" value="{{csrf_token}}">
-                <input type="hidden" name="action" value="cancel_plugin_update">
-                <button type="submit" class="button secondary">{{i18n.moodle_plugins.link_cancel_button}}</button>
-            </form>
-            <form method="post" class="inline-form">
-                <input type="hidden" name="csrf_token" value="{{csrf_token}}">
-                <input type="hidden" name="action" value="confirm_plugin_update_without_backup">
-                <input type="hidden" name="update_nonce" value="{{update_nonce}}">
-                <button type="submit" class="button plugin-update-no-backup" aria-describedby="plugin-update-risk" {{#upgrade_busy}}disabled{{/upgrade_busy}}>{{i18n.moodle_plugins.update_without_backup}}</button>
-            </form>
-            <form method="post" class="inline-form">
-                <input type="hidden" name="csrf_token" value="{{csrf_token}}">
-                <input type="hidden" name="action" value="confirm_plugin_update">
-                <input type="hidden" name="update_nonce" value="{{update_nonce}}">
-                <button type="submit" class="button" {{#upgrade_busy}}disabled{{/upgrade_busy}}>{{i18n.moodle_plugins.update_confirm_button}}</button>
-            </form>
-        </div>
-        <p id="plugin-update-risk" class="plugin-update-risk">{{i18n.moodle_plugins.update_without_backup_warning}}</p>
     </section>
 {{/show_update_confirmation}}
 

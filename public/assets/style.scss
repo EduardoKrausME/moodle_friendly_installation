@@ -3067,10 +3067,26 @@ body.auth-page.onboarding-page {
     border-radius: inherit;
     background: linear-gradient(90deg, #2563EB, #60A5FA);
 }
-/* Plugin update confirmation: a vertical form, not a horizontal summary. */
+/* Plugin update confirmation: controls on the left, scrollable file list on the right. */
 .plugin-update-confirmation {
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+    align-items: start;
     min-width: 0;
+    gap: 24px;
+    margin-bottom: 18px;
+}
+.plugin-update-confirmation-single {
+    grid-template-columns: minmax(0, 1fr);
+}
+.plugin-update-info {
+    display: flex;
+    flex-direction: column;
     gap: 16px;
+    min-width: 0;
+}
+.plugin-update-files {
+    min-width: 0;
 }
 .plugin-update-confirmation .plugin-update-heading {
     display: flex;
@@ -3091,8 +3107,11 @@ body.auth-page.onboarding-page {
     list-style: none;
     padding: 0;
     margin: 0;
-    max-height: 240px;
-    overflow: auto;
+    max-height: 300px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    overscroll-behavior: contain;
+    scrollbar-gutter: stable;
     border: 1px solid var(--line);
     border-radius: 12px;
 }
@@ -3118,7 +3137,7 @@ body.auth-page.onboarding-page {
     font-weight: 700;
 }
 .plugin-update-actions {
-    justify-content: flex-end;
+    justify-content: flex-start;
     padding-top: 14px;
     border-top: 1px solid var(--line);
 }
@@ -3134,7 +3153,13 @@ body.auth-page.onboarding-page {
 .plugin-update-confirmation .plugin-update-risk {
     color: #991B1B;
     font-size: 13px;
-    text-align: right;
+    text-align: left;
+}
+@media (max-width: 920px) {
+    .plugin-update-confirmation {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 18px;
+    }
 }
 @media (max-width: 640px) {
     .plugin-update-actions .inline-form {
