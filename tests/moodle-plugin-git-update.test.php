@@ -92,6 +92,33 @@ try {
     verify($preview['confirmation_required'], 'Previously FTP-installed plugin can be previewed');
     $result = MoodlePluginGitUpdater::update($ftp, $commit, $backups, [$web], $preview['fingerprint']);
     verify(is_file($result['backup']) && file_get_contents($ftp . '/code.php') === "third\n", 'FTP differences no longer permanently block updates');
+    $nobackup = $root . '/must-not-exist';
+    file_put_contents($ftp . '/code.php', "discard this\n");
+    file_put_contents($ftp . '/local-extra.php', "keep this\n");
+    try {
+        MoodlePluginGitUpdater::update($ftp, $commit, $nobackup, [$web], null, true);
+        throw new RuntimeException('Missing confirmation was accepted');
+    } catch (RuntimeException $e) {
+        verify(str_contains($e->getMessage(), 'confirmação explícita'), 'No backup requires explicit confirmation');
+    }
+    $preview = MoodlePluginGitUpdater::update($ftp, $commit, $nobackup, [$web]);
+    file_put_contents($ftp . '/code.php', "changed after preview\n");
+    $stale = MoodlePluginGitUpdater::update($ftp, $commit, $nobackup, [$web], $preview['fingerprint'], true);
+    verify($stale['confirmation_required'] && $stale['stale'], 'No-backup choice still rejects stale confirmation');
+    verify(file_get_contents($ftp . '/code.php') === "changed after preview\n", 'Stale confirmation leaves files untouched');
+    $result = MoodlePluginGitUpdater::update($ftp, $commit, $nobackup, [$web], $stale['fingerprint'], true);
+    verify(!$result['confirmation_required'] && $result['backup'] === '' && !file_exists($nobackup), 'Explicit no-backup update does not create backup');
+    verify(file_get_contents($ftp . '/code.php') === "third\n", 'No-backup update applies remote code');
+    verify(file_get_contents($ftp . '/local-extra.php') === "keep this\n", 'No-backup update preserves non-conflicting extra files');
+
+    $template = file_get_contents(__DIR__ . '/../public/app/templates/page/moodle-plugins.mustache');
+    $controller = file_get_contents(__DIR__ . '/../public/moodle_plugins.php');
+    verify(str_contains($template, 'hero-card inverse plugin-update-confirmation'), 'Confirmation card uses vertical layout');
+    verify(str_contains($template, 'name="action" value="confirm_plugin_update_without_backup"')
+        && str_contains($template, 'name="action" value="confirm_plugin_update"')
+        && str_contains($template, 'name="action" value="cancel_plugin_update"'), 'All three actions are present');
+    verify(str_contains($controller, 'MoodlePluginManager::update($site, $component, $confirmation, $withoutbackup)')
+        && str_contains($controller, 'JobManager::createPluginUpgradeJob($site, $result["component"])'), 'Both confirmation paths share upgrade scheduling');
     echo "ALL TESTS PASSED\n";
 } finally {
     exec('rm -rf -- ' . escapeshellarg($root));

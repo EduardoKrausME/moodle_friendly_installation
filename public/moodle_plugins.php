@@ -25,7 +25,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $action = isset($_POST["action"]) && is_string($_POST["action"]) ? $_POST["action"] : "";
 
     try {
-        if (in_array($action, ["install_plugin", "update_plugin", "request_git_link", "confirm_git_link", "confirm_plugin_update"], true)
+        if (in_array($action, ["install_plugin", "update_plugin", "request_git_link", "confirm_git_link", "confirm_plugin_update", "confirm_plugin_update_without_backup"], true)
             && JobManager::activeJob("plugin_upgrade", $domain) !== null) {
             throw new RuntimeException(t("moodle_plugins.upgrade_busy"));
         }
@@ -75,9 +75,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 unset($_SESSION["plugin_git_link_request"]);
             }
             $_SESSION["flash"] = t("moodle_plugins.link_cancelled");
-        } else if ($action === "update_plugin" || $action === "confirm_plugin_update") {
+        } else if (in_array($action, ["update_plugin", "confirm_plugin_update", "confirm_plugin_update_without_backup"], true)) {
             $confirmation = null;
-            if ($action === "confirm_plugin_update") {
+            $withoutbackup = $action === "confirm_plugin_update_without_backup";
+            if ($action !== "update_plugin") {
                 $pending = $_SESSION["plugin_update_request"] ?? null;
                 $nonce = $_POST["update_nonce"] ?? "";
                 if (!is_array($pending) || ($pending["domain"] ?? "") !== $domain ||
@@ -91,7 +92,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 $component = isset($_POST["component"]) && is_string($_POST["component"]) ? $_POST["component"] : "";
             }
             unset($_SESSION["plugin_update_request"]);
-            $result = MoodlePluginManager::update($site, $component, $confirmation);
+            $result = MoodlePluginManager::update($site, $component, $confirmation, $withoutbackup);
             if ($result["confirmation_required"]) {
                 $_SESSION["plugin_update_request"] = [
                     "domain" => $domain, "component" => $component,
@@ -108,6 +109,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 $_SESSION["flash"] = t("moodle_plugins.update_success", ["component" => $result["component"]]);
                 if ($result["backup"] !== "") {
                     $_SESSION["flash"] .= " " . t("moodle_plugins.update_backup_saved", ["path" => $result["backup"]]);
+                } else if ($withoutbackup) {
+                    $_SESSION["flash"] .= " " . t("moodle_plugins.update_without_backup_success");
                 }
             }
         } else if ($action === "cancel_plugin_update") {
@@ -299,8 +302,15 @@ $context = [
     "show_update_confirmation" => $updatepending !== null,
     "update_component" => $updatepending["component"] ?? "",
     "update_nonce" => $updatepending["nonce"] ?? "",
-    "update_changes" => $updatepending["changes"] ?? [],
-    "update_preserved_count" => count($updatepending["preserved"] ?? []),
+    "has_update_changes" => !empty($updatepending["changes"]),
+    "update_change_count" => count($updatepending["changes"] ?? []),
+    "update_changes" => array_map(static fn(string $entry): array => [
+        "status" => trim(substr($entry, 0, 2)),
+        "path" => substr($entry, 3),
+    ], $updatepending["changes"] ?? []),
+    "update_preserved_summary" => t("moodle_plugins.update_preserved", [
+        "count" => (string)count($updatepending["preserved"] ?? []),
+    ]),
     "has_plugins" => !empty($plugins),
     "plugins" => $plugins,
     "has_unmanaged_plugins" => !empty($unmanagedplugins),

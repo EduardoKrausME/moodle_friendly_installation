@@ -182,7 +182,8 @@ class MoodlePluginManager {
      * @param string $component
      * @return array
      */
-    public static function update(array $site, string $component, ?string $confirmation = null): array {
+    public static function update(array $site, string $component, ?string $confirmation = null,
+        bool $withoutbackup = false): array {
         $plugin = self::findInstalledPlugin($site, $component, true, true);
         $path = $plugin["path"];
         $remote = trim((string) ($plugin["remote"] ?? ""));
@@ -216,7 +217,7 @@ class MoodlePluginManager {
 
         require_once __DIR__ . '/MoodlePluginGitUpdater.php';
         $result = MoodlePluginGitUpdater::update($path, $commit, app_config_path("/data/plugin-backups"),
-            [self::webroot($site), dirname(__DIR__)], $confirmation);
+            [self::webroot($site), dirname(__DIR__)], $confirmation, $withoutbackup);
         if ($result['confirmation_required']) {
             return $result + ['component' => $component];
         }

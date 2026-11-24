@@ -13,10 +13,13 @@ use RuntimeException;
 final class MoodlePluginGitUpdater {
     /**
      * Return a confirmation preview or apply the pinned commit. Never discard local
-     * content without an explicit, matching confirmation and a successful private backup.
+     * content without an explicit, matching confirmation. Back up by default unless explicitly waived.
      */
     public static function update(string $path, string $commit, string $backuproot,
-        array $webroots, ?string $confirmation = null): array {
+        array $webroots, ?string $confirmation = null, bool $withoutbackup = false): array {
+        if ($withoutbackup && $confirmation === null) {
+            throw new RuntimeException('Atualizar sem backup exige confirmação explícita.');
+        }
         if (!preg_match('/^[0-9a-f]{40,64}$/D', $commit) || realpath($path) !== $path
             || !is_dir($path . '/.git') || is_link($path . '/.git')) {
             throw new RuntimeException('Diretório ou commit Git inválido.');
@@ -42,7 +45,7 @@ final class MoodlePluginGitUpdater {
                 return $plan + ['confirmation_required' => true, 'stale' => false];
             }
             $backup = '';
-            if ($plan['changes']) {
+            if ($plan['changes'] && !$withoutbackup) {
                 $backup = self::backup($path, $backuproot, $webroots);
                 // Detect changes made during backup before running the destructive operation.
                 if (!hash_equals($plan['fingerprint'], self::plan($git, $path, $commit)['fingerprint'])) {

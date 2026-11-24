@@ -3377,3 +3377,86 @@ body.auth-page.onboarding-page {
 }
 
 /*# sourceMappingURL=style.css.map */
+
+
+/* Plugin update confirmation: a vertical form, not a horizontal summary. */
+.plugin-update-confirmation {
+  min-width: 0;
+  gap: 16px;
+}
+.plugin-update-confirmation .plugin-update-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 10px;
+}
+.plugin-update-confirmation .plugin-update-heading h2,
+.plugin-update-confirmation .alert,
+.plugin-update-confirmation p {
+  margin: 0;
+}
+.plugin-update-files h3 {
+  margin: 0 0 10px;
+  font-size: 15px;
+}
+.plugin-update-file-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  max-height: 240px;
+  overflow: auto;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+.plugin-update-file-list li {
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr);
+  align-items: start;
+  gap: 10px;
+  padding: 8px 12px;
+}
+.plugin-update-file-list li + li {
+  border-top: 1px solid var(--line);
+}
+.plugin-update-file-list code {
+  background: transparent;
+  border: 0;
+  padding: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.plugin-update-file-status {
+  color: var(--warning);
+  font-weight: 700;
+}
+.plugin-update-actions {
+  justify-content: flex-end;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+}
+.plugin-update-actions .plugin-update-no-backup {
+  background: #FEF2F2;
+  color: #991B1B;
+  border: 1px solid #FECACA;
+  box-shadow: none;
+}
+.plugin-update-actions .plugin-update-no-backup:hover {
+  background: #FEE2E2;
+}
+.plugin-update-confirmation .plugin-update-risk {
+  color: #991B1B;
+  font-size: 13px;
+  text-align: right;
+}
+@media (max-width: 640px) {
+  .plugin-update-actions .inline-form {
+    width: 100%;
+  }
+  .plugin-update-actions .button {
+    width: 100%;
+    white-space: normal;
+  }
+  .plugin-update-confirmation .plugin-update-risk {
+    text-align: left;
+  }
+}
