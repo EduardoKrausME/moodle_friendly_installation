@@ -175,6 +175,20 @@ namespace {
         verifyUpgrade(!method_exists(JobManager::class, 'createServerControlJob')
             && !file_exists(__DIR__ . '/../public/app/ServerControlManager.php')
             && !file_exists(__DIR__ . '/../bin/cron-server_control.php'), 'Removed obsolete cache control implementation');
+        $bottom = strpos($template, 'class="site-details-bottom-grid');
+        $diagnostic = strpos($template, 'i18n.details.diagnostics_heading');
+        $files = strpos($template, 'i18n.details.files_heading');
+        $config = strpos($template, 'i18n.details.config_heading');
+        verifyUpgrade($bottom !== false && $diagnostic > $bottom && $files > $diagnostic && $config > $files
+            && strpos($template, 'i18n.details.flags_heading') < $bottom, 'Three site detail cards appear together at the end');
+        verifyUpgrade(str_contains($template, 'site-details-bottom-grid{{#stats_warning}} site-details-bottom-grid-single{{/stats_warning}}'),
+            'Diagnostics remain available when database statistics fail');
+        foreach (['style.scss', 'style.css'] as $stylesheet) {
+            $css = file_get_contents(__DIR__ . '/../public/assets/' . $stylesheet);
+            verifyUpgrade(preg_match('/\\.site-details-bottom-grid\\s*\\{[^}]*grid-template-columns:\\s*repeat\\(3, minmax\\(0, 1fr\\)\\)/s', $css)
+                && str_contains($css, '.site-details-bottom-grid:not(.site-details-bottom-grid-single)')
+                && str_contains($css, '@media (max-width: 920px)'), 'Responsive three-column site details: ' . $stylesheet);
+        }
         echo "ALL TESTS PASSED\n";
     } finally {
         cleanupUpgrade($root);

@@ -231,35 +231,8 @@
 
 
 
+{{^stats_warning}}
 <div class="details-grid">
-    <div class="card full-card">
-        <h2>{{{i18n.details.diagnostics_heading}}}</h2>
-        <div class="details-table">
-            {{#diagnostic_rows}}
-                <h2 style="display: flex;justify-content: space-between;">{{label}} {{{badge_html}}}</h2>
-                <div style="margin-bottom:16px;">
-                    <div class="diagnostic-message">{{message}}</div>
-                    {{#has_path}}
-                        <small><code>{{path}}</code></small>
-                    {{/has_path}}
-                    {{#has_resolved_ips}}
-                        <small>{{{i18n.details.dns}}}: {{resolved_ips}}</small>
-                    {{/has_resolved_ips}}
-                    {{#has_server_ips}}
-                        <small>{{{i18n.details.server}}}: {{server_ips}}</small>
-                    {{/has_server_ips}}
-                    {{#has_valid_to}}
-                        <small>{{{i18n.details.valid_to}}}: {{valid_to}}</small>
-                    {{/has_valid_to}}
-                    {{#has_issuer}}
-                        <small>{{{i18n.details.issuer}}}: {{issuer}}</small>
-                    {{/has_issuer}}
-                </div>
-            {{/diagnostic_rows}}
-        </div>
-    </div>
-
-    {{^stats_warning}}
         <div class="card full-card">
             <h2>{{{i18n.details.flags_heading}}}</h2>
             <p class="card-subtitle">{{{i18n.details.flags_intro}}}
@@ -290,7 +263,37 @@
                 {{/feature_flags}}
             </div>
         </div>
+</div>
+{{/stats_warning}}
 
+<div class="site-details-bottom-grid{{#stats_warning}} site-details-bottom-grid-single{{/stats_warning}}">
+    <div class="card site-diagnostics-card">
+        <h2>{{{i18n.details.diagnostics_heading}}}</h2>
+        <div class="details-table">
+            {{#diagnostic_rows}}
+                <h2 style="display: flex;justify-content: space-between;">{{label}} {{{badge_html}}}</h2>
+                <div style="margin-bottom:16px;">
+                    <div class="diagnostic-message">{{message}}</div>
+                    {{#has_path}}
+                        <small><code>{{path}}</code></small>
+                    {{/has_path}}
+                    {{#has_resolved_ips}}
+                        <small>{{{i18n.details.dns}}}: {{resolved_ips}}</small>
+                    {{/has_resolved_ips}}
+                    {{#has_server_ips}}
+                        <small>{{{i18n.details.server}}}: {{server_ips}}</small>
+                    {{/has_server_ips}}
+                    {{#has_valid_to}}
+                        <small>{{{i18n.details.valid_to}}}: {{valid_to}}</small>
+                    {{/has_valid_to}}
+                    {{#has_issuer}}
+                        <small>{{{i18n.details.issuer}}}: {{issuer}}</small>
+                    {{/has_issuer}}
+                </div>
+            {{/diagnostic_rows}}
+        </div>
+    </div>
+    {{^stats_warning}}
         <div class="card">
             <h2>{{{i18n.details.files_heading}}}</h2>
             <table class="details-table">
