@@ -66,6 +66,16 @@ try {
     $site = ['webroot' => dirname(dirname($ftp))];
     $local = MoodlePluginManager::localInstallation($site, $component);
     gitTestAssert($local !== null && !$local['has_git'], 'FTP plugin is detected even without .git');
+    $catalog = [
+        ['component' => $component, 'repository_url' => 'https://github.com/example/learnlingo'],
+        ['component' => 'local_missing', 'repository_url' => 'https://github.com/example/missing'],
+    ];
+    $discovered = MoodlePluginManager::installed($site, false, false, $catalog);
+    gitTestAssert(count($discovered) === 1 && $discovered[0]['component'] === $component
+        && !$discovered[0]['has_git'] && $discovered[0]['is_marketplace'], 'Marketplace plugin appears before Git is linked');
+    gitTestAssert($discovered[0]['remote'] === $catalog[0]['repository_url']
+        && $discovered[0]['version'] === '2026111500', 'Catalog supplies repository; version comes from installed files');
+    gitTestAssert(!file_exists($ftp . '/.git'), 'Read-only discovery never creates Git metadata');
     $linked = MoodlePluginGitLinker::attach($ftp, $remote, true);
     gitTestAssert($linked['created'] && $linked['tracked_changes'], 'FTP plugin is linked with local changes detected');
     gitTestAssert(is_dir($ftp . '/.git'), 'Git metadata was created');
@@ -108,6 +118,22 @@ try {
     gitTestAssert($repaired['tracked_changes'], 'Repair identifies existing local changes');
     gitTestAssert(file_get_contents($second . '/styles.css') === "manual change\n", 'Repair never resets local files');
 
+    $discovered = MoodlePluginManager::installed($site, false, false, $catalog);
+    gitTestAssert(count($discovered) === 1 && $discovered[0]['has_git'] && $discovered[0]['is_marketplace'],
+        'Git and catalog discovery do not duplicate installed plugins');
+    gitTestDelete($ftp . '/.git');
+    $discovered = MoodlePluginManager::installed($site, false, false, $catalog);
+    gitTestAssert(count($discovered) === 1 && !$discovered[0]['has_git'], 'Plugin remains installed after Moodle removes Git metadata');
+    gitTestAssert(file_get_contents($ftp . '/styles.css') === "custom FTP styles\n", 'Metadata loss does not change installed files');
+    gitTestAssert(MoodlePluginManager::installed($site, false, false, []) === [], 'Non-catalog unlinked plugins are not guessed');
+    MoodlePluginGitLinker::attach($ftp, $remote, true);
+    $discovered = MoodlePluginManager::installed($site, false, false, []);
+    gitTestAssert(count($discovered) === 1 && !$discovered[0]['is_marketplace'] && $discovered[0]['has_git'],
+        'Existing external Git plugins remain visible without marketplace membership');
+    $template = file_get_contents(__DIR__ . '/../public/app/templates/page/moodle-plugins.mustache');
+    $controller = file_get_contents(__DIR__ . '/../public/moodle_plugins.php');
+    gitTestAssert(!str_contains($template, 'has_unmanaged_plugins') && !str_contains($controller, 'unmanagedplugins'),
+        'Marketplace plugins use a single installed list');
     echo "ALL TESTS PASSED\n";
 } finally {
     gitTestDelete($root);

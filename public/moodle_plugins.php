@@ -153,7 +153,14 @@ if (!is_array($updatepending) || ($updatepending["domain"] ?? "") !== $domain ||
     $updatepending = null;
 }
 $forcerefresh = isset($_GET["refresh"]) && $_GET["refresh"] === "1";
-$plugins = MoodlePluginManager::installed($site, true, $forcerefresh);
+$marketplaceplugins = [];
+$marketplaceerror = "";
+try {
+    $marketplaceplugins = MoodlePluginManager::marketplaceCatalog();
+} catch (Throwable $e) {
+    $marketplaceerror = $e->getMessage();
+}
+$plugins = MoodlePluginManager::installed($site, true, $forcerefresh, $marketplaceplugins);
 $updatecount = 0;
 foreach ($plugins as $index => &$plugin) {
     $plugin["row_id"] = "plugin-details-" . $index;
@@ -165,6 +172,8 @@ foreach ($plugins as $index => &$plugin) {
     $plugin["short_local_commit"] = $plugin["local_commit"] !== "" ? substr($plugin["local_commit"], 0, 10) : "-";
     $plugin["short_remote_commit"] = $plugin["remote_commit"] !== "" ? substr($plugin["remote_commit"], 0, 10) : "-";
     $plugin["has_check_error"] = $plugin["check_error"] !== "";
+    $plugin["has_git"] = !empty($plugin["has_git"]);
+    $plugin["git_link_url"] = "";
     if (!empty($plugin["update_available"])) {
         $updatecount++;
         $plugin["status_badge_html"] = status_badge("warning", t("moodle_plugins.status_version_different"));
@@ -211,12 +220,8 @@ $marketplacetypeorder = array_flip([
     "filter", "auth", "enrol", "repository", "media", "profilefield", "message", "h5plib",
 ]);
 $marketplacetypecounts = [];
-$marketplaceplugins = [];
-$unmanagedplugins = [];
 $marketplacerepositories = [];
-$marketplaceerror = "";
 try {
-    $marketplaceplugins = MoodlePluginManager::marketplaceCatalog();
     foreach ($marketplaceplugins as &$marketplaceplugin) {
         $marketplacetype = strstr($marketplaceplugin["component"], "_", true) ?: "";
         $marketplaceplugin["type"] = $marketplacetype;
@@ -226,29 +231,12 @@ try {
         }
         $marketplaceplugin["is_installed"] = isset($installedcomponents[$marketplaceplugin["component"]]);
         $marketplacerepositories[$marketplaceplugin["component"]] = $marketplaceplugin["repository_url"];
-        $local = null;
-        try {
-            $local = MoodlePluginManager::localInstallation($site, $marketplaceplugin["component"]);
-        } catch (Throwable $e) {
-            $marketplaceplugin["local_error"] = $e->getMessage();
-        }
-        $marketplaceplugin["is_local_without_git"] = $local !== null && !$marketplaceplugin["is_installed"];
         $marketplaceplugin["can_install"] = !$marketplaceplugin["is_installed"] && !$upgradebusy;
         $marketplaceplugin["install_button_label"] = $marketplaceplugin["is_installed"]
             ? t("moodle_plugins.marketplace_installed")
-            : ($marketplaceplugin["is_local_without_git"]
-                ? t("moodle_plugins.link_action") : t("moodle_plugins.marketplace_install"));
+            : t("moodle_plugins.marketplace_install");
         if (!$marketplaceplugin["is_installed"] && $upgradebusy) {
             $marketplaceplugin["install_button_label"] = t("moodle_plugins.upgrade_wait_button");
-        }
-        if ($marketplaceplugin["is_local_without_git"]) {
-            $unmanagedplugins[] = [
-                "component" => $local["component"],
-                "version" => $local["version"] !== "" ? $local["version"] : "-",
-                "relative_path" => $local["relative_path"],
-                "git_url" => $marketplaceplugin["repository_url"],
-                "csrf_token" => csrf_token(),
-            ];
         }
         $marketplaceplugin["category_display"] = $marketplaceplugin["category"] !== ""
             ? ucfirst($marketplaceplugin["category"])
@@ -318,8 +306,6 @@ $context = [
     ]),
     "has_plugins" => !empty($plugins),
     "plugins" => $plugins,
-    "has_unmanaged_plugins" => !empty($unmanagedplugins),
-    "unmanaged_plugins" => $unmanagedplugins,
     "show_git_link_confirmation" => $linkpending !== null,
     "git_link_component" => $linkpending["component"] ?? "",
     "git_link_path" => $linkpending["path"] ?? "",

@@ -168,7 +168,8 @@
                                         <div class="flag-header"><strong>{{{i18n.moodle_plugins.local_details}}}</strong></div>
                                         <p><strong>{{{i18n.moodle_plugins.version}}}</strong><br><code>{{local_version}}</code></p>
                                         <p><strong>{{{i18n.moodle_plugins.release}}}</strong><br>{{local_release}}</p>
-                                        <p><strong>{{{i18n.moodle_plugins.commit}}}</strong><br><code>{{local_commit}}</code></p>
+                                        {{#has_git}}<p><strong>{{{i18n.moodle_plugins.commit}}}</strong><br><code>{{local_commit}}</code></p>{{/has_git}}
+                                        {{^has_git}}<p>{{i18n.moodle_plugins.git_recovered_on_update}}</p>{{/has_git}}
                                         <p><strong>{{{i18n.moodle_plugins.path}}}</strong><br><code>{{path}}</code></p>
                                     </div>
                                     <div class="server-control-item">
@@ -201,40 +202,6 @@
             </div>
         {{/has_plugins}}
     </div>
-
-    {{#has_unmanaged_plugins}}
-        <div class="card full-card">
-            <h2>{{{i18n.moodle_plugins.unmanaged_heading}}}</h2>
-            <p class="card-subtitle">{{{i18n.moodle_plugins.unmanaged_intro}}}</p>
-            <div style="overflow-x:auto;">
-                <table class="details-table" style="width:100%;">
-                    <thead><tr>
-                        <th>{{{i18n.moodle_plugins.column_plugin}}}</th>
-                        <th>{{{i18n.moodle_plugins.column_local_version}}}</th>
-                        <th>{{{i18n.moodle_plugins.column_action}}}</th>
-                    </tr></thead>
-                    <tbody>
-                        {{#unmanaged_plugins}}
-                            <tr>
-                                <td><strong>{{component}}</strong><p><code>{{relative_path}}</code></p></td>
-                                <td><code>{{version}}</code></td>
-                                <td>
-                                    <form method="post" class="inline-form">
-                                        <input type="hidden" name="csrf_token" value="{{csrf_token}}">
-                                        <input type="hidden" name="action" value="request_git_link">
-                                        <input type="hidden" name="git_url" value="{{git_url}}">
-                                        <button type="submit" class="button" {{#upgrade_busy}}disabled title="{{i18n.moodle_plugins.upgrade_busy}}" aria-describedby="plugin-upgrade-blocked"{{/upgrade_busy}}>
-                                            {{{i18n.moodle_plugins.link_action}}}
-                                        </button>
-                                    </form>
-                                </td>
-                            </tr>
-                        {{/unmanaged_plugins}}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    {{/has_unmanaged_plugins}}
 
     <div class="card full-card marketplace-card">
         <div class="section-heading-actions marketplace-heading">

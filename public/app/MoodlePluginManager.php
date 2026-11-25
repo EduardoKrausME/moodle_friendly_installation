@@ -13,15 +13,38 @@ class MoodlePluginManager {
 
 
     /**
-     * Returns Git-cloned Moodle plugins installed in this site.
+     * Returns installed marketplace plugins and existing Git-managed plugins.
      *
      * @param array $site
      * @param bool $checkremote
      * @return array
      */
-    public static function installed(array $site, bool $checkremote = true, bool $forcerefresh = false): array {
+    public static function installed(array $site, bool $checkremote = true, bool $forcerefresh = false,
+        ?array $catalog = null): array {
         $webroot = self::webroot($site);
         $plugins = [];
+        if ($catalog === null) {
+            try {
+                $catalog = self::marketplaceCatalog();
+            } catch (Throwable) {
+                // Keep existing Git-managed plugins visible if the catalog is unavailable.
+                $catalog = [];
+            }
+        }
+        $repositories = [];
+        foreach ($catalog as $entry) {
+            $component = (string)($entry["component"] ?? "");
+            $url = (string)($entry["repository_url"] ?? "");
+            try {
+                self::parseGithubRepository($url);
+                self::componentRelativePath($component);
+                if (preg_match('/^[a-z][a-z0-9_]*_[a-z][a-z0-9_]*$/D', $component)) {
+                    $repositories[$component] = $url;
+                }
+            } catch (Throwable) {
+                continue;
+            }
+        }
 
         foreach (self::gitPluginPaths($webroot) as $path) {
             $version = self::readVersionFile($path . "/version.php");
@@ -48,6 +71,8 @@ class MoodlePluginManager {
                 "remote" => self::gitValue($path, "config --get remote.origin.url"),
                 "branch" => self::gitValue($path, "rev-parse --abbrev-ref HEAD"),
                 "local_commit" => self::gitValue($path, "rev-parse HEAD"),
+                "has_git" => true,
+                "is_marketplace" => isset($repositories[$version["component"]]),
                 "remote_commit" => "",
                 "remote_version" => "",
                 "remote_release" => "",
@@ -59,9 +84,40 @@ class MoodlePluginManager {
                 $plugin = array_merge($plugin, self::remoteStatus($plugin, $forcerefresh));
             }
 
-            $plugins[] = $plugin;
+            $plugins[$plugin["component"]] = $plugin;
         }
 
+        // Moodle's ZIP updater replaces the directory and removes .git. The
+        // catalog component and the installed version.php remain authoritative.
+        foreach ($repositories as $component => $url) {
+            if (isset($plugins[$component])) {
+                continue;
+            }
+            try {
+                $local = self::localInstallation($site, $component);
+            } catch (Throwable) {
+                continue;
+            }
+            if ($local === null) {
+                continue;
+            }
+            $plugin = array_merge($local, [
+                "remote" => $url,
+                "branch" => "",
+                "local_commit" => "",
+                "is_marketplace" => true,
+                "remote_commit" => "",
+                "remote_version" => "",
+                "remote_release" => "",
+                "update_available" => false,
+                "check_error" => "",
+            ]);
+            if ($checkremote) {
+                $plugin = array_merge($plugin, self::remoteStatus($plugin, $forcerefresh));
+            }
+            $plugins[$component] = $plugin;
+        }
+        $plugins = array_values($plugins);
         usort($plugins, static fn(array $a, array $b): int => strcmp($a["component"], $b["component"]));
 
         if ($checkremote && !empty($site["domain"])) {
@@ -202,6 +258,26 @@ class MoodlePluginManager {
         if (!is_writable($path)) {
             throw new RuntimeException("O Apache não possui permissão de escrita no plugin: {$path}");
         }
+        if (empty($plugin["has_git"])) {
+            // Recover metadata only when the administrator requests an update.
+            // attach() preserves the entire installed working tree (including ZIP files).
+            if (empty($plugin["is_marketplace"])) {
+                throw new RuntimeException("Plugin sem repositório do Marketplace.");
+            }
+            $repository = self::parseGithubRepository($remote);
+            $cloneurl = "https://github.com/{$repository["owner"]}/{$repository["repo"]}.git";
+            require_once __DIR__ . '/MoodlePluginGitLinker.php';
+            MoodlePluginGitLinker::attach($path, [
+                "clone_url" => $cloneurl, "branch" => $branch, "component" => $component,
+            ]);
+            $plugin["has_git"] = true;
+            $plugin["remote"] = $cloneurl;
+            // Fetch again from the recovered checkout and validate its actual commit.
+            $plugin = array_merge($plugin, self::remoteStatus($plugin, true));
+            if ($plugin["check_error"] !== "" || !$plugin["update_available"]) {
+                throw new RuntimeException("Não foi possível confirmar a atualização após recuperar o Git: " . $plugin["check_error"]);
+            }
+        }
         // remoteStatus already fetched the branch. Pin and revalidate the exact commit,
         // rather than resetting to a mutable FETCH_HEAD shared with the update scanner.
         $commit = (string)$plugin['remote_commit'];
@@ -223,7 +299,10 @@ class MoodlePluginManager {
         }
 
         self::grantWebServerWriteAccess($path);
-        $updated = self::findInstalledPlugin($site, $component, true, true);
+        // Read the applied version locally; the redirected page refreshes the full site state.
+        $updated = array_merge($plugin, self::localInstallation($site, $component) ?? [], [
+            "local_commit" => $commit, "update_available" => false,
+        ]);
 
         return [
             "component" => $component,
@@ -259,13 +338,19 @@ class MoodlePluginManager {
         $totalsites = 0;
         $errors = [];
 
+        try {
+            $catalog = self::marketplaceCatalog();
+        } catch (Throwable $e) {
+            $catalog = [];
+            $errors[] = "Marketplace: " . $e->getMessage();
+        }
         foreach (SiteManager::all() as $site) {
             if (empty($site["domain"]) || empty($site["webroot"])) {
                 continue;
             }
             $totalsites++;
             try {
-                $plugins = self::installed($site, true);
+                $plugins = self::installed($site, true, false, $catalog);
                 foreach ($plugins as $plugin) {
                     if (!empty($plugin["update_available"])) {
                         $totalupdates++;
@@ -408,9 +493,13 @@ class MoodlePluginManager {
             throw new RuntimeException("Branch padrão inválido no repositório.");
         }
 
-        $encodedbranch = implode("/", array_map("rawurlencode", explode("/", $branch)));
+        // Read the version at the exact advertised HEAD, not a moving branch URL.
+        if (!preg_match('/^([0-9a-f]{40,64})[ \t]+HEAD$/mi', $output, $head)) {
+            throw new RuntimeException("Não foi possível identificar o commit remoto.");
+        }
+        $commit = $head[1];
         $rawurl = "https://raw.githubusercontent.com/{$repository["owner"]}/{$repository["repo"]}/" .
-            $encodedbranch . "/version.php";
+            $commit . "/version.php";
         $command = "curl -fsSL --connect-timeout 8 --max-time 20 " . escapeshellarg($rawurl) . " 2>&1";
         [$exitcode, $versionphp] = self::run($command);
         if ($exitcode !== 0 || trim($versionphp) === "") {
@@ -427,6 +516,7 @@ class MoodlePluginManager {
 
         return array_merge($version, [
             "branch" => $branch,
+            "commit" => $commit,
             "clone_url" => $cloneurl,
             "repository" => $repository["owner"] . "/" . $repository["repo"],
         ]);
@@ -444,12 +534,12 @@ class MoodlePluginManager {
             throw new RuntimeException("Componente de plugin inválido.");
         }
 
-        foreach (self::installed($site, $checkremote, $forcerefresh) as $plugin) {
+        foreach (self::installed($site, false) as $plugin) {
             if ($plugin["component"] === $component) {
-                return $plugin;
+                return $checkremote ? array_merge($plugin, self::remoteStatus($plugin, $forcerefresh)) : $plugin;
             }
         }
-        throw new RuntimeException("Plugin Git não encontrado: {$component}");
+        throw new RuntimeException("Plugin instalado não encontrado: {$component}");
     }
 
     /**
@@ -470,7 +560,8 @@ class MoodlePluginManager {
             "check_error" => "",
         ];
 
-        if ($remote === "" || $branch === "" || $branch === "HEAD" || $path === "") {
+        $withoutgit = empty($plugin["has_git"]);
+        if ($remote === "" || (!$withoutgit && ($branch === "" || $branch === "HEAD")) || $path === "") {
             $empty["check_error"] = "Remote, branch ou diretório local não identificado.";
             return $empty;
         }
@@ -479,7 +570,7 @@ class MoodlePluginManager {
             return $empty;
         }
 
-        $cachefile = self::remoteVersionCacheFile($remote, $branch, (string) ($plugin["component"] ?? ""));
+        $cachefile = self::remoteVersionCacheFile($remote, $withoutgit ? "@default" : $branch, (string) ($plugin["component"] ?? ""));
         $cachedir = dirname($cachefile);
 
         // A lock per repository/branch/component prevents simultaneous domains
@@ -504,8 +595,10 @@ class MoodlePluginManager {
                 } catch (Throwable) {
                     $cached = [];
                 }
-                if (self::remoteVersionCacheValid($cached, (string) ($plugin["component"] ?? ""))) {
-                    return self::remoteStatusFromCache($cached, $localversion);
+                if (self::remoteVersionCacheValid($cached, (string) ($plugin["component"] ?? ""))
+                    && (!$withoutgit || !empty($cached["branch"]))) {
+                    $status = self::remoteStatusFromCache($cached, $localversion);
+                    return $withoutgit ? $status + ["branch" => $cached["branch"]] : $status;
                 }
             }
 
@@ -520,6 +613,7 @@ class MoodlePluginManager {
                         "remote_commit" => $result["remote_commit"],
                         "remote_version" => $result["remote_version"],
                         "remote_release" => $result["remote_release"],
+                        "branch" => $result["branch"] ?? $branch,
                     ]);
                 } catch (Throwable) {
                     // An unwritable cache must not turn a successful Git check into an error.
@@ -585,6 +679,27 @@ class MoodlePluginManager {
         $remote = (string) $plugin["remote"];
         $branch = (string) $plugin["branch"];
         $localversion = (string) $plugin["version"];
+
+        if (empty($plugin["has_git"])) {
+            // No filesystem changes during page loads or scheduled checks.
+            try {
+                $info = self::inspectRemoteVersion($remote);
+                if ($info["component"] !== $plugin["component"] || $info["version"] === "") {
+                    throw new RuntimeException("O version.php remoto não corresponde ao plugin instalado.");
+                }
+                return [
+                    "branch" => $info["branch"],
+                    "remote_commit" => $info["commit"],
+                    "remote_version" => $info["version"],
+                    "remote_release" => $info["release"],
+                    "update_available" => $localversion !== $info["version"],
+                    "check_error" => "",
+                ];
+            } catch (Throwable $e) {
+                $empty["check_error"] = $e->getMessage();
+                return $empty;
+            }
+        }
 
         // Fetch only the remote branch into FETCH_HEAD. This updates Git metadata,
         // but never changes the plugin working tree while checking for updates.
