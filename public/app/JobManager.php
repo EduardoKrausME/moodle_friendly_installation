@@ -160,56 +160,6 @@ class JobManager {
     }
 
     /**
-     * Creates a queued ModSecurity or NGINX cache change.
-     *
-     * @param array $site
-     * @param string $control
-     * @param bool $enabled
-     * @return array
-     * @throws \Random\RandomException
-     * @throws \DateMalformedStringException
-     */
-    public static function createServerControlJob(array $site, string $control, bool $enabled): array {
-        if (!in_array($control, ["cache"], true)) {
-            throw new \InvalidArgumentException("Unsupported server control: {$control}");
-        }
-
-        $domain = $site["domain"];
-        foreach (self::all() as $existing) {
-            if (($existing["type"] ?? "") === "server_control"
-                && ($existing["domain"] ?? "") === $domain
-                && ($existing["control"] ?? "") === $control
-                && in_array(($existing["status"] ?? ""), ["pending", "running"], true)
-            ) {
-                return $existing;
-            }
-        }
-
-        $job = [
-            "id" => self::newId(),
-            "type" => "server_control",
-            "status" => "pending",
-            "domain" => $domain,
-            "control" => $control,
-            "enabled" => $enabled,
-            "created_at" => now_iso(),
-            "updated_at" => now_iso(),
-            "created_by" => Auth::user()["username"] ?? "system",
-            "log_file" => app_config_path("/data/logs") . "/{$control}-{$domain}-" . date("Ymd-His") . ".log",
-        ];
-
-        self::storeJob($job);
-        return $job;
-    }
-
-    /**
-     * Returns an active job for a type and domain.
-     *
-     * @param string $type
-     * @param string $domain
-     * @return array|null
-     */
-    /**
      * Queue a Moodle CLI upgrade after installing/updating plugin code.
      * An upgrade is site-wide, so concurrent requests reuse the same pending job.
      */
@@ -524,6 +474,49 @@ class JobManager {
     }
 
     /**
+     * Retire legacy web-server control jobs without executing any configuration
+     * changes. Called only while the root runner holds its exclusive lock.
+     * Completed/canceled history and existing logs are preserved.
+     */
+    public static function retireServerControlJobs(): int {
+        $count = 0;
+        foreach (self::all() as $job) {
+            if (($job["type"] ?? "") !== "server_control") {
+                continue;
+            }
+            $status = $job["status"] ?? "";
+            $id = (string)($job["id"] ?? "");
+            if ($id === "") {
+                continue;
+            }
+            if (in_array($status, ["pending", "waiting_dns"], true)) {
+                $result = self::cancelJob($id, "system");
+                if ($result["cancelled"]) {
+                    $count++;
+                }
+            } else if ($status === "running") {
+                // No older runner can still be executing while our lock is held.
+                // Mark interrupted operations as failed rather than claiming success.
+                $retired = self::updateJob($id, static function(array $current): array {
+                    if (($current["type"] ?? "") === "server_control" &&
+                        ($current["status"] ?? "") === "running") {
+                        $current["status"] = "failed";
+                        $current["finished_at"] = now_iso();
+                        $current["error"] = "Legacy server control removed; operation not resumed.";
+                        $current["admin_pass"] = null;
+                    }
+                    return $current;
+                });
+                if ($retired !== null && ($retired["status"] ?? "") === "failed") {
+                    self::writeQueueFile($retired);
+                    $count++;
+                }
+            }
+        }
+        return $count;
+    }
+
+    /**
      * Function nextPendingJob
      *
      * @return array|null
@@ -548,7 +541,7 @@ class JobManager {
                 continue;
             }
 
-            if (in_array($type, ["app_build", "server_control", "plugin_upgrade"], true) && $status == "pending") {
+            if (in_array($type, ["app_build", "plugin_upgrade"], true) && $status == "pending") {
                 $foregroundjobs[] = $job;
                 continue;
             }

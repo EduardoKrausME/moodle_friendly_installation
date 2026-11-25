@@ -150,6 +150,31 @@ namespace {
         verifyUpgrade((JobManager::nextPendingJob()['id'] ?? '') === 'background', 'Background runs when foreground is empty');
         JsonStorage::write($queue, [$running, $done]);
         verifyUpgrade(JobManager::nextPendingJob() === null, 'No eligible jobs returns null');
+        $legacyPending = $job('legacy-pending', 'server_control', 'pending', '2026-01-01');
+        $legacyRunning = $job('legacy-running', 'server_control', 'running', '2026-01-01');
+        $legacyDone = $job('legacy-done', 'server_control', 'done', '2026-01-01');
+        $upgrade = $job('upgrade', 'plugin_upgrade', 'pending', '2026-01-01');
+        JsonStorage::write($queue, [$legacyPending, $legacyRunning, $legacyDone, $upgrade]);
+        verifyUpgrade((JobManager::nextPendingJob()['id'] ?? '') === 'upgrade', 'Retired controls cannot be selected by cron');
+        verifyUpgrade(JobManager::retireServerControlJobs() === 2, 'Pending and interrupted legacy controls retired');
+        $history = array_column(JobManager::all(), null, 'id');
+        verifyUpgrade($history['legacy-pending']['status'] === 'canceled', 'Pending legacy job canceled');
+        verifyUpgrade($history['legacy-running']['status'] === 'failed', 'Interrupted legacy job marked failed');
+        verifyUpgrade($history['legacy-done'] === $legacyDone, 'Completed legacy history preserved');
+        verifyUpgrade($history['upgrade'] === $upgrade, 'Plugin upgrade job untouched');
+        verifyUpgrade(JobManager::retireServerControlJobs() === 0, 'Legacy retirement is idempotent');
+        verifyUpgrade((JobManager::nextPendingJob()['id'] ?? '') === 'upgrade', 'Plugin upgrades remain executable');
+
+        $details = file_get_contents(__DIR__ . '/../public/details.php');
+        $template = file_get_contents(__DIR__ . '/../public/app/templates/page/details.mustache');
+        $bootstrap = file_get_contents(__DIR__ . '/../public/app/bootstrap.php');
+        $runner = file_get_contents(__DIR__ . '/../bin/cron-root-runner.php');
+        verifyUpgrade(!str_contains($details, 'server_control') && !str_contains($template, 'server_controls')
+            && !str_contains($bootstrap, 'ServerControlManager.php')
+            && !str_contains($runner, 'cron-server_control.php'), 'Removed cache UI, endpoint, bootstrap and cron dispatch');
+        verifyUpgrade(!method_exists(JobManager::class, 'createServerControlJob')
+            && !file_exists(__DIR__ . '/../public/app/ServerControlManager.php')
+            && !file_exists(__DIR__ . '/../bin/cron-server_control.php'), 'Removed obsolete cache control implementation');
         echo "ALL TESTS PASSED\n";
     } finally {
         cleanupUpgrade($root);

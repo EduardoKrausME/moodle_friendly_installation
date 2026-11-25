@@ -26,7 +26,6 @@ The project was designed for a server where each Moodle™ is located inside `/h
 - Shows diagnostics for DNS, SSL, NGINX/Apache, debug mode, and control flags.
 - Collects code, Moodledata, database, and disk usage through the root queue.
 - Displays bounded NGINX, Apache, and job logs for each domain.
-- Enables or disables ModSecurity and the per-site NGINX cache through validated queued jobs.
 - Creates a new Moodle™ installation through a queue.
 - Generates server configuration files using templates.
 - Installs the default plugins defined in `templates/install-moodle.sh`.
@@ -112,7 +111,7 @@ The domain details screen shows the size of the Moodle code, Moodledata, databas
 
 The logs screen reads only known files for the selected domain and job logs associated with that domain. Reads are limited to the final 256 KB and 500 lines, with an optional text filter and 15-second auto-refresh. New per-domain web server logs are rotated daily and retained for 14 rotations.
 
-ModSecurity and NGINX cache controls create root jobs. Before a changed configuration is activated, the runner validates it with `apache2ctl`/`httpd` or `nginx -t`. If validation or reload fails, the original configuration is restored. New installations include per-domain access/error logs and a managed ModSecurity block enabled by default when the module is available.
+New installations include per-domain access/error logs and a managed ModSecurity block enabled by default when the module is available. The panel no longer offers per-site NGINX cache toggles; existing NGINX configurations remain unchanged.
 
 ## Software Moodle™ installation
 

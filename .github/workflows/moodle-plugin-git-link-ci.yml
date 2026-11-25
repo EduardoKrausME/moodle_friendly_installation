@@ -12,6 +12,12 @@ on:
       - 'public/assets/style.css'
       - 'public/app/lang/**'
       - 'public/app/JobManager.php'
+      - 'public/details.php'
+      - 'public/app/templates/page/details.mustache'
+      - 'public/app/bootstrap.php'
+      - 'bin/cron-root-runner.php'
+      - 'public/app/ServerControlManager.php'
+      - 'bin/cron-server_control.php'
       - 'tests/moodle-plugin-upgrade.test.php'
       - 'tests/moodle-plugin-git-link.test.php'
       - 'tests/moodle-plugin-git-update.test.php'
@@ -27,6 +33,12 @@ on:
       - 'public/assets/style.css'
       - 'public/app/lang/**'
       - 'public/app/JobManager.php'
+      - 'public/details.php'
+      - 'public/app/templates/page/details.mustache'
+      - 'public/app/bootstrap.php'
+      - 'bin/cron-root-runner.php'
+      - 'public/app/ServerControlManager.php'
+      - 'bin/cron-server_control.php'
       - 'tests/moodle-plugin-upgrade.test.php'
       - 'tests/moodle-plugin-git-link.test.php'
       - 'tests/moodle-plugin-git-update.test.php'
@@ -47,6 +59,9 @@ jobs:
           php -l public/app/lang/en.php
           php -l public/app/lang/es.php
           php -l public/app/JobManager.php
+          php -l public/details.php
+          php -l public/app/bootstrap.php
+          php -l bin/cron-root-runner.php
           php -l tests/moodle-plugin-upgrade.test.php
           php -l tests/moodle-plugin-git-link.test.php
       - name: Test linking existing plugins without overwriting FTP files

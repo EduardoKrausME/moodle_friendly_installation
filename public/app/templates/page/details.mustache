@@ -232,43 +232,7 @@
 
 
 <div class="details-grid">
-    <div class="card">
-        <h2>{{{i18n.server_controls.heading}}}</h2>
-        <p class="card-subtitle">{{{i18n.server_controls.intro}}}</p>
-        <div class="server-control-grid">
-            {{#server_controls}}
-                <div class="server-control-item">
-                    <div class="flag-header">
-                        <strong>{{label}}</strong>
-                        {{{badge_html}}}
-                    </div>
-                    <p>{{message}}</p>
-                    {{#has_active_job}}
-                        <a href="{{active_job_url}}">{{{i18n.server_controls.view_job}}}</a>
-                    {{/has_active_job}}
-                    <div style="display: flex;justify-content: space-between;align-items: center;">
-                        {{#has_path}}
-                            <small><code>{{path}}</code></small>
-                        {{/has_path}}
-                        {{#supported}}
-                            <form method="post" class="inline-form flag-actions">
-                                <input type="hidden" name="csrf_token" value="{{csrf_token}}">
-                                <input type="hidden" name="action" value="server_control">
-                                <input type="hidden" name="control" value="{{key}}">
-                                <input type="hidden" name="enabled" value="{{enabled_value}}">
-                                <button type="submit" class="{{button_class}}"
-                                        {{#has_active_job}}disabled{{/has_active_job}}>
-                                    {{button_label}}
-                                </button>
-                            </form>
-                        {{/supported}}
-                    </div>
-                </div>
-            {{/server_controls}}
-        </div>
-    </div>
-
-    <div class="card">
+    <div class="card full-card">
         <h2>{{{i18n.details.diagnostics_heading}}}</h2>
         <div class="details-table">
             {{#diagnostic_rows}}

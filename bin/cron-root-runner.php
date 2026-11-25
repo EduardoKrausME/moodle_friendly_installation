@@ -89,6 +89,16 @@ try {
         fwrite(STDERR, "Resource scheduling failed: {$e->getMessage()}\n");
     }
 
+    try {
+        $retired = JobManager::retireServerControlJobs();
+        if ($retired > 0) {
+            echo "Retired {$retired} legacy server control job(s).\n";
+        }
+    } catch (Throwable $e) {
+        // Legacy jobs are excluded from selection even if history cleanup fails.
+        fwrite(STDERR, "Legacy job retirement failed: {$e->getMessage()}\n");
+    }
+
     $job = JobManager::nextPendingJob();
     if ($job) {
         $jobscripts = [
@@ -96,7 +106,6 @@ try {
             "restore_moodle" => "cron-restore_moodle.php",
             "app_build" => "cron-app_build.php",
             "resource_usage" => "cron-resource_usage.php",
-            "server_control" => "cron-server_control.php",
             "plugin_upgrade" => "cron-plugin_upgrade.php",
             "cleanup_failed_installation" => "cron-cleanup_failed_installation.php",
         ];

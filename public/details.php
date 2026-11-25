@@ -4,7 +4,6 @@ use app\AppManager;
 use app\Auth;
 use app\JobManager;
 use app\ResourceUsageManager;
-use app\ServerControlManager;
 use app\SiteManager;
 
 require_once __DIR__ . "/app/bootstrap.php";
@@ -60,18 +59,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         redirect_to("/details.php?domain=" . urlencode($domain));
     }
 
-    if ($action == "server_control") {
-        $control = isset($_POST["control"]) && is_string($_POST["control"]) ? $_POST["control"] : "";
-        $enabled = isset($_POST["enabled"]) && $_POST["enabled"] === "1";
-        if (!in_array($control, ["cache"], true)) {
-            $_SESSION["flash"] = t("server_controls.invalid");
-        } else {
-            $job = JobManager::createServerControlJob($site, $control, $enabled);
-            $_SESSION["flash"] = t("server_controls.queued", ["id" => $job["id"]]);
-        }
-        redirect_to("/details.php?domain=" . urlencode($domain));
-    }
-
     // Compatibility with the previous debug form/action names.
     if ($action == "enable_debug" || $action == "disable_debug") {
         $result = SiteManager::setDebugMode($site, $action == "enable_debug");
@@ -86,14 +73,13 @@ $stats = $site["database_stats"] ?? ["connected" => false, "items" => [], "error
 $featureflags = $diagnostics["feature_flags"] ?? [];
 $resources = ResourceUsageManager::snapshot($domain);
 $resourcejob = JobManager::activeJob("resource_usage", $domain);
-$servercontrols = ServerControlManager::status($site);
 $site["course_identity"] = SiteManager::courseIdentity($site);
 $flash = flash_message();
 
 render_header($site["course_identity"]["fullname"]);
 echo render_app_template(
     "page/details",
-    details_page_context($site, $config, $diagnostics, $stats, $featureflags, $resources, $resourcejob, $servercontrols, $flash)
+    details_page_context($site, $config, $diagnostics, $stats, $featureflags, $resources, $resourcejob, $flash)
 );
 render_footer();
 
@@ -107,7 +93,6 @@ render_footer();
  * @param array $featureflags
  * @param array $resources
  * @param array|null $resourcejob
- * @param array $servercontrols
  * @param string|null $flash
  * @return array
  * @throws \Random\RandomException
@@ -120,7 +105,6 @@ function details_page_context(
     array $featureflags,
     array $resources,
     ?array $resourcejob,
-    array $servercontrols,
     ?string $flash
 ): array {
     $statsconnected = !empty($stats["connected"]);
@@ -199,8 +183,7 @@ function details_page_context(
         "feature_flags" => details_feature_flags($featureflags),
         "has_feature_flags" => !empty($featureflags),
         "resources" => details_resource_usage($resources, $resourcejob),
-        "server_controls" => details_server_controls($domain, $servercontrols),
-        "should_refresh" => $resourcejob !== null || details_has_active_server_control($domain),
+        "should_refresh" => $resourcejob !== null,
         "file_rows" => [
             details_info_row("Base", $site["base_dir"] ?? ""),
             details_info_row("Moodle", $site["moodle_dir"] ?? ""),
@@ -281,70 +264,6 @@ function details_resource_usage(array $snapshot, ?array $activejob): array {
         "database_error" => $snapshot["database_error"] ?? "",
         "csrf_token" => csrf_token(),
     ];
-}
-
-/**
- * Builds the queued web server controls.
- *
- * @param string $domain
- * @param array $controls
- * @return array
- */
-function details_server_controls(string $domain, array $controls): array {
-    $items = [];
-    foreach (["cache"] as $key) {
-        $control = is_array($controls[$key] ?? null) ? $controls[$key] : [];
-        $activejob = null;
-        foreach (JobManager::all() as $job) {
-            if (($job["type"] ?? "") === "server_control"
-                && ($job["domain"] ?? "") === $domain
-                && ($job["control"] ?? "") === $key
-                && in_array(($job["status"] ?? ""), ["pending", "running"], true)
-            ) {
-                $activejob = $job;
-                break;
-            }
-        }
-
-        $enabled = ($control["enabled"] ?? null) === true;
-        $targetenabled = !$enabled;
-        $items[] = [
-            "key" => $key,
-            "label" => $control["label"] ?? $key,
-            "message" => $control["message"] ?? "",
-            "path" => $control["path"] ?? "",
-            "has_path" => !empty($control["path"]),
-            "supported" => !empty($control["supported"]),
-            "has_active_job" => $activejob !== null,
-            "active_job_url" => !empty($activejob["id"]) ? "/jobs.php?job=" . rawurlencode($activejob["id"]) : "",
-            "badge_html" => $activejob !== null
-                ? status_badge((string) ($activejob["status"] ?? "pending"))
-                : status_badge((string) ($control["status"] ?? "muted"), (string) ($control["status_label"] ?? "-")),
-            "enabled_value" => $targetenabled ? "1" : "0",
-            "button_label" => t($targetenabled ? "actions.enable" : "actions.disable"),
-            "button_class" => $targetenabled ? "button" : "button warning",
-            "csrf_token" => csrf_token(),
-        ];
-    }
-    return $items;
-}
-
-/**
- * Checks if a server control job should refresh this page.
- *
- * @param string $domain
- * @return bool
- */
-function details_has_active_server_control(string $domain): bool {
-    foreach (JobManager::all() as $job) {
-        if (($job["type"] ?? "") === "server_control"
-            && ($job["domain"] ?? "") === $domain
-            && in_array(($job["status"] ?? ""), ["pending", "running"], true)
-        ) {
-            return true;
-        }
-    }
-    return false;
 }
 
 /**
